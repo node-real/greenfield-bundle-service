@@ -1,0 +1,217 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Bundle Service API
+  description: API for handling file bundling and querying objects in the Bundle Service.
+host: 'bundle-service.nodereal.io'
+basePath: /v1
+schemes:
+  - https
+
+paths:
+
+  /uploadObjects:
+    post:
+      tags:
+        - Object Upload
+      summary: Upload a single object to a bundle
+      description: >
+        Allows users to upload a single file along with a signature for validation, and a timestamp.
+      operationId: uploadObjects
+      consumes:
+        - multipart/form-data
+      parameters:
+        - name: file
+          in: formData
+          description: The file to be uploaded
+          required: true
+          type: file
+        - name: fileName
+          in: formData
+          description: The name of the file to be uploaded
+          required: true
+          type: string
+        - name: signature
+          in: formData
+          description: User's signature for the file
+          required: true
+          type: string
+        - name: timestamp
+          in: formData
+          description: Timestamp of the upload
+          required: true
+          type: integer
+          format: int64
+        - name: contentType
+          in: formData
+          description: Content type of the file
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successfully uploaded file
+          schema:
+            type: object
+            properties:
+              bundleName:
+                type: string
+                description: The name of the bundle where the file has been uploaded
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /bundleFile/{bundleName}/{objectName}:
+    get:
+      tags:
+        - Bundle File Retrieval
+      summary: Retrieve an object as a file from a bundle
+      description: >
+        Fetches a specific object from a given bundle and returns it as a file.
+      operationId: bundleFile
+      produces:
+        - application/octet-stream
+      parameters:
+        - name: bundleName
+          in: path
+          required: true
+          type: string
+          description: The name of the bundle
+        - name: objectName
+          in: path
+          required: true
+          type: string
+          description: The name of the object within the bundle
+      responses:
+        '200':
+          description: Successfully retrieved file
+          schema:
+            type: file
+        '404':
+          description: Bundle or object not found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /manageBundle:
+    post:
+      tags:
+        - Bundle Management
+      summary: Manage a bundle (start or end)
+      description: >
+        Manages the lifecycle of a bundle, either starting or ending it, based on the operation type.
+      operationId: manageBundle
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Parameters for managing a bundle
+          required: true
+          schema:
+            type: object
+            required:
+              - bundleName
+              - operationType
+              - signature
+            properties:
+              bundleName:
+                type: string
+                description: The name of the bundle to be managed
+              operationType:
+                type: string
+                description: The type of operation (start or end the bundle)
+                enum:
+                  - START_BUNDLE
+                  - END_BUNDLE
+              signature:
+                type: string
+                description: User's signature to authorize the operation
+      responses:
+        '200':
+          description: Successfully managed bundle
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+
+  /addBundleRule:
+    post:
+      tags:
+        - Bundle Configuration
+      summary: Add a new bundle rule
+      description: >
+        Creates a new rule for bundling files, including constraints and signature for authorization.
+      operationId: addBundleRule
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Bundle rule creation parameters
+          required: true
+          schema:
+            type: object
+            required:
+              - bucketName
+              - maxBundleSize
+              - maxBundleFiles
+              - maxFinalizeTime
+              - signature
+            properties:
+              bucketName:
+                type: string
+                description: Name of the bucket for which the rule applies
+              maxBundleSize:
+                type: integer
+                description: Maximum size of a bundle in bytes
+                format: int64
+              maxBundleFiles:
+                type: integer
+                description: Maximum number of files in a bundle
+                format: int32
+              maxFinalizeTime:
+                type: integer
+                description: Maximum time in seconds before a bundle must be finalized
+                format: int32
+              signature:
+                type: string
+                description: User's signature for authorization of rule creation
+      responses:
+        '200':
+          description: Successfully added bundle rule
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+
+definitions:
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int64
+        description: "HTTP error code"
+        example: "400/500"
+      message:
+        type: string
+        description: "Error message"
+        example: "Bad request/Internal server error"

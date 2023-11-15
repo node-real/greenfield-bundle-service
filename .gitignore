@@ -1,0 +1,13 @@
+vue/node_modules
+vue/dist
+release/
+greenfield-bundle-service-bak/.idea/
+.vscode/
+.DS_Store
+spec/
+Taskfile.yaml
+build/
+vendor/
+.local
+.task
+coverage.out

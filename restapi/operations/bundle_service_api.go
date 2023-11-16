@@ -19,10 +19,8 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle_configuration"
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle_file_retrieval"
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle_management"
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/object_upload"
+	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
+	"github.com/node-real/greenfield-bundle-service/restapi/operations/rule"
 )
 
 // NewBundleServiceAPI creates a new BundleService instance
@@ -48,17 +46,17 @@ func NewBundleServiceAPI(spec *loads.Document) *BundleServiceAPI {
 
 		BinProducer: runtime.ByteStreamProducer(),
 
-		BundleConfigurationAddBundleRuleHandler: bundle_configuration.AddBundleRuleHandlerFunc(func(params bundle_configuration.AddBundleRuleParams) middleware.Responder {
-			return middleware.NotImplemented("operation bundle_configuration.AddBundleRule has not yet been implemented")
+		RuleAddBundleRuleHandler: rule.AddBundleRuleHandlerFunc(func(params rule.AddBundleRuleParams) middleware.Responder {
+			return middleware.NotImplemented("operation rule.AddBundleRule has not yet been implemented")
 		}),
-		BundleFileRetrievalBundleFileHandler: bundle_file_retrieval.BundleFileHandlerFunc(func(params bundle_file_retrieval.BundleFileParams) middleware.Responder {
-			return middleware.NotImplemented("operation bundle_file_retrieval.BundleFile has not yet been implemented")
+		BundleBundleObjectHandler: bundle.BundleObjectHandlerFunc(func(params bundle.BundleObjectParams) middleware.Responder {
+			return middleware.NotImplemented("operation bundle.BundleObject has not yet been implemented")
 		}),
-		BundleManagementManageBundleHandler: bundle_management.ManageBundleHandlerFunc(func(params bundle_management.ManageBundleParams) middleware.Responder {
-			return middleware.NotImplemented("operation bundle_management.ManageBundle has not yet been implemented")
+		BundleManageBundleHandler: bundle.ManageBundleHandlerFunc(func(params bundle.ManageBundleParams) middleware.Responder {
+			return middleware.NotImplemented("operation bundle.ManageBundle has not yet been implemented")
 		}),
-		ObjectUploadUploadObjectsHandler: object_upload.UploadObjectsHandlerFunc(func(params object_upload.UploadObjectsParams) middleware.Responder {
-			return middleware.NotImplemented("operation object_upload.UploadObjects has not yet been implemented")
+		BundleUploadObjectHandler: bundle.UploadObjectHandlerFunc(func(params bundle.UploadObjectParams) middleware.Responder {
+			return middleware.NotImplemented("operation bundle.UploadObject has not yet been implemented")
 		}),
 	}
 }
@@ -99,14 +97,14 @@ type BundleServiceAPI struct {
 	//   - application/octet-stream
 	BinProducer runtime.Producer
 
-	// BundleConfigurationAddBundleRuleHandler sets the operation handler for the add bundle rule operation
-	BundleConfigurationAddBundleRuleHandler bundle_configuration.AddBundleRuleHandler
-	// BundleFileRetrievalBundleFileHandler sets the operation handler for the bundle file operation
-	BundleFileRetrievalBundleFileHandler bundle_file_retrieval.BundleFileHandler
-	// BundleManagementManageBundleHandler sets the operation handler for the manage bundle operation
-	BundleManagementManageBundleHandler bundle_management.ManageBundleHandler
-	// ObjectUploadUploadObjectsHandler sets the operation handler for the upload objects operation
-	ObjectUploadUploadObjectsHandler object_upload.UploadObjectsHandler
+	// RuleAddBundleRuleHandler sets the operation handler for the add bundle rule operation
+	RuleAddBundleRuleHandler rule.AddBundleRuleHandler
+	// BundleBundleObjectHandler sets the operation handler for the bundle object operation
+	BundleBundleObjectHandler bundle.BundleObjectHandler
+	// BundleManageBundleHandler sets the operation handler for the manage bundle operation
+	BundleManageBundleHandler bundle.ManageBundleHandler
+	// BundleUploadObjectHandler sets the operation handler for the upload object operation
+	BundleUploadObjectHandler bundle.UploadObjectHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -187,17 +185,17 @@ func (o *BundleServiceAPI) Validate() error {
 		unregistered = append(unregistered, "BinProducer")
 	}
 
-	if o.BundleConfigurationAddBundleRuleHandler == nil {
-		unregistered = append(unregistered, "bundle_configuration.AddBundleRuleHandler")
+	if o.RuleAddBundleRuleHandler == nil {
+		unregistered = append(unregistered, "rule.AddBundleRuleHandler")
 	}
-	if o.BundleFileRetrievalBundleFileHandler == nil {
-		unregistered = append(unregistered, "bundle_file_retrieval.BundleFileHandler")
+	if o.BundleBundleObjectHandler == nil {
+		unregistered = append(unregistered, "bundle.BundleObjectHandler")
 	}
-	if o.BundleManagementManageBundleHandler == nil {
-		unregistered = append(unregistered, "bundle_management.ManageBundleHandler")
+	if o.BundleManageBundleHandler == nil {
+		unregistered = append(unregistered, "bundle.ManageBundleHandler")
 	}
-	if o.ObjectUploadUploadObjectsHandler == nil {
-		unregistered = append(unregistered, "object_upload.UploadObjectsHandler")
+	if o.BundleUploadObjectHandler == nil {
+		unregistered = append(unregistered, "bundle.UploadObjectHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -292,19 +290,19 @@ func (o *BundleServiceAPI) initHandlerCache() {
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/addBundleRule"] = bundle_configuration.NewAddBundleRule(o.context, o.BundleConfigurationAddBundleRuleHandler)
+	o.handlers["POST"]["/addBundleRule"] = rule.NewAddBundleRule(o.context, o.RuleAddBundleRuleHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/bundleFile/{bundleName}/{objectName}"] = bundle_file_retrieval.NewBundleFile(o.context, o.BundleFileRetrievalBundleFileHandler)
+	o.handlers["GET"]["/bundleObject/{bundleName}/{objectName}"] = bundle.NewBundleObject(o.context, o.BundleBundleObjectHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/manageBundle"] = bundle_management.NewManageBundle(o.context, o.BundleManagementManageBundleHandler)
+	o.handlers["POST"]["/manageBundle"] = bundle.NewManageBundle(o.context, o.BundleManageBundleHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/uploadObjects"] = object_upload.NewUploadObjects(o.context, o.ObjectUploadUploadObjectsHandler)
+	o.handlers["POST"]["/uploadObject"] = bundle.NewUploadObject(o.context, o.BundleUploadObjectHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

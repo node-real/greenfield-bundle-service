@@ -11,3 +11,4 @@ vendor/
 .local
 .task
 coverage.out
+.idea/

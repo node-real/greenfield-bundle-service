@@ -8,13 +8,12 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/runtime/middleware"
+
+	"github.com/node-real/greenfield-bundle-service/restapi/handlers"
 
 	"github.com/node-real/greenfield-bundle-service/restapi/operations"
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle_configuration"
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle_file_retrieval"
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle_management"
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/object_upload"
+	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
+	"github.com/node-real/greenfield-bundle-service/restapi/operations/rule"
 )
 
 //go:generate swagger generate server --target ../../greenfield-bundle-service --name BundleService --spec ../swagger.yaml --principal interface{}
@@ -43,28 +42,15 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 	api.BinProducer = runtime.ByteStreamProducer()
 
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
-	// object_upload.UploadObjectsMaxParseMemory = 32 << 20
+	// bundle.UploadObjectMaxParseMemory = 32 << 20
 
-	if api.BundleConfigurationAddBundleRuleHandler == nil {
-		api.BundleConfigurationAddBundleRuleHandler = bundle_configuration.AddBundleRuleHandlerFunc(func(params bundle_configuration.AddBundleRuleParams) middleware.Responder {
-			return middleware.NotImplemented("operation bundle_configuration.AddBundleRule has not yet been implemented")
-		})
-	}
-	if api.BundleFileRetrievalBundleFileHandler == nil {
-		api.BundleFileRetrievalBundleFileHandler = bundle_file_retrieval.BundleFileHandlerFunc(func(params bundle_file_retrieval.BundleFileParams) middleware.Responder {
-			return middleware.NotImplemented("operation bundle_file_retrieval.BundleFile has not yet been implemented")
-		})
-	}
-	if api.BundleManagementManageBundleHandler == nil {
-		api.BundleManagementManageBundleHandler = bundle_management.ManageBundleHandlerFunc(func(params bundle_management.ManageBundleParams) middleware.Responder {
-			return middleware.NotImplemented("operation bundle_management.ManageBundle has not yet been implemented")
-		})
-	}
-	if api.ObjectUploadUploadObjectsHandler == nil {
-		api.ObjectUploadUploadObjectsHandler = object_upload.UploadObjectsHandlerFunc(func(params object_upload.UploadObjectsParams) middleware.Responder {
-			return middleware.NotImplemented("operation object_upload.UploadObjects has not yet been implemented")
-		})
-	}
+	api.RuleAddBundleRuleHandler = rule.AddBundleRuleHandlerFunc(handlers.HandleAddBundleRule())
+
+	api.BundleBundleObjectHandler = bundle.BundleObjectHandlerFunc(handlers.HandleBundleObject())
+
+	api.BundleManageBundleHandler = bundle.ManageBundleHandlerFunc(handlers.HandleManageBundle())
+
+	api.BundleUploadObjectHandler = bundle.UploadObjectHandlerFunc(handlers.HandleUploadObject())
 
 	api.PreServerShutdown = func() {}
 

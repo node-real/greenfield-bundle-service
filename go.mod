@@ -12,6 +12,9 @@ require (
 	github.com/go-openapi/validate v0.22.1
 	github.com/jessevdk/go-flags v1.5.0
 	golang.org/x/net v0.18.0
+	gorm.io/driver/mysql v1.5.2
+	gorm.io/driver/sqlite v1.5.4
+	gorm.io/gorm v1.25.5
 )
 
 require (
@@ -20,8 +23,12 @@ require (
 	github.com/go-openapi/analysis v0.21.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
+	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	go.mongodb.org/mongo-driver v1.11.3 // indirect

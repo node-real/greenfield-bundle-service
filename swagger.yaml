@@ -9,15 +9,14 @@ schemes:
   - https
 
 paths:
-
-  /uploadObjects:
+  /uploadObject:
     post:
       tags:
-        - Object Upload
+        - Bundle
       summary: Upload a single object to a bundle
       description: >
         Allows users to upload a single file along with a signature for validation, and a timestamp.
-      operationId: uploadObjects
+      operationId: uploadObject
       consumes:
         - multipart/form-data
       parameters:
@@ -65,14 +64,14 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
-  /bundleFile/{bundleName}/{objectName}:
+  /bundleObject/{bundleName}/{objectName}:
     get:
       tags:
-        - Bundle File Retrieval
+        - Bundle
       summary: Retrieve an object as a file from a bundle
       description: >
         Fetches a specific object from a given bundle and returns it as a file.
-      operationId: bundleFile
+      operationId: bundleObject
       produces:
         - application/octet-stream
       parameters:
@@ -103,7 +102,7 @@ paths:
   /manageBundle:
     post:
       tags:
-        - Bundle Management
+        - Bundle
       summary: Manage a bundle (start or end)
       description: >
         Manages the lifecycle of a bundle, either starting or ending it, based on the operation type.
@@ -150,7 +149,7 @@ paths:
   /addBundleRule:
     post:
       tags:
-        - Bundle Configuration
+        - rule
       summary: Add a new bundle rule
       description: >
         Creates a new rule for bundling files, including constraints and signature for authorization.

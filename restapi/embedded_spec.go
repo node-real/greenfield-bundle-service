@@ -37,7 +37,7 @@ func init() {
           "application/json"
         ],
         "tags": [
-          "Bundle Configuration"
+          "rule"
         ],
         "summary": "Add a new bundle rule",
         "operationId": "addBundleRule",
@@ -103,17 +103,17 @@ func init() {
         }
       }
     },
-    "/bundleFile/{bundleName}/{objectName}": {
+    "/bundleObject/{bundleName}/{objectName}": {
       "get": {
         "description": "Fetches a specific object from a given bundle and returns it as a file.\n",
         "produces": [
           "application/octet-stream"
         ],
         "tags": [
-          "Bundle File Retrieval"
+          "Bundle"
         ],
         "summary": "Retrieve an object as a file from a bundle",
-        "operationId": "bundleFile",
+        "operationId": "bundleObject",
         "parameters": [
           {
             "type": "string",
@@ -159,7 +159,7 @@ func init() {
           "application/json"
         ],
         "tags": [
-          "Bundle Management"
+          "Bundle"
         ],
         "summary": "Manage a bundle (start or end)",
         "operationId": "manageBundle",
@@ -216,17 +216,17 @@ func init() {
         }
       }
     },
-    "/uploadObjects": {
+    "/uploadObject": {
       "post": {
         "description": "Allows users to upload a single file along with a signature for validation, and a timestamp.\n",
         "consumes": [
           "multipart/form-data"
         ],
         "tags": [
-          "Object Upload"
+          "Bundle"
         ],
         "summary": "Upload a single object to a bundle",
-        "operationId": "uploadObjects",
+        "operationId": "uploadObject",
         "parameters": [
           {
             "type": "file",
@@ -333,7 +333,7 @@ func init() {
           "application/json"
         ],
         "tags": [
-          "Bundle Configuration"
+          "rule"
         ],
         "summary": "Add a new bundle rule",
         "operationId": "addBundleRule",
@@ -399,17 +399,17 @@ func init() {
         }
       }
     },
-    "/bundleFile/{bundleName}/{objectName}": {
+    "/bundleObject/{bundleName}/{objectName}": {
       "get": {
         "description": "Fetches a specific object from a given bundle and returns it as a file.\n",
         "produces": [
           "application/octet-stream"
         ],
         "tags": [
-          "Bundle File Retrieval"
+          "Bundle"
         ],
         "summary": "Retrieve an object as a file from a bundle",
-        "operationId": "bundleFile",
+        "operationId": "bundleObject",
         "parameters": [
           {
             "type": "string",
@@ -455,7 +455,7 @@ func init() {
           "application/json"
         ],
         "tags": [
-          "Bundle Management"
+          "Bundle"
         ],
         "summary": "Manage a bundle (start or end)",
         "operationId": "manageBundle",
@@ -512,17 +512,17 @@ func init() {
         }
       }
     },
-    "/uploadObjects": {
+    "/uploadObject": {
       "post": {
         "description": "Allows users to upload a single file along with a signature for validation, and a timestamp.\n",
         "consumes": [
           "multipart/form-data"
         ],
         "tags": [
-          "Object Upload"
+          "Bundle"
         ],
         "summary": "Upload a single object to a bundle",
-        "operationId": "uploadObjects",
+        "operationId": "uploadObject",
         "parameters": [
           {
             "type": "file",

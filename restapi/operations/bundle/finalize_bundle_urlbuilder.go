@@ -9,17 +9,23 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
+
+	"github.com/go-openapi/swag"
 )
 
-// ManageBundleURL generates an URL for the manage bundle operation
-type ManageBundleURL struct {
+// FinalizeBundleURL generates an URL for the finalize bundle operation
+type FinalizeBundleURL struct {
+	Timestamp int64
+
 	_basePath string
+	// avoid unkeyed usage
+	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *ManageBundleURL) WithBasePath(bp string) *ManageBundleURL {
+func (o *FinalizeBundleURL) WithBasePath(bp string) *FinalizeBundleURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -27,15 +33,15 @@ func (o *ManageBundleURL) WithBasePath(bp string) *ManageBundleURL {
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *ManageBundleURL) SetBasePath(bp string) {
+func (o *FinalizeBundleURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *ManageBundleURL) Build() (*url.URL, error) {
+func (o *FinalizeBundleURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/manageBundle"
+	var _path = "/finalizeBundle"
 
 	_basePath := o._basePath
 	if _basePath == "" {
@@ -43,11 +49,20 @@ func (o *ManageBundleURL) Build() (*url.URL, error) {
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
 
+	qs := make(url.Values)
+
+	timestampQ := swag.FormatInt64(o.Timestamp)
+	if timestampQ != "" {
+		qs.Set("timestamp", timestampQ)
+	}
+
+	_result.RawQuery = qs.Encode()
+
 	return &_result, nil
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *ManageBundleURL) Must(u *url.URL, err error) *url.URL {
+func (o *FinalizeBundleURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -58,17 +73,17 @@ func (o *ManageBundleURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *ManageBundleURL) String() string {
+func (o *FinalizeBundleURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *ManageBundleURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *FinalizeBundleURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on ManageBundleURL")
+		return nil, errors.New("scheme is required for a full url on FinalizeBundleURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on ManageBundleURL")
+		return nil, errors.New("host is required for a full url on FinalizeBundleURL")
 	}
 
 	base, err := o.Build()
@@ -82,6 +97,6 @@ func (o *ManageBundleURL) BuildFull(scheme, host string) (*url.URL, error) {
 }
 
 // StringFull returns the string representation of a complete url
-func (o *ManageBundleURL) StringFull(scheme, host string) string {
+func (o *FinalizeBundleURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

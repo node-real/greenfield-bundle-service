@@ -11,15 +11,15 @@ import (
 	golangswaggerpaths "path"
 )
 
-// AddBundleRuleURL generates an URL for the add bundle rule operation
-type AddBundleRuleURL struct {
+// SetBundleRuleURL generates an URL for the set bundle rule operation
+type SetBundleRuleURL struct {
 	_basePath string
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *AddBundleRuleURL) WithBasePath(bp string) *AddBundleRuleURL {
+func (o *SetBundleRuleURL) WithBasePath(bp string) *SetBundleRuleURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -27,15 +27,15 @@ func (o *AddBundleRuleURL) WithBasePath(bp string) *AddBundleRuleURL {
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *AddBundleRuleURL) SetBasePath(bp string) {
+func (o *SetBundleRuleURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *AddBundleRuleURL) Build() (*url.URL, error) {
+func (o *SetBundleRuleURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/addBundleRule"
+	var _path = "/setBundleRule"
 
 	_basePath := o._basePath
 	if _basePath == "" {
@@ -47,7 +47,7 @@ func (o *AddBundleRuleURL) Build() (*url.URL, error) {
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *AddBundleRuleURL) Must(u *url.URL, err error) *url.URL {
+func (o *SetBundleRuleURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -58,17 +58,17 @@ func (o *AddBundleRuleURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *AddBundleRuleURL) String() string {
+func (o *SetBundleRuleURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *AddBundleRuleURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *SetBundleRuleURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on AddBundleRuleURL")
+		return nil, errors.New("scheme is required for a full url on SetBundleRuleURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on AddBundleRuleURL")
+		return nil, errors.New("host is required for a full url on SetBundleRuleURL")
 	}
 
 	base, err := o.Build()
@@ -82,6 +82,6 @@ func (o *AddBundleRuleURL) BuildFull(scheme, host string) (*url.URL, error) {
 }
 
 // StringFull returns the string representation of a complete url
-func (o *AddBundleRuleURL) StringFull(scheme, host string) string {
+func (o *SetBundleRuleURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

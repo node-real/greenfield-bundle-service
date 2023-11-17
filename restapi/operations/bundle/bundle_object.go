@@ -30,7 +30,7 @@ func NewBundleObject(ctx *middleware.Context, handler BundleObjectHandler) *Bund
 }
 
 /*
-	BundleObject swagger:route GET /bundleObject/{bundleName}/{objectName} Bundle bundleObject
+	BundleObject swagger:route GET /view/{bucketName}/{bundleName}/{objectName} Bundle bundleObject
 
 # Retrieve an object as a file from a bundle
 

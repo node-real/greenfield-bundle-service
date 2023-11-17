@@ -42,6 +42,11 @@ type UploadObjectParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
+	/*User's digital signature for authentication
+	  Required: true
+	  In: header
+	*/
+	XSignature string
 	/*Content type of the file
 	  Required: true
 	  In: formData
@@ -87,6 +92,10 @@ func (o *UploadObjectParams) BindRequest(r *http.Request, route *middleware.Matc
 	}
 	fds := runtime.Values(r.Form)
 
+	if err := o.bindXSignature(r.Header[http.CanonicalHeaderKey("X-Signature")], true, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	fdContentType, fdhkContentType, _ := fds.GetOK("contentType")
 	if err := o.bindContentType(fdContentType, fdhkContentType, route.Formats); err != nil {
 		res = append(res, err)
@@ -119,6 +128,26 @@ func (o *UploadObjectParams) BindRequest(r *http.Request, route *middleware.Matc
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// bindXSignature binds and validates parameter XSignature from header.
+func (o *UploadObjectParams) bindXSignature(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	if !hasKey {
+		return errors.Required("X-Signature", "header", rawData)
+	}
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: true
+
+	if err := validate.RequiredString("X-Signature", "header", raw); err != nil {
+		return err
+	}
+	o.XSignature = raw
+
 	return nil
 }
 

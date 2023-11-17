@@ -20,6 +20,11 @@ paths:
       consumes:
         - multipart/form-data
       parameters:
+        - name: X-Signature
+          in: header
+          description: User's digital signature for authentication
+          required: true
+          type: string
         - name: file
           in: formData
           description: The file to be uploaded
@@ -64,7 +69,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
-  /bundleObject/{bundleName}/{objectName}:
+  /view/{bucketName}/{bundleName}/{objectName}:
     get:
       tags:
         - Bundle
@@ -75,6 +80,16 @@ paths:
       produces:
         - application/octet-stream
       parameters:
+        - name: X-Signature
+          in: header
+          description: User's digital signature for authentication
+          required: true
+          type: string
+        - name: bucketName
+          in: path
+          required: true
+          type: string
+          description: The bucketName of the bundle
         - name: bundleName
           in: path
           required: true
@@ -99,17 +114,22 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
-  /manageBundle:
+  /createBundle:
     post:
       tags:
         - Bundle
-      summary: Manage a bundle (start or end)
+      summary: Start a New Bundle
       description: >
-        Manages the lifecycle of a bundle, either starting or ending it, based on the operation type.
-      operationId: manageBundle
+        Initiates a new bundle, requiring details like bucket name and bundle name.
+      operationId: createBundle
       consumes:
         - application/json
       parameters:
+        - name: X-Signature
+          in: header
+          description: User's digital signature for authorization
+          required: true
+          type: string
         - in: body
           name: body
           description: Parameters for managing a bundle
@@ -117,22 +137,20 @@ paths:
           schema:
             type: object
             required:
+              - bucketName
               - bundleName
-              - operationType
-              - signature
+              - timestamp
             properties:
+              bucketName:
+                type: string
+                description: The name of the bucket
               bundleName:
                 type: string
                 description: The name of the bundle to be managed
-              operationType:
-                type: string
-                description: The type of operation (start or end the bundle)
-                enum:
-                  - START_BUNDLE
-                  - END_BUNDLE
-              signature:
-                type: string
-                description: User's signature to authorize the operation
+              timestamp:
+                type: integer
+                description: Timestamp of the request
+                format: int64
       responses:
         '200':
           description: Successfully managed bundle
@@ -145,18 +163,77 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
-
-  /addBundleRule:
+  /finalizeBundle:
     post:
       tags:
-        - rule
-      summary: Add a new bundle rule
+        - Bundle
+      summary: Finalize an Existing Bundle
       description: >
-        Creates a new rule for bundling files, including constraints and signature for authorization.
-      operationId: addBundleRule
+        Completes the lifecycle of an existing bundle, requiring the bundle name for authorization.
+      operationId: finalizeBundle
       consumes:
         - application/json
       parameters:
+        - name: X-Signature
+          in: header
+          description: User's digital signature for authorization
+          required: true
+          type: string
+        - name: timestamp
+          in: query
+          description: Timestamp of the finalizeBundle request
+          required: true
+          type: integer
+          format: int64
+        - in: body
+          name: body
+          description: Parameters for managing a bundle
+          required: true
+          schema:
+            type: object
+            required:
+              - bucketName
+              - timestamp
+              - signature
+            properties:
+              bucketName:
+                type: string
+                description: The name of the bucket
+              bundleName:
+                type: string
+                description: The name of the bundle to be finalized
+              timestamp:
+                type: integer
+                description: Timestamp of the request
+                format: int64
+      responses:
+        '200':
+          description: Successfully managed bundle
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /setBundleRule:
+    post:
+      tags:
+        - Rule
+      summary: Set New Bundling Rules
+      description: >
+        Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
+      operationId: setBundleRule
+      consumes:
+        - application/json
+      parameters:
+        - name: X-Signature
+          in: header
+          description: User's digital signature for authorization
+          required: true
+          type: string
         - in: body
           name: body
           description: Bundle rule creation parameters
@@ -199,7 +276,6 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/Error'
-
 
 definitions:
   Error:

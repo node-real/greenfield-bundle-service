@@ -44,11 +44,13 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// bundle.UploadObjectMaxParseMemory = 32 << 20
 
-	api.RuleAddBundleRuleHandler = rule.AddBundleRuleHandlerFunc(handlers.HandleAddBundleRule())
+	api.RuleSetBundleRuleHandler = rule.SetBundleRuleHandlerFunc(handlers.HandleAddBundleRule())
 
 	api.BundleBundleObjectHandler = bundle.BundleObjectHandlerFunc(handlers.HandleBundleObject())
 
-	api.BundleManageBundleHandler = bundle.ManageBundleHandlerFunc(handlers.HandleManageBundle())
+	api.BundleCreateBundleHandler = bundle.CreateBundleHandlerFunc(handlers.HandleManageBundle())
+
+	api.BundleFinalizeBundleHandler = bundle.FinalizeBundleHandlerFunc(handlers.HandleManageBundle())
 
 	api.BundleUploadObjectHandler = bundle.UploadObjectHandlerFunc(handlers.HandleUploadObject())
 

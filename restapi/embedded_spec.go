@@ -30,18 +30,169 @@ func init() {
   "host": "bundle-service.nodereal.io",
   "basePath": "/v1",
   "paths": {
-    "/addBundleRule": {
+    "/createBundle": {
       "post": {
-        "description": "Creates a new rule for bundling files, including constraints and signature for authorization.\n",
+        "description": "Initiates a new bundle, requiring details like bucket name and bundle name.\n",
         "consumes": [
           "application/json"
         ],
         "tags": [
-          "rule"
+          "Bundle"
         ],
-        "summary": "Add a new bundle rule",
-        "operationId": "addBundleRule",
+        "summary": "Start a New Bundle",
+        "operationId": "createBundle",
         "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authorization",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
+          {
+            "description": "Parameters for managing a bundle",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "bucketName",
+                "bundleName",
+                "timestamp"
+              ],
+              "properties": {
+                "bucketName": {
+                  "description": "The name of the bucket",
+                  "type": "string"
+                },
+                "bundleName": {
+                  "description": "The name of the bundle to be managed",
+                  "type": "string"
+                },
+                "timestamp": {
+                  "description": "Timestamp of the request",
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully managed bundle"
+          },
+          "400": {
+            "description": "Invalid request or parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/finalizeBundle": {
+      "post": {
+        "description": "Completes the lifecycle of an existing bundle, requiring the bundle name for authorization.\n",
+        "consumes": [
+          "application/json"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Finalize an Existing Bundle",
+        "operationId": "finalizeBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authorization",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Timestamp of the finalizeBundle request",
+            "name": "timestamp",
+            "in": "query",
+            "required": true
+          },
+          {
+            "description": "Parameters for managing a bundle",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "bucketName",
+                "timestamp",
+                "signature"
+              ],
+              "properties": {
+                "bucketName": {
+                  "description": "The name of the bucket",
+                  "type": "string"
+                },
+                "bundleName": {
+                  "description": "The name of the bundle to be finalized",
+                  "type": "string"
+                },
+                "timestamp": {
+                  "description": "Timestamp of the request",
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully managed bundle"
+          },
+          "400": {
+            "description": "Invalid request or parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/setBundleRule": {
+      "post": {
+        "description": "Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.\n",
+        "consumes": [
+          "application/json"
+        ],
+        "tags": [
+          "Rule"
+        ],
+        "summary": "Set New Bundling Rules",
+        "operationId": "setBundleRule",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authorization",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
           {
             "description": "Bundle rule creation parameters",
             "name": "body",
@@ -103,119 +254,6 @@ func init() {
         }
       }
     },
-    "/bundleObject/{bundleName}/{objectName}": {
-      "get": {
-        "description": "Fetches a specific object from a given bundle and returns it as a file.\n",
-        "produces": [
-          "application/octet-stream"
-        ],
-        "tags": [
-          "Bundle"
-        ],
-        "summary": "Retrieve an object as a file from a bundle",
-        "operationId": "bundleObject",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "The name of the bundle",
-            "name": "bundleName",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "The name of the object within the bundle",
-            "name": "objectName",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved file",
-            "schema": {
-              "type": "file"
-            }
-          },
-          "404": {
-            "description": "Bundle or object not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      }
-    },
-    "/manageBundle": {
-      "post": {
-        "description": "Manages the lifecycle of a bundle, either starting or ending it, based on the operation type.\n",
-        "consumes": [
-          "application/json"
-        ],
-        "tags": [
-          "Bundle"
-        ],
-        "summary": "Manage a bundle (start or end)",
-        "operationId": "manageBundle",
-        "parameters": [
-          {
-            "description": "Parameters for managing a bundle",
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "bundleName",
-                "operationType",
-                "signature"
-              ],
-              "properties": {
-                "bundleName": {
-                  "description": "The name of the bundle to be managed",
-                  "type": "string"
-                },
-                "operationType": {
-                  "description": "The type of operation (start or end the bundle)",
-                  "type": "string",
-                  "enum": [
-                    "START_BUNDLE",
-                    "END_BUNDLE"
-                  ]
-                },
-                "signature": {
-                  "description": "User's signature to authorize the operation",
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully managed bundle"
-          },
-          "400": {
-            "description": "Invalid request or parameters",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      }
-    },
     "/uploadObject": {
       "post": {
         "description": "Allows users to upload a single file along with a signature for validation, and a timestamp.\n",
@@ -228,6 +266,13 @@ func init() {
         "summary": "Upload a single object to a bundle",
         "operationId": "uploadObject",
         "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authentication",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
           {
             "type": "file",
             "description": "The file to be uploaded",
@@ -280,6 +325,69 @@ func init() {
           },
           "400": {
             "description": "Invalid request or file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/view/{bucketName}/{bundleName}/{objectName}": {
+      "get": {
+        "description": "Fetches a specific object from a given bundle and returns it as a file.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Retrieve an object as a file from a bundle",
+        "operationId": "bundleObject",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authentication",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle",
+            "name": "bundleName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the object within the bundle",
+            "name": "objectName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved file",
+            "schema": {
+              "type": "file"
+            }
+          },
+          "404": {
+            "description": "Bundle or object not found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -326,18 +434,169 @@ func init() {
   "host": "bundle-service.nodereal.io",
   "basePath": "/v1",
   "paths": {
-    "/addBundleRule": {
+    "/createBundle": {
       "post": {
-        "description": "Creates a new rule for bundling files, including constraints and signature for authorization.\n",
+        "description": "Initiates a new bundle, requiring details like bucket name and bundle name.\n",
         "consumes": [
           "application/json"
         ],
         "tags": [
-          "rule"
+          "Bundle"
         ],
-        "summary": "Add a new bundle rule",
-        "operationId": "addBundleRule",
+        "summary": "Start a New Bundle",
+        "operationId": "createBundle",
         "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authorization",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
+          {
+            "description": "Parameters for managing a bundle",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "bucketName",
+                "bundleName",
+                "timestamp"
+              ],
+              "properties": {
+                "bucketName": {
+                  "description": "The name of the bucket",
+                  "type": "string"
+                },
+                "bundleName": {
+                  "description": "The name of the bundle to be managed",
+                  "type": "string"
+                },
+                "timestamp": {
+                  "description": "Timestamp of the request",
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully managed bundle"
+          },
+          "400": {
+            "description": "Invalid request or parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/finalizeBundle": {
+      "post": {
+        "description": "Completes the lifecycle of an existing bundle, requiring the bundle name for authorization.\n",
+        "consumes": [
+          "application/json"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Finalize an Existing Bundle",
+        "operationId": "finalizeBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authorization",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Timestamp of the finalizeBundle request",
+            "name": "timestamp",
+            "in": "query",
+            "required": true
+          },
+          {
+            "description": "Parameters for managing a bundle",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "bucketName",
+                "timestamp",
+                "signature"
+              ],
+              "properties": {
+                "bucketName": {
+                  "description": "The name of the bucket",
+                  "type": "string"
+                },
+                "bundleName": {
+                  "description": "The name of the bundle to be finalized",
+                  "type": "string"
+                },
+                "timestamp": {
+                  "description": "Timestamp of the request",
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully managed bundle"
+          },
+          "400": {
+            "description": "Invalid request or parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/setBundleRule": {
+      "post": {
+        "description": "Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.\n",
+        "consumes": [
+          "application/json"
+        ],
+        "tags": [
+          "Rule"
+        ],
+        "summary": "Set New Bundling Rules",
+        "operationId": "setBundleRule",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authorization",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
           {
             "description": "Bundle rule creation parameters",
             "name": "body",
@@ -399,119 +658,6 @@ func init() {
         }
       }
     },
-    "/bundleObject/{bundleName}/{objectName}": {
-      "get": {
-        "description": "Fetches a specific object from a given bundle and returns it as a file.\n",
-        "produces": [
-          "application/octet-stream"
-        ],
-        "tags": [
-          "Bundle"
-        ],
-        "summary": "Retrieve an object as a file from a bundle",
-        "operationId": "bundleObject",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "The name of the bundle",
-            "name": "bundleName",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "The name of the object within the bundle",
-            "name": "objectName",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved file",
-            "schema": {
-              "type": "file"
-            }
-          },
-          "404": {
-            "description": "Bundle or object not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      }
-    },
-    "/manageBundle": {
-      "post": {
-        "description": "Manages the lifecycle of a bundle, either starting or ending it, based on the operation type.\n",
-        "consumes": [
-          "application/json"
-        ],
-        "tags": [
-          "Bundle"
-        ],
-        "summary": "Manage a bundle (start or end)",
-        "operationId": "manageBundle",
-        "parameters": [
-          {
-            "description": "Parameters for managing a bundle",
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "bundleName",
-                "operationType",
-                "signature"
-              ],
-              "properties": {
-                "bundleName": {
-                  "description": "The name of the bundle to be managed",
-                  "type": "string"
-                },
-                "operationType": {
-                  "description": "The type of operation (start or end the bundle)",
-                  "type": "string",
-                  "enum": [
-                    "START_BUNDLE",
-                    "END_BUNDLE"
-                  ]
-                },
-                "signature": {
-                  "description": "User's signature to authorize the operation",
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully managed bundle"
-          },
-          "400": {
-            "description": "Invalid request or parameters",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      }
-    },
     "/uploadObject": {
       "post": {
         "description": "Allows users to upload a single file along with a signature for validation, and a timestamp.\n",
@@ -524,6 +670,13 @@ func init() {
         "summary": "Upload a single object to a bundle",
         "operationId": "uploadObject",
         "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authentication",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
           {
             "type": "file",
             "description": "The file to be uploaded",
@@ -576,6 +729,69 @@ func init() {
           },
           "400": {
             "description": "Invalid request or file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/view/{bucketName}/{bundleName}/{objectName}": {
+      "get": {
+        "description": "Fetches a specific object from a given bundle and returns it as a file.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Retrieve an object as a file from a bundle",
+        "operationId": "bundleObject",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authentication",
+            "name": "X-Signature",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle",
+            "name": "bundleName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the object within the bundle",
+            "name": "objectName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved file",
+            "schema": {
+              "type": "file"
+            }
+          },
+          "404": {
+            "description": "Bundle or object not found",
             "schema": {
               "$ref": "#/definitions/Error"
             }

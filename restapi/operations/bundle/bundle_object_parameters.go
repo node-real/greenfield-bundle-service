@@ -11,6 +11,7 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/validate"
 )
 
 // NewBundleObjectParams creates a new BundleObjectParams object
@@ -30,6 +31,16 @@ type BundleObjectParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
+	/*User's digital signature for authentication
+	  Required: true
+	  In: header
+	*/
+	XSignature string
+	/*The bucketName of the bundle
+	  Required: true
+	  In: path
+	*/
+	BucketName string
 	/*The name of the bundle
 	  Required: true
 	  In: path
@@ -51,6 +62,15 @@ func (o *BundleObjectParams) BindRequest(r *http.Request, route *middleware.Matc
 
 	o.HTTPRequest = r
 
+	if err := o.bindXSignature(r.Header[http.CanonicalHeaderKey("X-Signature")], true, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
+	rBucketName, rhkBucketName, _ := route.Params.GetOK("bucketName")
+	if err := o.bindBucketName(rBucketName, rhkBucketName, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	rBundleName, rhkBundleName, _ := route.Params.GetOK("bundleName")
 	if err := o.bindBundleName(rBundleName, rhkBundleName, route.Formats); err != nil {
 		res = append(res, err)
@@ -63,6 +83,40 @@ func (o *BundleObjectParams) BindRequest(r *http.Request, route *middleware.Matc
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// bindXSignature binds and validates parameter XSignature from header.
+func (o *BundleObjectParams) bindXSignature(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	if !hasKey {
+		return errors.Required("X-Signature", "header", rawData)
+	}
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: true
+
+	if err := validate.RequiredString("X-Signature", "header", raw); err != nil {
+		return err
+	}
+	o.XSignature = raw
+
+	return nil
+}
+
+// bindBucketName binds and validates parameter BucketName from path.
+func (o *BundleObjectParams) bindBucketName(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: true
+	// Parameter is provided by construction from the route
+	o.BucketName = raw
+
 	return nil
 }
 

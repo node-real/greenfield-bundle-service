@@ -16,42 +16,42 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// AddBundleRuleHandlerFunc turns a function with the right signature into a add bundle rule handler
-type AddBundleRuleHandlerFunc func(AddBundleRuleParams) middleware.Responder
+// SetBundleRuleHandlerFunc turns a function with the right signature into a set bundle rule handler
+type SetBundleRuleHandlerFunc func(SetBundleRuleParams) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn AddBundleRuleHandlerFunc) Handle(params AddBundleRuleParams) middleware.Responder {
+func (fn SetBundleRuleHandlerFunc) Handle(params SetBundleRuleParams) middleware.Responder {
 	return fn(params)
 }
 
-// AddBundleRuleHandler interface for that can handle valid add bundle rule params
-type AddBundleRuleHandler interface {
-	Handle(AddBundleRuleParams) middleware.Responder
+// SetBundleRuleHandler interface for that can handle valid set bundle rule params
+type SetBundleRuleHandler interface {
+	Handle(SetBundleRuleParams) middleware.Responder
 }
 
-// NewAddBundleRule creates a new http.Handler for the add bundle rule operation
-func NewAddBundleRule(ctx *middleware.Context, handler AddBundleRuleHandler) *AddBundleRule {
-	return &AddBundleRule{Context: ctx, Handler: handler}
+// NewSetBundleRule creates a new http.Handler for the set bundle rule operation
+func NewSetBundleRule(ctx *middleware.Context, handler SetBundleRuleHandler) *SetBundleRule {
+	return &SetBundleRule{Context: ctx, Handler: handler}
 }
 
 /*
-	AddBundleRule swagger:route POST /addBundleRule rule addBundleRule
+	SetBundleRule swagger:route POST /setBundleRule Rule setBundleRule
 
-# Add a new bundle rule
+# Set New Bundling Rules
 
-Creates a new rule for bundling files, including constraints and signature for authorization.
+Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
 */
-type AddBundleRule struct {
+type SetBundleRule struct {
 	Context *middleware.Context
-	Handler AddBundleRuleHandler
+	Handler SetBundleRuleHandler
 }
 
-func (o *AddBundleRule) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (o *SetBundleRule) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	route, rCtx, _ := o.Context.RouteInfo(r)
 	if rCtx != nil {
 		*r = *rCtx
 	}
-	var Params = NewAddBundleRuleParams()
+	var Params = NewSetBundleRuleParams()
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
@@ -62,10 +62,10 @@ func (o *AddBundleRule) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-// AddBundleRuleBody add bundle rule body
+// SetBundleRuleBody set bundle rule body
 //
-// swagger:model AddBundleRuleBody
-type AddBundleRuleBody struct {
+// swagger:model SetBundleRuleBody
+type SetBundleRuleBody struct {
 
 	// Name of the bucket for which the rule applies
 	// Required: true
@@ -88,8 +88,8 @@ type AddBundleRuleBody struct {
 	Signature *string `json:"signature"`
 }
 
-// Validate validates this add bundle rule body
-func (o *AddBundleRuleBody) Validate(formats strfmt.Registry) error {
+// Validate validates this set bundle rule body
+func (o *SetBundleRuleBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := o.validateBucketName(formats); err != nil {
@@ -118,7 +118,7 @@ func (o *AddBundleRuleBody) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (o *AddBundleRuleBody) validateBucketName(formats strfmt.Registry) error {
+func (o *SetBundleRuleBody) validateBucketName(formats strfmt.Registry) error {
 
 	if err := validate.Required("body"+"."+"bucketName", "body", o.BucketName); err != nil {
 		return err
@@ -127,7 +127,7 @@ func (o *AddBundleRuleBody) validateBucketName(formats strfmt.Registry) error {
 	return nil
 }
 
-func (o *AddBundleRuleBody) validateMaxBundleFiles(formats strfmt.Registry) error {
+func (o *SetBundleRuleBody) validateMaxBundleFiles(formats strfmt.Registry) error {
 
 	if err := validate.Required("body"+"."+"maxBundleFiles", "body", o.MaxBundleFiles); err != nil {
 		return err
@@ -136,7 +136,7 @@ func (o *AddBundleRuleBody) validateMaxBundleFiles(formats strfmt.Registry) erro
 	return nil
 }
 
-func (o *AddBundleRuleBody) validateMaxBundleSize(formats strfmt.Registry) error {
+func (o *SetBundleRuleBody) validateMaxBundleSize(formats strfmt.Registry) error {
 
 	if err := validate.Required("body"+"."+"maxBundleSize", "body", o.MaxBundleSize); err != nil {
 		return err
@@ -145,7 +145,7 @@ func (o *AddBundleRuleBody) validateMaxBundleSize(formats strfmt.Registry) error
 	return nil
 }
 
-func (o *AddBundleRuleBody) validateMaxFinalizeTime(formats strfmt.Registry) error {
+func (o *SetBundleRuleBody) validateMaxFinalizeTime(formats strfmt.Registry) error {
 
 	if err := validate.Required("body"+"."+"maxFinalizeTime", "body", o.MaxFinalizeTime); err != nil {
 		return err
@@ -154,7 +154,7 @@ func (o *AddBundleRuleBody) validateMaxFinalizeTime(formats strfmt.Registry) err
 	return nil
 }
 
-func (o *AddBundleRuleBody) validateSignature(formats strfmt.Registry) error {
+func (o *SetBundleRuleBody) validateSignature(formats strfmt.Registry) error {
 
 	if err := validate.Required("body"+"."+"signature", "body", o.Signature); err != nil {
 		return err
@@ -163,13 +163,13 @@ func (o *AddBundleRuleBody) validateSignature(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this add bundle rule body based on context it is used
-func (o *AddBundleRuleBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this set bundle rule body based on context it is used
+func (o *SetBundleRuleBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (o *AddBundleRuleBody) MarshalBinary() ([]byte, error) {
+func (o *SetBundleRuleBody) MarshalBinary() ([]byte, error) {
 	if o == nil {
 		return nil, nil
 	}
@@ -177,8 +177,8 @@ func (o *AddBundleRuleBody) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (o *AddBundleRuleBody) UnmarshalBinary(b []byte) error {
-	var res AddBundleRuleBody
+func (o *SetBundleRuleBody) UnmarshalBinary(b []byte) error {
+	var res SetBundleRuleBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

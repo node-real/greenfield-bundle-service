@@ -5,10 +5,10 @@ import "time"
 type BundleStatus uint
 
 const (
-	BundleStatusBundling      BundleStatus = 0
-	BundleStatusBundled       BundleStatus = 1
-	BundleStatusSealedOnChain BundleStatus = 2
-	BundleStatusDeleted       BundleStatus = 3
+	BundleStatusBundling       BundleStatus = 0
+	BundleStatusBundled        BundleStatus = 1
+	BundleStatusCreatedOnChain BundleStatus = 2
+	BundleStatusDeleted        BundleStatus = 3
 )
 
 // Bundle is used to store the bundle information
@@ -19,6 +19,8 @@ type Bundle struct {
 	Name           string       `json:"name" gorm:"size:128"`
 	BundlerAccount string       `json:"bundler_account" gorm:"64"`
 	Status         BundleStatus `json:"status"`
+	Files          int64        `json:"files"`
+	Sizes          int64        `json:"size"`
 	MaxFiles       int64        `json:"max_files"`
 	MaxSize        int64        `json:"max_size"`
 	MaxBundleTime  int64        `json:"max_bundle_time"`

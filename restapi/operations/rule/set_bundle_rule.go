@@ -82,10 +82,6 @@ type SetBundleRuleBody struct {
 	// Maximum time in seconds before a bundle must be finalized
 	// Required: true
 	MaxFinalizeTime *int32 `json:"maxFinalizeTime"`
-
-	// User's signature for authorization of rule creation
-	// Required: true
-	Signature *string `json:"signature"`
 }
 
 // Validate validates this set bundle rule body
@@ -105,10 +101,6 @@ func (o *SetBundleRuleBody) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := o.validateMaxFinalizeTime(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateSignature(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -148,15 +140,6 @@ func (o *SetBundleRuleBody) validateMaxBundleSize(formats strfmt.Registry) error
 func (o *SetBundleRuleBody) validateMaxFinalizeTime(formats strfmt.Registry) error {
 
 	if err := validate.Required("body"+"."+"maxFinalizeTime", "body", o.MaxFinalizeTime); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *SetBundleRuleBody) validateSignature(formats strfmt.Registry) error {
-
-	if err := validate.Required("body"+"."+"signature", "body", o.Signature); err != nil {
 		return err
 	}
 

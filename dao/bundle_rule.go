@@ -1,15 +1,13 @@
 package dao
 
 import (
-	"context"
-
 	"gorm.io/gorm"
 
 	"github.com/node-real/greenfield-bundle-service/database"
 )
 
 type BundleRuleDao interface {
-	Get(ctx context.Context, userAddress string, bucketName string) (database.BundleRule, error)
+	Get(userAddress string, bucketName string) (database.BundleRule, error)
 }
 
 type dbBundleRuleDao struct {
@@ -23,7 +21,7 @@ func NewBundleRuleDao(db *gorm.DB) BundleRuleDao {
 	}
 }
 
-func (dao *dbBundleRuleDao) Get(ctx context.Context, userAddress string, bucketName string) (database.BundleRule, error) {
+func (dao *dbBundleRuleDao) Get(userAddress string, bucketName string) (database.BundleRule, error) {
 	var rule database.BundleRule
 	err := dao.db.Where("owner = ? AND bucket = ?", userAddress, bucketName).Take(&rule).Error
 	if err != nil {

@@ -48,9 +48,9 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 
 	api.BundleBundleObjectHandler = bundle.BundleObjectHandlerFunc(handlers.HandleBundleObject())
 
-	api.BundleCreateBundleHandler = bundle.CreateBundleHandlerFunc(handlers.HandleManageBundle())
+	api.BundleCreateBundleHandler = bundle.CreateBundleHandlerFunc(handlers.HandleCreateBundle())
 
-	api.BundleFinalizeBundleHandler = bundle.FinalizeBundleHandlerFunc(handlers.HandleManageBundle())
+	api.BundleFinalizeBundleHandler = bundle.FinalizeBundleHandlerFunc(handlers.HandleFinalizeBundle())
 
 	api.BundleUploadObjectHandler = bundle.UploadObjectHandlerFunc(handlers.HandleUploadObject())
 
@@ -71,6 +71,7 @@ func configureTLS(tlsConfig *tls.Config) {
 // This function can be called multiple times, depending on the number of serving schemes.
 // scheme value will be set accordingly: "http", "https" or "unix".
 func configureServer(s *http.Server, scheme, addr string) {
+	// initialize service.BundleSvc
 }
 
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.

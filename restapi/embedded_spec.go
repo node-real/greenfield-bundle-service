@@ -134,8 +134,7 @@ func init() {
               "type": "object",
               "required": [
                 "bucketName",
-                "timestamp",
-                "signature"
+                "timestamp"
               ],
               "properties": {
                 "bucketName": {
@@ -204,8 +203,7 @@ func init() {
                 "bucketName",
                 "maxBundleSize",
                 "maxBundleFiles",
-                "maxFinalizeTime",
-                "signature"
+                "maxFinalizeTime"
               ],
               "properties": {
                 "bucketName": {
@@ -226,10 +224,6 @@ func init() {
                   "description": "Maximum time in seconds before a bundle must be finalized",
                   "type": "integer",
                   "format": "int32"
-                },
-                "signature": {
-                  "description": "User's signature for authorization of rule creation",
-                  "type": "string"
                 }
               }
             }
@@ -538,8 +532,7 @@ func init() {
               "type": "object",
               "required": [
                 "bucketName",
-                "timestamp",
-                "signature"
+                "timestamp"
               ],
               "properties": {
                 "bucketName": {
@@ -608,8 +601,7 @@ func init() {
                 "bucketName",
                 "maxBundleSize",
                 "maxBundleFiles",
-                "maxFinalizeTime",
-                "signature"
+                "maxFinalizeTime"
               ],
               "properties": {
                 "bucketName": {
@@ -630,10 +622,6 @@ func init() {
                   "description": "Maximum time in seconds before a bundle must be finalized",
                   "type": "integer",
                   "format": "int32"
-                },
-                "signature": {
-                  "description": "User's signature for authorization of rule creation",
-                  "type": "string"
                 }
               }
             }

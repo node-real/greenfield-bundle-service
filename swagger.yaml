@@ -194,7 +194,6 @@ paths:
             required:
               - bucketName
               - timestamp
-              - signature
             properties:
               bucketName:
                 type: string
@@ -245,7 +244,6 @@ paths:
               - maxBundleSize
               - maxBundleFiles
               - maxFinalizeTime
-              - signature
             properties:
               bucketName:
                 type: string
@@ -262,9 +260,6 @@ paths:
                 type: integer
                 description: Maximum time in seconds before a bundle must be finalized
                 format: int32
-              signature:
-                type: string
-                description: User's signature for authorization of rule creation
       responses:
         '200':
           description: Successfully added bundle rule

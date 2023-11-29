@@ -36,6 +36,9 @@ func init() {
         "consumes": [
           "application/json"
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Bundle"
         ],
@@ -104,6 +107,9 @@ func init() {
         "consumes": [
           "application/json"
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Bundle"
         ],
@@ -115,14 +121,6 @@ func init() {
             "description": "User's digital signature for authorization",
             "name": "X-Signature",
             "in": "header",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Timestamp of the finalizeBundle request",
-            "name": "timestamp",
-            "in": "query",
             "required": true
           },
           {
@@ -178,6 +176,9 @@ func init() {
       "post": {
         "description": "Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.\n",
         "consumes": [
+          "application/json"
+        ],
+        "produces": [
           "application/json"
         ],
         "tags": [
@@ -260,6 +261,9 @@ func init() {
         "description": "Allows users to upload a single file along with a signature for validation, and a timestamp.\n",
         "consumes": [
           "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
         ],
         "tags": [
           "Bundle"
@@ -441,6 +445,9 @@ func init() {
         "consumes": [
           "application/json"
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Bundle"
         ],
@@ -509,6 +516,9 @@ func init() {
         "consumes": [
           "application/json"
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Bundle"
         ],
@@ -520,14 +530,6 @@ func init() {
             "description": "User's digital signature for authorization",
             "name": "X-Signature",
             "in": "header",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Timestamp of the finalizeBundle request",
-            "name": "timestamp",
-            "in": "query",
             "required": true
           },
           {
@@ -583,6 +585,9 @@ func init() {
       "post": {
         "description": "Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.\n",
         "consumes": [
+          "application/json"
+        ],
+        "produces": [
           "application/json"
         ],
         "tags": [
@@ -665,6 +670,9 @@ func init() {
         "description": "Allows users to upload a single file along with a signature for validation, and a timestamp.\n",
         "consumes": [
           "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
         ],
         "tags": [
           "Bundle"

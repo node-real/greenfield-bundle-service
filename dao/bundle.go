@@ -38,7 +38,7 @@ func (s *dbBundleDao) UpdateBundle(bundle database.Bundle) (*database.Bundle, er
 func (s *dbBundleDao) QueryBundle(bucket string, name string) (*database.Bundle, error) {
 	var bundle database.Bundle
 	err := s.db.Where("bucket = ? AND name = ?", bucket, name).Take(&bundle).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 	return &bundle, nil
@@ -47,7 +47,7 @@ func (s *dbBundleDao) QueryBundle(bucket string, name string) (*database.Bundle,
 func (s *dbBundleDao) QueryBundleWithMaxNonce(bucket string) (*database.Bundle, error) {
 	var bundle database.Bundle
 	err := s.db.Where("bucket = ?", bucket).Order("nonce desc").Take(&bundle).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 	return &bundle, nil

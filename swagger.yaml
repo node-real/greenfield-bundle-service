@@ -19,6 +19,8 @@ paths:
       operationId: uploadObject
       consumes:
         - multipart/form-data
+      produces:
+        - application/json
       parameters:
         - name: X-Signature
           in: header
@@ -124,6 +126,8 @@ paths:
       operationId: createBundle
       consumes:
         - application/json
+      produces:
+        - application/json
       parameters:
         - name: X-Signature
           in: header
@@ -173,18 +177,14 @@ paths:
       operationId: finalizeBundle
       consumes:
         - application/json
+      produces:
+        - application/json
       parameters:
         - name: X-Signature
           in: header
           description: User's digital signature for authorization
           required: true
           type: string
-        - name: timestamp
-          in: query
-          description: Timestamp of the finalizeBundle request
-          required: true
-          type: integer
-          format: int64
         - in: body
           name: body
           description: Parameters for managing a bundle
@@ -227,6 +227,8 @@ paths:
         Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
       operationId: setBundleRule
       consumes:
+        - application/json
+      produces:
         - application/json
       parameters:
         - name: X-Signature

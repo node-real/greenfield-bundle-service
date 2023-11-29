@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -71,32 +72,41 @@ func SigCheckSetBundleRule(params rule.SetBundleRuleParams) (common.Address, err
 func HandleSetBundleRule() func(params rule.SetBundleRuleParams) middleware.Responder {
 	return func(params rule.SetBundleRuleParams) middleware.Responder {
 		// check params
-		if params.Body.Timestamp != nil {
-			return rule.NewSetBundleRuleBadRequest()
+		if params.Body.Timestamp == nil {
+			return rule.NewSetBundleRuleBadRequest().WithPayload(ErrorInvalidTimestamp)
 		}
-		if params.Body.BucketName != nil {
-			return rule.NewSetBundleRuleBadRequest()
+		if params.Body.BucketName == nil {
+			return rule.NewSetBundleRuleBadRequest().WithPayload(ErrorInvalidBucketName)
 		}
-		if params.Body.MaxBundleFiles != nil {
-			return rule.NewSetBundleRuleBadRequest()
+		if params.Body.MaxBundleFiles == nil {
+			return rule.NewSetBundleRuleBadRequest().WithPayload(ErrorInvalidMaxBundleFiles)
 		}
-		if params.Body.MaxBundleSize != nil {
-			return rule.NewSetBundleRuleBadRequest()
+		if params.Body.MaxBundleSize == nil {
+			return rule.NewSetBundleRuleBadRequest().WithPayload(ErrorInvalidMaxBundleSize)
 		}
-		if params.Body.MaxFinalizeTime != nil {
-			return rule.NewSetBundleRuleBadRequest()
+		if params.Body.MaxFinalizeTime == nil {
+			return rule.NewSetBundleRuleBadRequest().WithPayload(ErrorInvalidMaxFinalizeTime)
 		}
 
 		// check signature
 		signerAddress, err := SigCheckSetBundleRule(params)
 		if err != nil {
-			return rule.NewSetBundleRuleBadRequest()
+			util.Logger.Errorf("sig check error, err=%s", err.Error())
+			return rule.NewSetBundleRuleBadRequest().WithPayload(ErrorInvalidSignature)
+		}
+
+		// check timestamp is not expired
+		if time.Unix(*params.Body.Timestamp, 0).After(time.Now().Add(TimestampExpireTime*time.Second)) ||
+			time.Unix(*params.Body.Timestamp, 0).Before(time.Now().Add(-TimestampExpireTime*time.Second)) {
+			util.Logger.Errorf("timestamp expired, timestamp=%d", *params.Body.Timestamp)
+			return rule.NewSetBundleRuleBadRequest().WithPayload(ErrorInvalidTimestamp)
 		}
 
 		// create or update bundle rule
 		_, err = service.BundleRuleSvc.CreateOrUpdateBundleRule(signerAddress, *params.Body.BucketName, *params.Body.MaxBundleFiles, *params.Body.MaxBundleSize, *params.Body.MaxFinalizeTime)
 		if err != nil {
-			return rule.NewSetBundleRuleBadRequest()
+			util.Logger.Errorf("create or update bundle rule error, err=%s", err.Error())
+			return rule.NewSetBundleRuleInternalServerError().WithPayload(ErrorInternalError)
 		}
 
 		return rule.NewSetBundleRuleOK()

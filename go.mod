@@ -20,11 +20,15 @@ require (
 	gorm.io/gorm v1.25.5
 )
 
-require github.com/sirupsen/logrus v1.4.2
+require (
+	github.com/sirupsen/logrus v1.4.2
+	github.com/stretchr/testify v1.8.4
+)
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/go-openapi/analysis v0.21.4 // indirect
@@ -41,6 +45,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect

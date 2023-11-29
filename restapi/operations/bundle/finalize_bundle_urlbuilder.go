@@ -9,17 +9,11 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
-
-	"github.com/go-openapi/swag"
 )
 
 // FinalizeBundleURL generates an URL for the finalize bundle operation
 type FinalizeBundleURL struct {
-	Timestamp int64
-
 	_basePath string
-	// avoid unkeyed usage
-	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
@@ -48,15 +42,6 @@ func (o *FinalizeBundleURL) Build() (*url.URL, error) {
 		_basePath = "/v1"
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
-
-	qs := make(url.Values)
-
-	timestampQ := swag.FormatInt64(o.Timestamp)
-	if timestampQ != "" {
-		qs.Set("timestamp", timestampQ)
-	}
-
-	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }

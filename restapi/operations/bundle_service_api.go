@@ -44,7 +44,8 @@ func NewBundleServiceAPI(spec *loads.Document) *BundleServiceAPI {
 		JSONConsumer:          runtime.JSONConsumer(),
 		MultipartformConsumer: runtime.DiscardConsumer,
 
-		BinProducer: runtime.ByteStreamProducer(),
+		BinProducer:  runtime.ByteStreamProducer(),
+		JSONProducer: runtime.JSONProducer(),
 
 		BundleBundleObjectHandler: bundle.BundleObjectHandlerFunc(func(params bundle.BundleObjectParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.BundleObject has not yet been implemented")
@@ -99,6 +100,9 @@ type BundleServiceAPI struct {
 	// BinProducer registers a producer for the following mime types:
 	//   - application/octet-stream
 	BinProducer runtime.Producer
+	// JSONProducer registers a producer for the following mime types:
+	//   - application/json
+	JSONProducer runtime.Producer
 
 	// BundleBundleObjectHandler sets the operation handler for the bundle object operation
 	BundleBundleObjectHandler bundle.BundleObjectHandler
@@ -189,6 +193,9 @@ func (o *BundleServiceAPI) Validate() error {
 	if o.BinProducer == nil {
 		unregistered = append(unregistered, "BinProducer")
 	}
+	if o.JSONProducer == nil {
+		unregistered = append(unregistered, "JSONProducer")
+	}
 
 	if o.BundleBundleObjectHandler == nil {
 		unregistered = append(unregistered, "bundle.BundleObjectHandler")
@@ -255,6 +262,8 @@ func (o *BundleServiceAPI) ProducersFor(mediaTypes []string) map[string]runtime.
 		switch mt {
 		case "application/octet-stream":
 			result["application/octet-stream"] = o.BinProducer
+		case "application/json":
+			result["application/json"] = o.JSONProducer
 		}
 
 		if p, ok := o.customProducers[mt]; ok {

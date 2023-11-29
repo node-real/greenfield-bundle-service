@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"errors"
+
 	"gorm.io/gorm"
 
 	"github.com/node-real/greenfield-bundle-service/database"
@@ -27,7 +29,7 @@ func NewBundleRuleDao(db *gorm.DB) BundleRuleDao {
 func (dao *dbBundleRuleDao) Get(userAddress string, bucketName string) (database.BundleRule, error) {
 	var rule database.BundleRule
 	err := dao.db.Where("owner = ? AND bucket = ?", userAddress, bucketName).Take(&rule).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return rule, err
 	}
 	return rule, nil

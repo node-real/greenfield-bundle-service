@@ -13,6 +13,23 @@ import (
 func ConnectDBWithConfig(config *util.DBConfig) (*gorm.DB, error) {
 	if config.DBDialect == "sqlite3" {
 		db, err := gorm.Open(sqlite.Open(config.DBPath), &gorm.Config{})
+
+		if err = db.AutoMigrate(&Bundle{}); err != nil {
+			panic(err)
+		}
+		if err = db.AutoMigrate(&Object{}); err != nil {
+			panic(err)
+		}
+		if err = db.AutoMigrate(&BundleRule{}); err != nil {
+			panic(err)
+		}
+		if err = db.AutoMigrate(&BundlerAccount{}); err != nil {
+			panic(err)
+		}
+		if err = db.AutoMigrate(&UserBundlerAccount{}); err != nil {
+			panic(err)
+		}
+
 		return db.Debug(), err
 	} else if config.DBDialect == "mysql" {
 		dbPath := fmt.Sprintf("%s:%s@%s", config.Username, config.Password, config.DBPath)

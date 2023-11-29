@@ -70,19 +70,18 @@ func SigCheckCreateBundle(params bundle.CreateBundleParams) (common.Address, err
 // HandleCreateBundle handles create bundle request
 func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Responder {
 	return func(params bundle.CreateBundleParams) middleware.Responder {
-		// todo: handle the errors
-		if params.Body.BundleName != nil {
-			return bundle.NewCreateBundleBadRequest()
+		if params.Body.BucketName == nil {
+			return bundle.NewCreateBundleBadRequest().WithPayload(ErrorInvalidBucketName)
 		}
-		if params.Body.Timestamp != nil {
-			return bundle.NewCreateBundleBadRequest()
+		if params.Body.Timestamp == nil {
+			return bundle.NewCreateBundleBadRequest().WithPayload(ErrorInvalidTimestamp)
 		}
-		if params.Body.BundleName != nil {
-			return bundle.NewCreateBundleBadRequest()
+		if params.Body.BundleName == nil {
+			return bundle.NewCreateBundleBadRequest().WithPayload(ErrorInvalidBundleName)
 		}
 		signerAddress, err := SigCheckCreateBundle(params)
 		if err != nil {
-			return bundle.NewCreateBundleBadRequest()
+			return bundle.NewCreateBundleBadRequest().WithPayload(ErrorInvalidSignature)
 		}
 
 		newBundle := database.Bundle{
@@ -93,7 +92,8 @@ func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Resp
 
 		_, err = service.BundleSvc.CreateBundle(newBundle)
 		if err != nil {
-			return bundle.NewCreateBundleBadRequest()
+			util.Logger.Errorf("create bundle error, bundle=%+v, err=%s", newBundle, err.Error())
+			return bundle.NewCreateBundleBadRequest() // todo: return proper error
 		}
 
 		return bundle.NewCreateBundleOK()
@@ -140,38 +140,40 @@ func SigCheckFinalizeBundle(params bundle.FinalizeBundleParams) (common.Address,
 func HandleFinalizeBundle() func(params bundle.FinalizeBundleParams) middleware.Responder {
 	return func(params bundle.FinalizeBundleParams) middleware.Responder {
 		// todo: make sure the owner can only finalize the bundle created by himself manually
-		// todo: handle the errors
-		if params.Body.BundleName != nil {
-			return bundle.NewFinalizeBundleBadRequest()
+		if params.Body.BundleName == nil {
+			return bundle.NewFinalizeBundleBadRequest().WithPayload(ErrorInvalidBundleName)
 		}
-		if params.Body.BucketName != nil {
-			return bundle.NewFinalizeBundleBadRequest()
+		if params.Body.BucketName == nil {
+			return bundle.NewFinalizeBundleBadRequest().WithPayload(ErrorInvalidBucketName)
 		}
-		if params.Body.Timestamp != nil {
-			return bundle.NewFinalizeBundleBadRequest()
+		if params.Body.Timestamp == nil {
+			return bundle.NewFinalizeBundleBadRequest().WithPayload(ErrorInvalidTimestamp)
 		}
 
 		// query bundle
 		queriedBundle, err := service.BundleSvc.QueryBundle(*params.Body.BucketName, *params.Body.BundleName)
 		if err != nil {
+			util.Logger.Errorf("query bundle error, bucket=%s, bundle=%s, err=%s", *params.Body.BucketName, *params.Body.BundleName, err.Error()
 			return bundle.NewFinalizeBundleBadRequest()
 		}
 
 		// check signature
 		signerAddress, err := SigCheckFinalizeBundle(params)
 		if err != nil {
-			return bundle.NewFinalizeBundleBadRequest()
+			util.Logger.Errorf("sig check error, err=%s", err.Error())
+			return bundle.NewFinalizeBundleBadRequest().WithPayload(ErrorInvalidSignature)
 		}
 
 		// check owner
 		if signerAddress.String() != queriedBundle.Owner {
-			return bundle.NewFinalizeBundleBadRequest()
+			return bundle.NewFinalizeBundleBadRequest().WithPayload(ErrorInvalidBundleOwner)
 		}
 
 		// finalize bundle
 		_, err = service.BundleSvc.FinalizeBundle(*params.Body.BucketName, *params.Body.BundleName)
 		if err != nil {
-			return bundle.NewFinalizeBundleBadRequest()
+			util.Logger.Errorf("finalize bundle error, bucket=%s, bundle=%s, err=%s", *params.Body.BucketName, *params.Body.BundleName, err.Error())
+			return bundle.NewFinalizeBundleBadRequest() // todo: return proper error
 		}
 
 		return bundle.NewFinalizeBundleOK()

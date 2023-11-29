@@ -5,6 +5,7 @@ import (
 
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
+	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 type BundleRule interface {
@@ -26,6 +27,7 @@ func NewBundleRuleService(bundleRuleDao dao.BundleRuleDao) BundleRule {
 func (s *BundleRuleService) QueryBundleRule(userAddress string, bucketName string) (database.BundleRule, error) {
 	bundleRule, err := s.bundleRuleDao.Get(userAddress, bucketName)
 	if err != nil {
+		util.Logger.Errorf("failed to get bundle rule: %v", err)
 		return database.BundleRule{}, err
 	}
 
@@ -36,6 +38,7 @@ func (s *BundleRuleService) QueryBundleRule(userAddress string, bucketName strin
 func (s *BundleRuleService) CreateOrUpdateBundleRule(userAddress common.Address, bucketName string, maxFiles int64, maxSize int64, maxFinalizeTime int64) (database.BundleRule, error) {
 	bundleRule, err := s.bundleRuleDao.Get(userAddress.String(), bucketName)
 	if err != nil {
+		util.Logger.Errorf("failed to get bundle rule: %v", err)
 		return database.BundleRule{}, err
 	}
 
@@ -48,6 +51,7 @@ func (s *BundleRuleService) CreateOrUpdateBundleRule(userAddress common.Address,
 			MaxFinalizeTime: maxFinalizeTime,
 		})
 		if err != nil {
+			util.Logger.Errorf("failed to create bundle rule: %v", err)
 			return database.BundleRule{}, err
 		}
 	} else {
@@ -60,6 +64,7 @@ func (s *BundleRuleService) CreateOrUpdateBundleRule(userAddress common.Address,
 			MaxFinalizeTime: maxFinalizeTime,
 		})
 		if err != nil {
+			util.Logger.Errorf("failed to update bundle rule: %v", err)
 			return database.BundleRule{}, err
 		}
 	}

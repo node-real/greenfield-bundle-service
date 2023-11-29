@@ -11,5 +11,5 @@ type BundleRule struct {
 	MaxSize         int64     `json:"max_size"`
 	MaxFinalizeTime int64     `json:"max_finalize_time"`
 	CreatedAt       time.Time `json:"created_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP;<-:create"`
-	UpdatedAt       time.Time `json:"updated_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP"`
+	UpdatedAt       time.Time `json:"updated_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP"`
 }

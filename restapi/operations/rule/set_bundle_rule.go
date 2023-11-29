@@ -73,7 +73,7 @@ type SetBundleRuleBody struct {
 
 	// Maximum number of files in a bundle
 	// Required: true
-	MaxBundleFiles *int32 `json:"maxBundleFiles"`
+	MaxBundleFiles *int64 `json:"maxBundleFiles"`
 
 	// Maximum size of a bundle in bytes
 	// Required: true
@@ -81,7 +81,11 @@ type SetBundleRuleBody struct {
 
 	// Maximum time in seconds before a bundle must be finalized
 	// Required: true
-	MaxFinalizeTime *int32 `json:"maxFinalizeTime"`
+	MaxFinalizeTime *int64 `json:"maxFinalizeTime"`
+
+	// Timestamp of the request
+	// Required: true
+	Timestamp *int64 `json:"timestamp"`
 }
 
 // Validate validates this set bundle rule body
@@ -101,6 +105,10 @@ func (o *SetBundleRuleBody) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := o.validateMaxFinalizeTime(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.validateTimestamp(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -140,6 +148,15 @@ func (o *SetBundleRuleBody) validateMaxBundleSize(formats strfmt.Registry) error
 func (o *SetBundleRuleBody) validateMaxFinalizeTime(formats strfmt.Registry) error {
 
 	if err := validate.Required("body"+"."+"maxFinalizeTime", "body", o.MaxFinalizeTime); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o *SetBundleRuleBody) validateTimestamp(formats strfmt.Registry) error {
+
+	if err := validate.Required("body"+"."+"timestamp", "body", o.Timestamp); err != nil {
 		return err
 	}
 

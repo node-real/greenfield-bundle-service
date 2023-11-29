@@ -6,7 +6,7 @@ info:
 host: 'bundle-service.nodereal.io'
 basePath: /v1
 schemes:
-  - https
+  - http
 
 paths:
   /uploadObject:
@@ -193,6 +193,7 @@ paths:
             type: object
             required:
               - bucketName
+              - bundleName
               - timestamp
             properties:
               bucketName:
@@ -244,6 +245,7 @@ paths:
               - maxBundleSize
               - maxBundleFiles
               - maxFinalizeTime
+              - timestamp
             properties:
               bucketName:
                 type: string
@@ -255,11 +257,15 @@ paths:
               maxBundleFiles:
                 type: integer
                 description: Maximum number of files in a bundle
-                format: int32
+                format: int64
               maxFinalizeTime:
                 type: integer
                 description: Maximum time in seconds before a bundle must be finalized
-                format: int32
+                format: int64
+              timestamp:
+                type: integer
+                description: Timestamp of the request
+                format: int64
       responses:
         '200':
           description: Successfully added bundle rule

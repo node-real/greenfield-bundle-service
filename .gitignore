@@ -12,3 +12,5 @@ vendor/
 .task
 coverage.out
 .idea/
+devtest/
+*.sqlite3

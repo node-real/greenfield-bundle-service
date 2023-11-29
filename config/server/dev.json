@@ -1,0 +1,22 @@
+{
+  "db_config":{
+    "db_dialect":"sqlite3",
+    "db_path":"./db.sqlite3",
+    "password":"12345678",
+    "username":"root",
+    "max_idle_conns":0,
+    "max_open_conns":0,
+    "aws_region":"",
+    "aws_secret_name":""
+  },
+  "log_config":{
+    "level":"INFO",
+    "filename":"",
+    "max_file_size_in_mb":0,
+    "max_backups_of_log_files":0,
+    "max_age_to_retain_log_files_in_days":0,
+    "use_console_logger":true,
+    "use_file_logger":false,
+    "compress":false
+  }
+}

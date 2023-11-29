@@ -12,6 +12,8 @@ import (
 type BundleDao interface {
 	CreateBundleIfNotBundlingExist(newBundle database.Bundle) (*database.Bundle, error)
 	QueryBundleWithMaxNonce(bucket string) (*database.Bundle, error)
+	QueryBundle(bucket string, name string) (*database.Bundle, error)
+	UpdateBundle(bundle database.Bundle) (*database.Bundle, error)
 }
 
 type dbBundleDao struct {
@@ -23,6 +25,23 @@ func NewBundleDao(db *gorm.DB) BundleDao {
 	return &dbBundleDao{
 		db: db,
 	}
+}
+
+func (s *dbBundleDao) UpdateBundle(bundle database.Bundle) (*database.Bundle, error) {
+	err := s.db.Save(&bundle).Error
+	if err != nil {
+		return nil, err
+	}
+	return &bundle, nil
+}
+
+func (s *dbBundleDao) QueryBundle(bucket string, name string) (*database.Bundle, error) {
+	var bundle database.Bundle
+	err := s.db.Where("bucket = ? AND name = ?", bucket, name).Take(&bundle).Error
+	if err != nil {
+		return nil, err
+	}
+	return &bundle, nil
 }
 
 func (s *dbBundleDao) QueryBundleWithMaxNonce(bucket string) (*database.Bundle, error) {

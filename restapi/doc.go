@@ -4,7 +4,7 @@
 //
 //	API for handling file bundling and querying objects in the Bundle Service.
 //	Schemes:
-//	  https
+//	  http
 //	Host: bundle-service.nodereal.io
 //	BasePath: /v1
 //	Version: 1.0.0

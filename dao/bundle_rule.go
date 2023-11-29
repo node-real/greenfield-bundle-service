@@ -8,6 +8,8 @@ import (
 
 type BundleRuleDao interface {
 	Get(userAddress string, bucketName string) (database.BundleRule, error)
+	Create(rule database.BundleRule) (database.BundleRule, error)
+	Update(rule database.BundleRule) (database.BundleRule, error)
 }
 
 type dbBundleRuleDao struct {
@@ -21,9 +23,28 @@ func NewBundleRuleDao(db *gorm.DB) BundleRuleDao {
 	}
 }
 
+// Get gets a bundle rule
 func (dao *dbBundleRuleDao) Get(userAddress string, bucketName string) (database.BundleRule, error) {
 	var rule database.BundleRule
 	err := dao.db.Where("owner = ? AND bucket = ?", userAddress, bucketName).Take(&rule).Error
+	if err != nil {
+		return rule, err
+	}
+	return rule, nil
+}
+
+// Create creates a new bundle rule
+func (dao *dbBundleRuleDao) Create(rule database.BundleRule) (database.BundleRule, error) {
+	err := dao.db.Create(&rule).Error
+	if err != nil {
+		return rule, err
+	}
+	return rule, nil
+}
+
+// Update updates a bundle rule
+func (dao *dbBundleRuleDao) Update(rule database.BundleRule) (database.BundleRule, error) {
+	err := dao.db.Save(&rule).Error
 	if err != nil {
 		return rule, err
 	}

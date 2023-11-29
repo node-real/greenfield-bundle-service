@@ -7,6 +7,8 @@ import (
 
 type Bundle interface {
 	CreateBundle(newBundle database.Bundle) (*database.Bundle, error)
+	QueryBundle(bucketName string, bundleName string) (*database.Bundle, error)
+	FinalizeBundle(bucketName string, bundleName string) (*database.Bundle, error)
 }
 
 type BundleService struct {
@@ -20,6 +22,15 @@ func NewBundleService(bundleDao dao.BundleDao, bundleRuleDao dao.BundleRuleDao) 
 		bundleRuleDao: bundleRuleDao,
 	}
 	return &bs
+}
+
+func (s *BundleService) QueryBundle(bucketName string, bundleName string) (*database.Bundle, error) {
+	bundle, err := s.bundleDao.QueryBundle(bucketName, bundleName)
+	if err != nil {
+		return nil, err
+	}
+
+	return bundle, nil
 }
 
 func (s *BundleService) CreateBundle(newBundle database.Bundle) (*database.Bundle, error) {
@@ -50,4 +61,28 @@ func (s *BundleService) CreateBundle(newBundle database.Bundle) (*database.Bundl
 	}
 
 	return createdBundle, nil
+}
+
+func (s *BundleService) FinalizeBundle(bucketName string, bundleName string) (*database.Bundle, error) {
+	bundle, err := s.bundleDao.QueryBundle(bucketName, bundleName)
+	if err != nil {
+		return nil, err
+	}
+
+	if bundle == nil {
+		return nil, nil
+	}
+
+	if bundle.Status != database.BundleStatusBundling {
+		return nil, nil
+	}
+
+	bundle.Status = database.BundleStatusFinalized
+
+	updatedBundle, err := s.bundleDao.UpdateBundle(*bundle)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedBundle, nil
 }

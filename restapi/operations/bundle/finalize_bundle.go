@@ -72,7 +72,8 @@ type FinalizeBundleBody struct {
 	BucketName *string `json:"bucketName"`
 
 	// The name of the bundle to be finalized
-	BundleName string `json:"bundleName,omitempty"`
+	// Required: true
+	BundleName *string `json:"bundleName"`
 
 	// Timestamp of the request
 	// Required: true
@@ -84,6 +85,10 @@ func (o *FinalizeBundleBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := o.validateBucketName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.validateBundleName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -100,6 +105,15 @@ func (o *FinalizeBundleBody) Validate(formats strfmt.Registry) error {
 func (o *FinalizeBundleBody) validateBucketName(formats strfmt.Registry) error {
 
 	if err := validate.Required("body"+"."+"bucketName", "body", o.BucketName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o *FinalizeBundleBody) validateBundleName(formats strfmt.Registry) error {
+
+	if err := validate.Required("body"+"."+"bundleName", "body", o.BundleName); err != nil {
 		return err
 	}
 

@@ -6,7 +6,7 @@ type BundleStatus uint
 
 const (
 	BundleStatusBundling       BundleStatus = 0
-	BundleStatusBundled        BundleStatus = 1
+	BundleStatusFinalized      BundleStatus = 1
 	BundleStatusCreatedOnChain BundleStatus = 2
 	BundleStatusDeleted        BundleStatus = 3
 )

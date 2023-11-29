@@ -8,18 +8,30 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
+	"github.com/node-real/greenfield-bundle-service/dao"
+	"github.com/node-real/greenfield-bundle-service/database"
 	"github.com/node-real/greenfield-bundle-service/restapi/handlers"
-
 	"github.com/node-real/greenfield-bundle-service/restapi/operations"
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/rule"
+	"github.com/node-real/greenfield-bundle-service/service"
+	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 //go:generate swagger generate server --target ../../greenfield-bundle-service --name BundleService --spec ../swagger.yaml --principal interface{}
 
+var cliOpts = struct {
+	ConfigFilePath string `short:"c" long:"config-path" description:"Config path" default:"config/server/dev.json"`
+}{}
+
 func configureFlags(api *operations.BundleServiceAPI) {
-	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
+	param := swag.CommandLineOptionsGroup{
+		ShortDescription: "config",
+		Options:          &cliOpts,
+	}
+	api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{param}
 }
 
 func configureAPI(api *operations.BundleServiceAPI) http.Handler {
@@ -44,7 +56,7 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// bundle.UploadObjectMaxParseMemory = 32 << 20
 
-	api.RuleSetBundleRuleHandler = rule.SetBundleRuleHandlerFunc(handlers.HandleAddBundleRule())
+	api.RuleSetBundleRuleHandler = rule.SetBundleRuleHandlerFunc(handlers.HandleSetBundleRule())
 
 	api.BundleBundleObjectHandler = bundle.BundleObjectHandlerFunc(handlers.HandleBundleObject())
 
@@ -71,7 +83,21 @@ func configureTLS(tlsConfig *tls.Config) {
 // This function can be called multiple times, depending on the number of serving schemes.
 // scheme value will be set accordingly: "http", "https" or "unix".
 func configureServer(s *http.Server, scheme, addr string) {
-	// initialize service.BundleSvc
+	configFilePath := cliOpts.ConfigFilePath
+	config := util.ParseServerConfigFromFile(configFilePath)
+
+	util.InitLogger(config.LogConfig)
+
+	db, err := database.ConnectDBWithConfig(config.DBConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	bundleDao := dao.NewBundleDao(db)
+	bundleRuleDao := dao.NewBundleRuleDao(db)
+
+	service.BundleSvc = service.NewBundleService(bundleDao, bundleRuleDao)
+	service.BundleRuleSvc = service.NewBundleRuleService(bundleRuleDao)
 }
 
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.

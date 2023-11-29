@@ -19,7 +19,7 @@ var (
 func init() {
 	SwaggerJSON = json.RawMessage([]byte(`{
   "schemes": [
-    "https"
+    "http"
   ],
   "swagger": "2.0",
   "info": {
@@ -134,6 +134,7 @@ func init() {
               "type": "object",
               "required": [
                 "bucketName",
+                "bundleName",
                 "timestamp"
               ],
               "properties": {
@@ -203,7 +204,8 @@ func init() {
                 "bucketName",
                 "maxBundleSize",
                 "maxBundleFiles",
-                "maxFinalizeTime"
+                "maxFinalizeTime",
+                "timestamp"
               ],
               "properties": {
                 "bucketName": {
@@ -213,7 +215,7 @@ func init() {
                 "maxBundleFiles": {
                   "description": "Maximum number of files in a bundle",
                   "type": "integer",
-                  "format": "int32"
+                  "format": "int64"
                 },
                 "maxBundleSize": {
                   "description": "Maximum size of a bundle in bytes",
@@ -223,7 +225,12 @@ func init() {
                 "maxFinalizeTime": {
                   "description": "Maximum time in seconds before a bundle must be finalized",
                   "type": "integer",
-                  "format": "int32"
+                  "format": "int64"
+                },
+                "timestamp": {
+                  "description": "Timestamp of the request",
+                  "type": "integer",
+                  "format": "int64"
                 }
               }
             }
@@ -417,7 +424,7 @@ func init() {
 }`))
 	FlatSwaggerJSON = json.RawMessage([]byte(`{
   "schemes": [
-    "https"
+    "http"
   ],
   "swagger": "2.0",
   "info": {
@@ -532,6 +539,7 @@ func init() {
               "type": "object",
               "required": [
                 "bucketName",
+                "bundleName",
                 "timestamp"
               ],
               "properties": {
@@ -601,7 +609,8 @@ func init() {
                 "bucketName",
                 "maxBundleSize",
                 "maxBundleFiles",
-                "maxFinalizeTime"
+                "maxFinalizeTime",
+                "timestamp"
               ],
               "properties": {
                 "bucketName": {
@@ -611,7 +620,7 @@ func init() {
                 "maxBundleFiles": {
                   "description": "Maximum number of files in a bundle",
                   "type": "integer",
-                  "format": "int32"
+                  "format": "int64"
                 },
                 "maxBundleSize": {
                   "description": "Maximum size of a bundle in bytes",
@@ -621,7 +630,12 @@ func init() {
                 "maxFinalizeTime": {
                   "description": "Maximum time in seconds before a bundle must be finalized",
                   "type": "integer",
-                  "format": "int32"
+                  "format": "int64"
+                },
+                "timestamp": {
+                  "description": "Timestamp of the request",
+                  "type": "integer",
+                  "format": "int64"
                 }
               }
             }

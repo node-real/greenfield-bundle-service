@@ -153,7 +153,7 @@ func HandleFinalizeBundle() func(params bundle.FinalizeBundleParams) middleware.
 		// query bundle
 		queriedBundle, err := service.BundleSvc.QueryBundle(*params.Body.BucketName, *params.Body.BundleName)
 		if err != nil {
-			util.Logger.Errorf("query bundle error, bucket=%s, bundle=%s, err=%s", *params.Body.BucketName, *params.Body.BundleName, err.Error()
+			util.Logger.Errorf("query bundle error, bucket=%s, bundle=%s, err=%s", *params.Body.BucketName, *params.Body.BundleName, err.Error())
 			return bundle.NewFinalizeBundleBadRequest()
 		}
 

@@ -50,6 +50,9 @@ func NewBundleServiceAPI(spec *loads.Document) *BundleServiceAPI {
 		BundleBundleObjectHandler: bundle.BundleObjectHandlerFunc(func(params bundle.BundleObjectParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.BundleObject has not yet been implemented")
 		}),
+		BundleBundlerAccountHandler: bundle.BundlerAccountHandlerFunc(func(params bundle.BundlerAccountParams) middleware.Responder {
+			return middleware.NotImplemented("operation bundle.BundlerAccount has not yet been implemented")
+		}),
 		BundleCreateBundleHandler: bundle.CreateBundleHandlerFunc(func(params bundle.CreateBundleParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.CreateBundle has not yet been implemented")
 		}),
@@ -106,6 +109,8 @@ type BundleServiceAPI struct {
 
 	// BundleBundleObjectHandler sets the operation handler for the bundle object operation
 	BundleBundleObjectHandler bundle.BundleObjectHandler
+	// BundleBundlerAccountHandler sets the operation handler for the bundler account operation
+	BundleBundlerAccountHandler bundle.BundlerAccountHandler
 	// BundleCreateBundleHandler sets the operation handler for the create bundle operation
 	BundleCreateBundleHandler bundle.CreateBundleHandler
 	// BundleFinalizeBundleHandler sets the operation handler for the finalize bundle operation
@@ -199,6 +204,9 @@ func (o *BundleServiceAPI) Validate() error {
 
 	if o.BundleBundleObjectHandler == nil {
 		unregistered = append(unregistered, "bundle.BundleObjectHandler")
+	}
+	if o.BundleBundlerAccountHandler == nil {
+		unregistered = append(unregistered, "bundle.BundlerAccountHandler")
 	}
 	if o.BundleCreateBundleHandler == nil {
 		unregistered = append(unregistered, "bundle.CreateBundleHandler")
@@ -308,6 +316,10 @@ func (o *BundleServiceAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/view/{bucketName}/{bundleName}/{objectName}"] = bundle.NewBundleObject(o.context, o.BundleBundleObjectHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/bundlerAccount/{userAddress}"] = bundle.NewBundlerAccount(o.context, o.BundleBundlerAccountHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

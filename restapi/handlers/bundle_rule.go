@@ -87,7 +87,9 @@ func HandleSetBundleRule() func(params rule.SetBundleRuleParams) middleware.Resp
 		if params.Body.MaxFinalizeTime == nil {
 			return rule.NewSetBundleRuleBadRequest().WithPayload(ErrorInvalidMaxFinalizeTime)
 		}
-
+		if params.XSignature == "" {
+			return rule.NewSetBundleRuleBadRequest().WithPayload(ErrorInvalidSignature)
+		}
 		// check signature
 		signerAddress, err := SigCheckSetBundleRule(params)
 		if err != nil {

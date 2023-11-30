@@ -37,11 +37,16 @@ paths:
           description: The name of the file to be uploaded
           required: true
           type: string
-        - name: signature
+        - name: bucketName
           in: formData
-          description: User's signature for the file
           required: true
           type: string
+          description: The bucketName of the bundle
+        - name: bundleName
+          in: formData
+          required: false
+          type: string
+          description: The name of the bundle
         - name: timestamp
           in: formData
           description: Timestamp of the upload
@@ -218,6 +223,38 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /bundlerAccount/{userAddress}:
+    post:
+      tags:
+        - Bundle
+      summary: Get Bundler Account for a User
+      description: >
+        Returns the bundler account for a given user.
+      operationId: bundlerAccount
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: userAddress
+          in: path
+          required: true
+          type: string
+          description: The address of the user
+      responses:
+        '200':
+          description: Successfully retrieved bundler account
+          schema:
+            $ref: '#/definitions/BundlerAccount'
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
   /setBundleRule:
     post:
       tags:
@@ -281,6 +318,13 @@ paths:
             $ref: '#/definitions/Error'
 
 definitions:
+  BundlerAccount:
+    type: object
+    properties:
+      address:
+        type: string
+        description: The address of the bundler
+
   Error:
     type: object
     properties:

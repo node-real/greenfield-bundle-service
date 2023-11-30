@@ -10,10 +10,11 @@ import (
 )
 
 type BundleDao interface {
-	CreateBundleIfNotBundlingExist(newBundle database.Bundle) (*database.Bundle, error)
+	CreateBundleIfNotBundlingExist(newBundle database.Bundle) (database.Bundle, error)
 	QueryBundleWithMaxNonce(bucket string) (*database.Bundle, error)
 	QueryBundle(bucket string, name string) (*database.Bundle, error)
 	UpdateBundle(bundle database.Bundle) (*database.Bundle, error)
+	GetBundlingBundle(bucket string) (database.Bundle, error)
 }
 
 type dbBundleDao struct {
@@ -35,6 +36,16 @@ func (s *dbBundleDao) UpdateBundle(bundle database.Bundle) (*database.Bundle, er
 	return &bundle, nil
 }
 
+// GetBundlingBundle returns the bundling bundle for the bucket if it exists
+func (s *dbBundleDao) GetBundlingBundle(bucket string) (database.Bundle, error) {
+	var bundle database.Bundle
+	err := s.db.Where("bucket = ? AND status = ?", bucket, database.BundleStatusBundling).Take(&bundle).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return database.Bundle{}, err
+	}
+	return bundle, nil
+}
+
 func (s *dbBundleDao) QueryBundle(bucket string, name string) (*database.Bundle, error) {
 	var bundle database.Bundle
 	err := s.db.Where("bucket = ? AND name = ?", bucket, name).Take(&bundle).Error
@@ -53,7 +64,7 @@ func (s *dbBundleDao) QueryBundleWithMaxNonce(bucket string) (*database.Bundle, 
 	return &bundle, nil
 }
 
-func (s *dbBundleDao) CreateBundleIfNotBundlingExist(newBundle database.Bundle) (*database.Bundle, error) {
+func (s *dbBundleDao) CreateBundleIfNotBundlingExist(newBundle database.Bundle) (database.Bundle, error) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		var count int64
 
@@ -83,8 +94,8 @@ func (s *dbBundleDao) CreateBundleIfNotBundlingExist(newBundle database.Bundle) 
 	})
 
 	if err != nil {
-		return nil, err
+		return database.Bundle{}, err
 	}
 
-	return &newBundle, nil
+	return newBundle, nil
 }

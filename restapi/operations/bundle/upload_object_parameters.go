@@ -47,6 +47,15 @@ type UploadObjectParams struct {
 	  In: header
 	*/
 	XSignature string
+	/*The bucketName of the bundle
+	  Required: true
+	  In: formData
+	*/
+	BucketName string
+	/*The name of the bundle
+	  In: formData
+	*/
+	BundleName *string
 	/*Content type of the file
 	  Required: true
 	  In: formData
@@ -62,11 +71,6 @@ type UploadObjectParams struct {
 	  In: formData
 	*/
 	FileName string
-	/*User's signature for the file
-	  Required: true
-	  In: formData
-	*/
-	Signature string
 	/*Timestamp of the upload
 	  Required: true
 	  In: formData
@@ -96,6 +100,16 @@ func (o *UploadObjectParams) BindRequest(r *http.Request, route *middleware.Matc
 		res = append(res, err)
 	}
 
+	fdBucketName, fdhkBucketName, _ := fds.GetOK("bucketName")
+	if err := o.bindBucketName(fdBucketName, fdhkBucketName, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
+	fdBundleName, fdhkBundleName, _ := fds.GetOK("bundleName")
+	if err := o.bindBundleName(fdBundleName, fdhkBundleName, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	fdContentType, fdhkContentType, _ := fds.GetOK("contentType")
 	if err := o.bindContentType(fdContentType, fdhkContentType, route.Formats); err != nil {
 		res = append(res, err)
@@ -113,11 +127,6 @@ func (o *UploadObjectParams) BindRequest(r *http.Request, route *middleware.Matc
 
 	fdFileName, fdhkFileName, _ := fds.GetOK("fileName")
 	if err := o.bindFileName(fdFileName, fdhkFileName, route.Formats); err != nil {
-		res = append(res, err)
-	}
-
-	fdSignature, fdhkSignature, _ := fds.GetOK("signature")
-	if err := o.bindSignature(fdSignature, fdhkSignature, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -147,6 +156,43 @@ func (o *UploadObjectParams) bindXSignature(rawData []string, hasKey bool, forma
 		return err
 	}
 	o.XSignature = raw
+
+	return nil
+}
+
+// bindBucketName binds and validates parameter BucketName from formData.
+func (o *UploadObjectParams) bindBucketName(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	if !hasKey {
+		return errors.Required("bucketName", "formData", rawData)
+	}
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: true
+
+	if err := validate.RequiredString("bucketName", "formData", raw); err != nil {
+		return err
+	}
+	o.BucketName = raw
+
+	return nil
+}
+
+// bindBundleName binds and validates parameter BundleName from formData.
+func (o *UploadObjectParams) bindBundleName(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.BundleName = &raw
 
 	return nil
 }
@@ -194,26 +240,6 @@ func (o *UploadObjectParams) bindFileName(rawData []string, hasKey bool, formats
 		return err
 	}
 	o.FileName = raw
-
-	return nil
-}
-
-// bindSignature binds and validates parameter Signature from formData.
-func (o *UploadObjectParams) bindSignature(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	if !hasKey {
-		return errors.Required("signature", "formData", rawData)
-	}
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	// Required: true
-
-	if err := validate.RequiredString("signature", "formData", raw); err != nil {
-		return err
-	}
-	o.Signature = raw
 
 	return nil
 }

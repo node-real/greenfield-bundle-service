@@ -66,6 +66,8 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 
 	api.BundleUploadObjectHandler = bundle.UploadObjectHandlerFunc(handlers.HandleUploadObject())
 
+	api.BundleBundlerAccountHandler = bundle.BundlerAccountHandlerFunc(handlers.HandleGetUserBundlerAccount())
+
 	api.PreServerShutdown = func() {}
 
 	api.ServerShutdown = func() {}
@@ -95,9 +97,14 @@ func configureServer(s *http.Server, scheme, addr string) {
 
 	bundleDao := dao.NewBundleDao(db)
 	bundleRuleDao := dao.NewBundleRuleDao(db)
+	objectDao := dao.NewObjectDao(db)
+	userBundlerAccountDao := dao.NewUserBundlerAccountDao(db)
+	bundlerAccountDao := dao.NewBundlerAccountDao(db)
 
-	service.BundleSvc = service.NewBundleService(bundleDao, bundleRuleDao)
+	service.BundleSvc = service.NewBundleService(bundleDao, bundleRuleDao, userBundlerAccountDao)
 	service.BundleRuleSvc = service.NewBundleRuleService(bundleRuleDao)
+	service.ObjectSvc = service.NewObjectService(bundleDao, objectDao, userBundlerAccountDao)
+	service.UserBundlerAccountSvc = service.NewUserBundlerAccountService(userBundlerAccountDao, bundlerAccountDao)
 }
 
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.

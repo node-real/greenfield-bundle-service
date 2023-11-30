@@ -30,6 +30,51 @@ func init() {
   "host": "bundle-service.nodereal.io",
   "basePath": "/v1",
   "paths": {
+    "/bundlerAccount/{userAddress}": {
+      "post": {
+        "description": "Returns the bundler account for a given user.\n",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Get Bundler Account for a User",
+        "operationId": "bundlerAccount",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The address of the user",
+            "name": "userAddress",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved bundler account",
+            "schema": {
+              "$ref": "#/definitions/BundlerAccount"
+            }
+          },
+          "400": {
+            "description": "Invalid request or parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/createBundle": {
       "post": {
         "description": "Initiates a new bundle, requiring details like bucket name and bundle name.\n",
@@ -294,10 +339,16 @@ func init() {
           },
           {
             "type": "string",
-            "description": "User's signature for the file",
-            "name": "signature",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
             "in": "formData",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle",
+            "name": "bundleName",
+            "in": "formData"
           },
           {
             "type": "integer",
@@ -408,6 +459,15 @@ func init() {
     }
   },
   "definitions": {
+    "BundlerAccount": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "description": "The address of the bundler",
+          "type": "string"
+        }
+      }
+    },
     "Error": {
       "type": "object",
       "properties": {
@@ -439,6 +499,51 @@ func init() {
   "host": "bundle-service.nodereal.io",
   "basePath": "/v1",
   "paths": {
+    "/bundlerAccount/{userAddress}": {
+      "post": {
+        "description": "Returns the bundler account for a given user.\n",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Get Bundler Account for a User",
+        "operationId": "bundlerAccount",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The address of the user",
+            "name": "userAddress",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved bundler account",
+            "schema": {
+              "$ref": "#/definitions/BundlerAccount"
+            }
+          },
+          "400": {
+            "description": "Invalid request or parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/createBundle": {
       "post": {
         "description": "Initiates a new bundle, requiring details like bucket name and bundle name.\n",
@@ -703,10 +808,16 @@ func init() {
           },
           {
             "type": "string",
-            "description": "User's signature for the file",
-            "name": "signature",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
             "in": "formData",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle",
+            "name": "bundleName",
+            "in": "formData"
           },
           {
             "type": "integer",
@@ -817,6 +928,15 @@ func init() {
     }
   },
   "definitions": {
+    "BundlerAccount": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "description": "The address of the bundler",
+          "type": "string"
+        }
+      }
+    },
     "Error": {
       "type": "object",
       "properties": {

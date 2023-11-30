@@ -79,6 +79,9 @@ func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Resp
 		if params.Body.BundleName == nil {
 			return bundle.NewCreateBundleBadRequest().WithPayload(ErrorInvalidBundleName)
 		}
+		if params.XSignature == "" {
+			return bundle.NewCreateBundleBadRequest().WithPayload(ErrorInvalidSignature)
+		}
 		signerAddress, err := SigCheckCreateBundle(params)
 		if err != nil {
 			return bundle.NewCreateBundleBadRequest().WithPayload(ErrorInvalidSignature)
@@ -90,6 +93,15 @@ func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Resp
 			Name:   *params.Body.BundleName,
 		}
 
+		// get bundler account for the user
+		bundlerAccount, err := service.UserBundlerAccountSvc.GetOrCreateUserBundlerAccount(newBundle.Owner)
+		if err != nil {
+			util.Logger.Errorf("get bundler account for user error, user=%s, err=%s", newBundle.Owner, err.Error())
+			return bundle.NewCreateBundleBadRequest()
+		}
+		newBundle.BundlerAccount = bundlerAccount.BundlerAddress
+
+		// create bundle
 		_, err = service.BundleSvc.CreateBundle(newBundle)
 		if err != nil {
 			util.Logger.Errorf("create bundle error, bundle=%+v, err=%s", newBundle, err.Error())
@@ -148,6 +160,9 @@ func HandleFinalizeBundle() func(params bundle.FinalizeBundleParams) middleware.
 		}
 		if params.Body.Timestamp == nil {
 			return bundle.NewFinalizeBundleBadRequest().WithPayload(ErrorInvalidTimestamp)
+		}
+		if params.XSignature == "" {
+			return bundle.NewCreateBundleBadRequest().WithPayload(ErrorInvalidSignature)
 		}
 
 		// query bundle

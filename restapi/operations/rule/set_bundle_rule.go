@@ -6,14 +6,9 @@ package rule
 // Editing this file might prove futile when you re-run the generate command
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // SetBundleRuleHandlerFunc turns a function with the right signature into a set bundle rule handler
@@ -60,128 +55,4 @@ func (o *SetBundleRule) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	res := o.Handler.Handle(Params) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// SetBundleRuleBody set bundle rule body
-//
-// swagger:model SetBundleRuleBody
-type SetBundleRuleBody struct {
-
-	// Name of the bucket for which the rule applies
-	// Required: true
-	BucketName *string `json:"bucketName"`
-
-	// Maximum number of files in a bundle
-	// Required: true
-	MaxBundleFiles *int64 `json:"maxBundleFiles"`
-
-	// Maximum size of a bundle in bytes
-	// Required: true
-	MaxBundleSize *int64 `json:"maxBundleSize"`
-
-	// Maximum time in seconds before a bundle must be finalized
-	// Required: true
-	MaxFinalizeTime *int64 `json:"maxFinalizeTime"`
-
-	// Timestamp of the request
-	// Required: true
-	Timestamp *int64 `json:"timestamp"`
-}
-
-// Validate validates this set bundle rule body
-func (o *SetBundleRuleBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateBucketName(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateMaxBundleFiles(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateMaxBundleSize(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateMaxFinalizeTime(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateTimestamp(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *SetBundleRuleBody) validateBucketName(formats strfmt.Registry) error {
-
-	if err := validate.Required("body"+"."+"bucketName", "body", o.BucketName); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *SetBundleRuleBody) validateMaxBundleFiles(formats strfmt.Registry) error {
-
-	if err := validate.Required("body"+"."+"maxBundleFiles", "body", o.MaxBundleFiles); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *SetBundleRuleBody) validateMaxBundleSize(formats strfmt.Registry) error {
-
-	if err := validate.Required("body"+"."+"maxBundleSize", "body", o.MaxBundleSize); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *SetBundleRuleBody) validateMaxFinalizeTime(formats strfmt.Registry) error {
-
-	if err := validate.Required("body"+"."+"maxFinalizeTime", "body", o.MaxFinalizeTime); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *SetBundleRuleBody) validateTimestamp(formats strfmt.Registry) error {
-
-	if err := validate.Required("body"+"."+"timestamp", "body", o.Timestamp); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this set bundle rule body based on context it is used
-func (o *SetBundleRuleBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *SetBundleRuleBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *SetBundleRuleBody) UnmarshalBinary(b []byte) error {
-	var res SetBundleRuleBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }

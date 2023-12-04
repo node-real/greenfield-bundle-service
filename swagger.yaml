@@ -22,42 +22,37 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: X-Signature
+        - name: Authorization
           in: header
           description: User's digital signature for authentication
           required: true
           type: string
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
+          required: true
+          type: string
+        - name: X-Bundle-File-Name
+          in: header
+          description: The name of the file to be uploaded
+          required: true
+          type: string
+        - name: X-Bundle-Content-Type
+          in: header
+          description: Content type of the file
+          required: true
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
         - name: file
           in: formData
           description: The file to be uploaded
           required: true
           type: file
-        - name: fileName
-          in: formData
-          description: The name of the file to be uploaded
-          required: true
-          type: string
-        - name: bucketName
-          in: formData
-          required: true
-          type: string
-          description: The bucketName of the bundle
-        - name: bundleName
-          in: formData
-          required: false
-          type: string
-          description: The name of the bundle
-        - name: timestamp
-          in: formData
-          description: Timestamp of the upload
-          required: true
-          type: integer
-          format: int64
-        - name: contentType
-          in: formData
-          description: Content type of the file
-          required: true
-          type: string
       responses:
         '200':
           description: Successfully uploaded file
@@ -134,32 +129,27 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: X-Signature
+        - name: Authorization
           in: header
           description: User's digital signature for authorization
           required: true
           type: string
-        - in: body
-          name: body
-          description: Parameters for managing a bundle
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
           required: true
-          schema:
-            type: object
-            required:
-              - bucketName
-              - bundleName
-              - timestamp
-            properties:
-              bucketName:
-                type: string
-                description: The name of the bucket
-              bundleName:
-                type: string
-                description: The name of the bundle to be managed
-              timestamp:
-                type: integer
-                description: Timestamp of the request
-                format: int64
+          type: string
+        - name: X-Bundle-Name
+          in: header
+          description: The name of the bundle to be created
+          required: true
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
       responses:
         '200':
           description: Successfully managed bundle
@@ -185,32 +175,27 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: X-Signature
+        - name: Authorization
           in: header
           description: User's digital signature for authorization
           required: true
           type: string
-        - in: body
-          name: body
-          description: Parameters for managing a bundle
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
           required: true
-          schema:
-            type: object
-            required:
-              - bucketName
-              - bundleName
-              - timestamp
-            properties:
-              bucketName:
-                type: string
-                description: The name of the bucket
-              bundleName:
-                type: string
-                description: The name of the bundle to be finalized
-              timestamp:
-                type: integer
-                description: Timestamp of the request
-                format: int64
+          type: string
+        - name: X-Bundle-Name
+          in: header
+          description: The name of the bundle to be finalized
+          required: true
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
       responses:
         '200':
           description: Successfully managed bundle
@@ -268,43 +253,40 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: X-Signature
+        - name: Authorization
           in: header
           description: User's digital signature for authorization
           required: true
           type: string
-        - in: body
-          name: body
-          description: Bundle rule creation parameters
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: Name of the bucket for which the rule applies
           required: true
-          schema:
-            type: object
-            required:
-              - bucketName
-              - maxBundleSize
-              - maxBundleFiles
-              - maxFinalizeTime
-              - timestamp
-            properties:
-              bucketName:
-                type: string
-                description: Name of the bucket for which the rule applies
-              maxBundleSize:
-                type: integer
-                description: Maximum size of a bundle in bytes
-                format: int64
-              maxBundleFiles:
-                type: integer
-                description: Maximum number of files in a bundle
-                format: int64
-              maxFinalizeTime:
-                type: integer
-                description: Maximum time in seconds before a bundle must be finalized
-                format: int64
-              timestamp:
-                type: integer
-                description: Timestamp of the request
-                format: int64
+          type: string
+        - name: X-Bundle-Max-Bundle-Size
+          in: header
+          description: Maximum size of a bundle in bytes
+          required: true
+          type: integer
+          format: int64
+        - name: X-Bundle-Max-Bundle-Files
+          in: header
+          description: Maximum number of files in a bundle
+          required: true
+          type: integer
+          format: int64
+        - name: X-Bundle-Max-Finalize-Time
+          in: header
+          description: Maximum time in seconds before a bundle must be finalized
+          required: true
+          type: integer
+          format: int64
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
       responses:
         '200':
           description: Successfully added bundle rule

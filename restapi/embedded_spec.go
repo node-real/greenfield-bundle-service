@@ -93,38 +93,31 @@ func init() {
           {
             "type": "string",
             "description": "User's digital signature for authorization",
-            "name": "X-Signature",
+            "name": "Authorization",
             "in": "header",
             "required": true
           },
           {
-            "description": "Parameters for managing a bundle",
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "bucketName",
-                "bundleName",
-                "timestamp"
-              ],
-              "properties": {
-                "bucketName": {
-                  "description": "The name of the bucket",
-                  "type": "string"
-                },
-                "bundleName": {
-                  "description": "The name of the bundle to be managed",
-                  "type": "string"
-                },
-                "timestamp": {
-                  "description": "Timestamp of the request",
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle to be created",
+            "name": "X-Bundle-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
           }
         ],
         "responses": {
@@ -164,38 +157,31 @@ func init() {
           {
             "type": "string",
             "description": "User's digital signature for authorization",
-            "name": "X-Signature",
+            "name": "Authorization",
             "in": "header",
             "required": true
           },
           {
-            "description": "Parameters for managing a bundle",
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "bucketName",
-                "bundleName",
-                "timestamp"
-              ],
-              "properties": {
-                "bucketName": {
-                  "description": "The name of the bucket",
-                  "type": "string"
-                },
-                "bundleName": {
-                  "description": "The name of the bundle to be finalized",
-                  "type": "string"
-                },
-                "timestamp": {
-                  "description": "Timestamp of the request",
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle to be finalized",
+            "name": "X-Bundle-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
           }
         ],
         "responses": {
@@ -235,51 +221,48 @@ func init() {
           {
             "type": "string",
             "description": "User's digital signature for authorization",
-            "name": "X-Signature",
+            "name": "Authorization",
             "in": "header",
             "required": true
           },
           {
-            "description": "Bundle rule creation parameters",
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "bucketName",
-                "maxBundleSize",
-                "maxBundleFiles",
-                "maxFinalizeTime",
-                "timestamp"
-              ],
-              "properties": {
-                "bucketName": {
-                  "description": "Name of the bucket for which the rule applies",
-                  "type": "string"
-                },
-                "maxBundleFiles": {
-                  "description": "Maximum number of files in a bundle",
-                  "type": "integer",
-                  "format": "int64"
-                },
-                "maxBundleSize": {
-                  "description": "Maximum size of a bundle in bytes",
-                  "type": "integer",
-                  "format": "int64"
-                },
-                "maxFinalizeTime": {
-                  "description": "Maximum time in seconds before a bundle must be finalized",
-                  "type": "integer",
-                  "format": "int64"
-                },
-                "timestamp": {
-                  "description": "Timestamp of the request",
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
+            "type": "string",
+            "description": "Name of the bucket for which the rule applies",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Maximum size of a bundle in bytes",
+            "name": "X-Bundle-Max-Bundle-Size",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Maximum number of files in a bundle",
+            "name": "X-Bundle-Max-Bundle-Files",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Maximum time in seconds before a bundle must be finalized",
+            "name": "X-Bundle-Max-Finalize-Time",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
           }
         ],
         "responses": {
@@ -319,7 +302,36 @@ func init() {
           {
             "type": "string",
             "description": "User's digital signature for authentication",
-            "name": "X-Signature",
+            "name": "Authorization",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the file to be uploaded",
+            "name": "X-Bundle-File-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Content type of the file",
+            "name": "X-Bundle-Content-Type",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
             "in": "header",
             "required": true
           },
@@ -327,41 +339,6 @@ func init() {
             "type": "file",
             "description": "The file to be uploaded",
             "name": "file",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "The name of the file to be uploaded",
-            "name": "fileName",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "The bucketName of the bundle",
-            "name": "bucketName",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "The name of the bundle",
-            "name": "bundleName",
-            "in": "formData"
-          },
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Timestamp of the upload",
-            "name": "timestamp",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "Content type of the file",
-            "name": "contentType",
             "in": "formData",
             "required": true
           }
@@ -562,38 +539,31 @@ func init() {
           {
             "type": "string",
             "description": "User's digital signature for authorization",
-            "name": "X-Signature",
+            "name": "Authorization",
             "in": "header",
             "required": true
           },
           {
-            "description": "Parameters for managing a bundle",
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "bucketName",
-                "bundleName",
-                "timestamp"
-              ],
-              "properties": {
-                "bucketName": {
-                  "description": "The name of the bucket",
-                  "type": "string"
-                },
-                "bundleName": {
-                  "description": "The name of the bundle to be managed",
-                  "type": "string"
-                },
-                "timestamp": {
-                  "description": "Timestamp of the request",
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle to be created",
+            "name": "X-Bundle-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
           }
         ],
         "responses": {
@@ -633,38 +603,31 @@ func init() {
           {
             "type": "string",
             "description": "User's digital signature for authorization",
-            "name": "X-Signature",
+            "name": "Authorization",
             "in": "header",
             "required": true
           },
           {
-            "description": "Parameters for managing a bundle",
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "bucketName",
-                "bundleName",
-                "timestamp"
-              ],
-              "properties": {
-                "bucketName": {
-                  "description": "The name of the bucket",
-                  "type": "string"
-                },
-                "bundleName": {
-                  "description": "The name of the bundle to be finalized",
-                  "type": "string"
-                },
-                "timestamp": {
-                  "description": "Timestamp of the request",
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle to be finalized",
+            "name": "X-Bundle-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
           }
         ],
         "responses": {
@@ -704,51 +667,48 @@ func init() {
           {
             "type": "string",
             "description": "User's digital signature for authorization",
-            "name": "X-Signature",
+            "name": "Authorization",
             "in": "header",
             "required": true
           },
           {
-            "description": "Bundle rule creation parameters",
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "bucketName",
-                "maxBundleSize",
-                "maxBundleFiles",
-                "maxFinalizeTime",
-                "timestamp"
-              ],
-              "properties": {
-                "bucketName": {
-                  "description": "Name of the bucket for which the rule applies",
-                  "type": "string"
-                },
-                "maxBundleFiles": {
-                  "description": "Maximum number of files in a bundle",
-                  "type": "integer",
-                  "format": "int64"
-                },
-                "maxBundleSize": {
-                  "description": "Maximum size of a bundle in bytes",
-                  "type": "integer",
-                  "format": "int64"
-                },
-                "maxFinalizeTime": {
-                  "description": "Maximum time in seconds before a bundle must be finalized",
-                  "type": "integer",
-                  "format": "int64"
-                },
-                "timestamp": {
-                  "description": "Timestamp of the request",
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
+            "type": "string",
+            "description": "Name of the bucket for which the rule applies",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Maximum size of a bundle in bytes",
+            "name": "X-Bundle-Max-Bundle-Size",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Maximum number of files in a bundle",
+            "name": "X-Bundle-Max-Bundle-Files",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Maximum time in seconds before a bundle must be finalized",
+            "name": "X-Bundle-Max-Finalize-Time",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
           }
         ],
         "responses": {
@@ -788,7 +748,36 @@ func init() {
           {
             "type": "string",
             "description": "User's digital signature for authentication",
-            "name": "X-Signature",
+            "name": "Authorization",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the file to be uploaded",
+            "name": "X-Bundle-File-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Content type of the file",
+            "name": "X-Bundle-Content-Type",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
             "in": "header",
             "required": true
           },
@@ -796,41 +785,6 @@ func init() {
             "type": "file",
             "description": "The file to be uploaded",
             "name": "file",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "The name of the file to be uploaded",
-            "name": "fileName",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "The bucketName of the bundle",
-            "name": "bucketName",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "The name of the bundle",
-            "name": "bundleName",
-            "in": "formData"
-          },
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Timestamp of the upload",
-            "name": "timestamp",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "Content type of the file",
-            "name": "contentType",
             "in": "formData",
             "required": true
           }

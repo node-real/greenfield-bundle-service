@@ -5,6 +5,7 @@ import (
 
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
+	"github.com/node-real/greenfield-bundle-service/types"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
@@ -64,10 +65,16 @@ func (s *BundleService) CreateBundle(newBundle database.Bundle) (database.Bundle
 		return database.Bundle{}, err
 	}
 
-	// set bundle rule
-	newBundle.MaxFiles = bundleRule.MaxFiles
-	newBundle.MaxSize = bundleRule.MaxSize
-	newBundle.MaxFinalizeTime = bundleRule.MaxFinalizeTime
+	// set bundle rule for the new bundle, if not exist, use default
+	if bundleRule.Id == 0 {
+		newBundle.MaxFiles = types.DefaultMaxBundleFiles
+		newBundle.MaxSize = types.DefaultMaxBundleSize
+		newBundle.MaxFinalizeTime = types.DefaultMaxFinalizeTime
+	} else {
+		newBundle.MaxFiles = bundleRule.MaxFiles
+		newBundle.MaxSize = bundleRule.MaxSize
+		newBundle.MaxFinalizeTime = bundleRule.MaxFinalizeTime
+	}
 
 	// set nonce
 	previousBundle, err := s.bundleDao.QueryBundleWithMaxNonce(newBundle.Bucket)

@@ -6,13 +6,12 @@ package bundle
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
@@ -37,12 +36,22 @@ type FinalizeBundleParams struct {
 	  Required: true
 	  In: header
 	*/
-	XSignature string
-	/*Parameters for managing a bundle
+	Authorization string
+	/*The name of the bucket
 	  Required: true
-	  In: body
+	  In: header
 	*/
-	Body FinalizeBundleBody
+	XBundleBucketName string
+	/*Expiry timestamp of the request
+	  Required: true
+	  In: header
+	*/
+	XBundleExpiryTimestamp int64
+	/*The name of the bundle to be finalized
+	  Required: true
+	  In: header
+	*/
+	XBundleName string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -54,36 +63,20 @@ func (o *FinalizeBundleParams) BindRequest(r *http.Request, route *middleware.Ma
 
 	o.HTTPRequest = r
 
-	if err := o.bindXSignature(r.Header[http.CanonicalHeaderKey("X-Signature")], true, route.Formats); err != nil {
+	if err := o.bindAuthorization(r.Header[http.CanonicalHeaderKey("Authorization")], true, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
-	if runtime.HasBody(r) {
-		defer r.Body.Close()
-		var body FinalizeBundleBody
-		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			if err == io.EOF {
-				res = append(res, errors.Required("body", "body", ""))
-			} else {
-				res = append(res, errors.NewParseError("body", "body", "", err))
-			}
-		} else {
-			// validate body object
-			if err := body.Validate(route.Formats); err != nil {
-				res = append(res, err)
-			}
+	if err := o.bindXBundleBucketName(r.Header[http.CanonicalHeaderKey("X-Bundle-Bucket-Name")], true, route.Formats); err != nil {
+		res = append(res, err)
+	}
 
-			ctx := validate.WithOperationRequest(r.Context())
-			if err := body.ContextValidate(ctx, route.Formats); err != nil {
-				res = append(res, err)
-			}
+	if err := o.bindXBundleExpiryTimestamp(r.Header[http.CanonicalHeaderKey("X-Bundle-Expiry-Timestamp")], true, route.Formats); err != nil {
+		res = append(res, err)
+	}
 
-			if len(res) == 0 {
-				o.Body = body
-			}
-		}
-	} else {
-		res = append(res, errors.Required("body", "body", ""))
+	if err := o.bindXBundleName(r.Header[http.CanonicalHeaderKey("X-Bundle-Name")], true, route.Formats); err != nil {
+		res = append(res, err)
 	}
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
@@ -91,10 +84,10 @@ func (o *FinalizeBundleParams) BindRequest(r *http.Request, route *middleware.Ma
 	return nil
 }
 
-// bindXSignature binds and validates parameter XSignature from header.
-func (o *FinalizeBundleParams) bindXSignature(rawData []string, hasKey bool, formats strfmt.Registry) error {
+// bindAuthorization binds and validates parameter Authorization from header.
+func (o *FinalizeBundleParams) bindAuthorization(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	if !hasKey {
-		return errors.Required("X-Signature", "header", rawData)
+		return errors.Required("Authorization", "header", rawData)
 	}
 	var raw string
 	if len(rawData) > 0 {
@@ -103,10 +96,75 @@ func (o *FinalizeBundleParams) bindXSignature(rawData []string, hasKey bool, for
 
 	// Required: true
 
-	if err := validate.RequiredString("X-Signature", "header", raw); err != nil {
+	if err := validate.RequiredString("Authorization", "header", raw); err != nil {
 		return err
 	}
-	o.XSignature = raw
+	o.Authorization = raw
+
+	return nil
+}
+
+// bindXBundleBucketName binds and validates parameter XBundleBucketName from header.
+func (o *FinalizeBundleParams) bindXBundleBucketName(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	if !hasKey {
+		return errors.Required("X-Bundle-Bucket-Name", "header", rawData)
+	}
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: true
+
+	if err := validate.RequiredString("X-Bundle-Bucket-Name", "header", raw); err != nil {
+		return err
+	}
+	o.XBundleBucketName = raw
+
+	return nil
+}
+
+// bindXBundleExpiryTimestamp binds and validates parameter XBundleExpiryTimestamp from header.
+func (o *FinalizeBundleParams) bindXBundleExpiryTimestamp(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	if !hasKey {
+		return errors.Required("X-Bundle-Expiry-Timestamp", "header", rawData)
+	}
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: true
+
+	if err := validate.RequiredString("X-Bundle-Expiry-Timestamp", "header", raw); err != nil {
+		return err
+	}
+
+	value, err := swag.ConvertInt64(raw)
+	if err != nil {
+		return errors.InvalidType("X-Bundle-Expiry-Timestamp", "header", "int64", raw)
+	}
+	o.XBundleExpiryTimestamp = value
+
+	return nil
+}
+
+// bindXBundleName binds and validates parameter XBundleName from header.
+func (o *FinalizeBundleParams) bindXBundleName(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	if !hasKey {
+		return errors.Required("X-Bundle-Name", "header", rawData)
+	}
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: true
+
+	if err := validate.RequiredString("X-Bundle-Name", "header", raw); err != nil {
+		return err
+	}
+	o.XBundleName = raw
 
 	return nil
 }

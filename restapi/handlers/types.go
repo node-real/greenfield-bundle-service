@@ -6,6 +6,10 @@ import (
 
 const (
 	TimestampExpireTime = 60 * 5 // 5 min
+
+	DefaultMaxBundleFiles  = 100
+	DefaultMaxBundleSize   = 1024 * 1024 * 1024 // 1GB
+	DefaultMaxFinalizeTime = 60 * 60 * 24       // 1 day
 )
 
 var (
@@ -14,9 +18,9 @@ var (
 		Message: "Internal error",
 	}
 
-	ErrorInvalidTimestamp = &models.Error{
+	ErrorInvalidExpiryTimestamp = &models.Error{
 		Code:    10000,
-		Message: "Invalid timestamp",
+		Message: "Invalid expiry timestamp",
 	}
 	ErrorInvalidSignature = &models.Error{
 		Code:    10001,

@@ -3,7 +3,6 @@ package e2e
 import (
 	"bytes"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -15,8 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/node-real/greenfield-bundle-service/restapi/handlers"
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
+	"github.com/node-real/greenfield-bundle-service/types"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
@@ -37,38 +35,35 @@ func TestCreateBundle(t *testing.T) {
 	privateKey, _, err := util.GenerateRandomAccount()
 	require.NoError(t, err)
 
-	// sign request
-	signMessage := handlers.BundleSignMessage{
-		Method:     handlers.CreateBundleMethod,
-		BucketName: "test",
-		BundleName: "test",
-		Timestamp:  time.Now().Unix(),
-	}
-
-	signBytes, err := signMessage.SignBytes()
-	require.NoError(t, err)
-
-	signature, err := SignMessage(privateKey, signBytes)
-	require.NoError(t, err)
-
-	reqBody := bundle.CreateBundleBody{
-		BucketName: &signMessage.BucketName,
-		BundleName: &signMessage.BundleName,
-		Timestamp:  &signMessage.Timestamp,
-	}
 	url := "http://localhost:8080/v1/createBundle"
-	jsonData, err := json.Marshal(reqBody)
-	require.NoError(t, err)
+
+	headers := map[string]string{
+		"X-Bundle-Bucket-Name":      "example-bucket",
+		"X-Bundle-Name":             "example-bundle",
+		"X-Bundle-Expiry-Timestamp": fmt.Sprintf("%d", time.Now().Add(1*time.Hour).Unix()),
+	}
 
 	// Create a new request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(nil))
 	if err != nil {
 		log.Fatal("Error creating request:", err)
 	}
 
 	// Set the headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Signature", hex.EncodeToString(signature))
+
+	// Add headers to the request
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	messageToSign := types.GetMsgToSignInBundleAuth(req)
+	messageHash := types.TextHash(messageToSign)
+
+	signature, err := SignMessage(privateKey, messageHash)
+	require.NoError(t, err)
+
+	req.Header.Set(types.HTTPHeaderAuthorization, hex.EncodeToString(signature))
 
 	// Create a new HTTP client and send the request
 	client := &http.Client{}
@@ -88,39 +83,42 @@ func TestCreateBundle(t *testing.T) {
 }
 
 func TestFinalizeBundle(t *testing.T) {
-	privateKey, _, err := util.GenerateRandomAccount()
+	privateKey, addr, err := util.GenerateRandomAccount()
+	println(addr.String())
 	require.NoError(t, err)
 
 	bundleName := RandomString(10)
 	bucketName := RandomString(10)
-	// sign request
-	signMessage := handlers.BundleSignMessage{
-		Method:     handlers.CreateBundleMethod,
-		BucketName: bucketName,
-		BundleName: bundleName,
-		Timestamp:  time.Now().Unix(),
+
+	headers := map[string]string{
+		"X-Bundle-Bucket-Name":      bucketName,
+		"X-Bundle-Name":             bundleName,
+		"X-Bundle-Expiry-Timestamp": fmt.Sprintf("%d", time.Now().Add(1*time.Hour).Unix()),
 	}
 
-	signBytes, err := signMessage.SignBytes()
-	require.NoError(t, err)
-
-	signature, err := SignMessage(privateKey, signBytes)
-	require.NoError(t, err)
-
-	reqBody := bundle.CreateBundleBody{
-		BucketName: &signMessage.BucketName,
-		BundleName: &signMessage.BundleName,
-		Timestamp:  &signMessage.Timestamp,
-	}
 	url := "http://localhost:8080/v1/createBundle"
-	jsonData, err := json.Marshal(reqBody)
-	require.NoError(t, err)
 
 	// Create a new request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(nil))
 	if err != nil {
 		log.Fatal("Error creating request:", err)
 	}
+
+	// Set the headers
+	req.Header.Set("Content-Type", "application/json")
+
+	// Add headers to the request
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	messageToSign := types.GetMsgToSignInBundleAuth(req)
+	messageHash := types.TextHash(messageToSign)
+
+	signature, err := SignMessage(privateKey, messageHash)
+	require.NoError(t, err)
+
+	req.Header.Set(types.HTTPHeaderAuthorization, hex.EncodeToString(signature))
 
 	// Set the headers
 	req.Header.Set("Content-Type", "application/json")
@@ -143,37 +141,29 @@ func TestFinalizeBundle(t *testing.T) {
 	fmt.Println("Response body:", string(body))
 
 	// finalize bundle
-	signMessage = handlers.BundleSignMessage{
-		Method:     handlers.FinalizeBundleMethod,
-		BucketName: bucketName,
-		BundleName: bundleName,
-		Timestamp:  time.Now().Unix(),
-	}
-
-	signBytes, err = signMessage.SignBytes()
-	require.NoError(t, err)
-
-	signature, err = SignMessage(privateKey, signBytes)
-	require.NoError(t, err)
-
-	finalizeReqBody := bundle.FinalizeBundleBody{
-		BucketName: &signMessage.BucketName,
-		BundleName: &signMessage.BundleName,
-		Timestamp:  &signMessage.Timestamp,
-	}
 	url = "http://localhost:8080/v1/finalizeBundle"
-	jsonData, err = json.Marshal(finalizeReqBody)
-	require.NoError(t, err)
 
 	// Create a new request
-	req, err = http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err = http.NewRequest("POST", url, bytes.NewBuffer(nil))
 	if err != nil {
 		log.Fatal("Error creating request:", err)
 	}
 
 	// Set the headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Signature", hex.EncodeToString(signature))
+
+	// Add headers to the request
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	messageToSign = types.GetMsgToSignInBundleAuth(req)
+	messageHash = types.TextHash(messageToSign)
+
+	signature, err = SignMessage(privateKey, messageHash)
+	require.NoError(t, err)
+
+	req.Header.Set(types.HTTPHeaderAuthorization, hex.EncodeToString(signature))
 
 	// Create a new HTTP client and send the request
 	client = &http.Client{}
@@ -190,5 +180,4 @@ func TestFinalizeBundle(t *testing.T) {
 
 	fmt.Println("Response status:", resp.Status)
 	fmt.Println("Response body:", string(body))
-
 }

@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -12,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/node-real/greenfield-bundle-service/util"
 
-	"github.com/node-real/greenfield-bundle-service/restapi/handlers"
+	"github.com/node-real/greenfield-bundle-service/types"
 )
 
-func uploadObject(signature, fileName, bucketName, bundleName, contentType string, timestamp int64, file *os.File) error {
+func uploadObject(fileName, bucketName, contentType string, file *os.File) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -29,13 +28,6 @@ func uploadObject(signature, fileName, bucketName, bundleName, contentType strin
 	if err != nil {
 		return err
 	}
-
-	// Add other form fields
-	_ = writer.WriteField("fileName", fileName)
-	_ = writer.WriteField("bucketName", bucketName)
-	_ = writer.WriteField("bundleName", bundleName)
-	_ = writer.WriteField("timestamp", fmt.Sprintf("%d", timestamp))
-	_ = writer.WriteField("contentType", contentType)
 
 	// Close the writer
 	err = writer.Close()
@@ -49,10 +41,31 @@ func uploadObject(signature, fileName, bucketName, bundleName, contentType strin
 		return err
 	}
 
+	// Add headers to the request body
+	headers := map[string]string{
+		"X-Bundle-Bucket-Name":      bucketName,
+		"X-Bundle-File-Name":        fileName,
+		"X-Bundle-Content-Type":     contentType,
+		"X-Bundle-Expiry-Timestamp": fmt.Sprintf("%d", time.Now().Add(1*time.Hour).Unix()), // Replace with the actual timestamp
+	}
+
+	for key, value := range headers {
+		writer.WriteField(key, value)
+	}
+
 	// Set the content type, this is important
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	// Set the X-Signature header
-	req.Header.Set("X-Signature", signature)
+
+	messageToSign := types.GetMsgToSignInBundleAuth(req)
+	messageHash := types.TextHash(messageToSign)
+
+	privateKey, _, err := util.GenerateRandomAccount()
+
+	signature, err := SignMessage(privateKey, messageHash)
+	if err != nil {
+		return err
+	}
+	req.Header.Set(types.HTTPHeaderAuthorization, hex.EncodeToString(signature))
 
 	// Do the request
 	client := &http.Client{}
@@ -78,35 +91,6 @@ func uploadObject(signature, fileName, bucketName, bundleName, contentType strin
 	return nil
 }
 
-func signMessage(message *handlers.ObjectSignMessage) (signature []byte, address string, err error) {
-	privateKey, err := crypto.GenerateKey()
-	if err != nil {
-		return nil, "", err
-	}
-
-	data, err := message.SignBytes()
-	if err != nil {
-		return nil, "", err
-	}
-
-	hash := crypto.Keccak256Hash(data)
-
-	signature, err = crypto.Sign(hash.Bytes(), privateKey)
-	if err != nil {
-		return nil, "", err
-	}
-
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return nil, "", fmt.Errorf("error casting public key to ECDSA")
-	}
-
-	// Derive the address from the public key
-	address = crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-	return signature, address, nil
-}
-
 func TestUploadObject(t *testing.T) {
 	file, err := os.Create("test.txt")
 	if err != nil {
@@ -117,22 +101,8 @@ func TestUploadObject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signMsg := &handlers.ObjectSignMessage{
-		Method:      handlers.UploadObjectMethod,
-		BucketName:  "test",
-		BundleName:  "test",
-		FileName:    "test.txt",
-		ContentType: "text/plain",
-		Timestamp:   time.Now().Unix(),
-	}
-	// Sign the message
-	signature, _, err := signMessage(signMsg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	// Upload the file
-	err = uploadObject(hex.EncodeToString(signature), "test.txt", "test", "test", "text/plain", signMsg.Timestamp, file)
+	err = uploadObject("test.txt", "test", "text/plain", file)
 	if err != nil {
 		t.Fatal(err)
 	}

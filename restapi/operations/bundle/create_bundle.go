@@ -6,14 +6,9 @@ package bundle
 // Editing this file might prove futile when you re-run the generate command
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // CreateBundleHandlerFunc turns a function with the right signature into a create bundle handler
@@ -60,94 +55,4 @@ func (o *CreateBundle) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	res := o.Handler.Handle(Params) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// CreateBundleBody create bundle body
-//
-// swagger:model CreateBundleBody
-type CreateBundleBody struct {
-
-	// The name of the bucket
-	// Required: true
-	BucketName *string `json:"bucketName"`
-
-	// The name of the bundle to be managed
-	// Required: true
-	BundleName *string `json:"bundleName"`
-
-	// Timestamp of the request
-	// Required: true
-	Timestamp *int64 `json:"timestamp"`
-}
-
-// Validate validates this create bundle body
-func (o *CreateBundleBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateBucketName(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateBundleName(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateTimestamp(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *CreateBundleBody) validateBucketName(formats strfmt.Registry) error {
-
-	if err := validate.Required("body"+"."+"bucketName", "body", o.BucketName); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *CreateBundleBody) validateBundleName(formats strfmt.Registry) error {
-
-	if err := validate.Required("body"+"."+"bundleName", "body", o.BundleName); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *CreateBundleBody) validateTimestamp(formats strfmt.Registry) error {
-
-	if err := validate.Required("body"+"."+"timestamp", "body", o.Timestamp); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this create bundle body based on context it is used
-func (o *CreateBundleBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *CreateBundleBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *CreateBundleBody) UnmarshalBinary(b []byte) error {
-	var res CreateBundleBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }

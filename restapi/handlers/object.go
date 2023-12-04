@@ -1,103 +1,48 @@
 package handlers
 
 import (
-	"encoding/hex"
-	"encoding/json"
-	"fmt"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/node-real/greenfield-bundle-service/database"
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
 	"github.com/node-real/greenfield-bundle-service/service"
+	"github.com/node-real/greenfield-bundle-service/types"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
-
-const (
-	UploadObjectMethod = "uploadObject"
-)
-
-type ObjectSignMessage struct {
-	Method      string
-	BucketName  string
-	BundleName  string
-	FileName    string
-	ContentType string
-	Timestamp   int64
-}
-
-func (s *ObjectSignMessage) SignBytes() ([]byte, error) {
-	return json.Marshal(s)
-}
-
-// SigCheckUploadObject checks the signature of upload object request
-func SigCheckUploadObject(params bundle.UploadObjectParams) (common.Address, error) {
-	signMessage := ObjectSignMessage{
-		Method:      UploadObjectMethod,
-		BucketName:  params.BucketName,
-		BundleName:  *params.BundleName,
-		FileName:    params.FileName,
-		ContentType: params.ContentType,
-		Timestamp:   params.Timestamp,
-	}
-
-	signBytes, err := signMessage.SignBytes()
-	if err != nil {
-		return common.Address{}, err
-	}
-	messageHash := crypto.Keccak256Hash(signBytes)
-
-	sigBytes, err := hex.DecodeString(params.XSignature)
-	if err != nil {
-		return common.Address{}, err
-	}
-	isValid, err := util.VerifySignature(messageHash.Bytes(), sigBytes)
-	if err != nil {
-		return common.Address{}, err
-	}
-	if !isValid {
-		return common.Address{}, fmt.Errorf("invalid signature")
-	}
-
-	address, err := util.RecoverAddress(messageHash, sigBytes)
-	if err != nil {
-		return common.Address{}, err
-	}
-	return address, nil
-}
 
 func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Responder {
 	return func(params bundle.UploadObjectParams) middleware.Responder {
 		// check params
-		if params.FileName == "" {
+		if params.XBundleFileName == "" {
 			return bundle.NewUploadObjectBadRequest()
 		}
-		if params.Timestamp == 0 {
+		if params.XBundleContentType == "" {
 			return bundle.NewUploadObjectBadRequest()
 		}
-		if params.ContentType == "" {
+		if params.XBundleBucketName == "" {
 			return bundle.NewUploadObjectBadRequest()
 		}
-		if params.BucketName == "" {
-			return bundle.NewUploadObjectBadRequest()
-		}
-		if params.XSignature == "" {
+		if params.Authorization == "" {
 			return bundle.NewUploadObjectBadRequest().WithPayload(ErrorInvalidSignature)
 		}
 
 		// check signature
-		signerAddress, err := SigCheckUploadObject(params)
+		signerAddress, err := types.VerifySignature(params.HTTPRequest)
 		if err != nil {
-			util.Logger.Errorf("sig check upload object error, err=%s", err.Error())
+			util.Logger.Errorf("sig check error, err=%s", err.Error())
 			return bundle.NewUploadObjectBadRequest().WithPayload(ErrorInvalidSignature)
 		}
 
+		// check expiry timestamp
+		if err := types.ValidateExpiryTimestamp(params.HTTPRequest); err != nil {
+			util.Logger.Errorf("validate expiry timestamp error, err=%s", err.Error())
+			return bundle.NewUploadObjectBadRequest().WithPayload(ErrorInvalidExpiryTimestamp)
+		}
+
 		// get bundling bundle
-		bundlingBundle, err := service.BundleSvc.GetBundlingBundle(params.BucketName)
+		bundlingBundle, err := service.BundleSvc.GetBundlingBundle(params.XBundleBucketName)
 		if err != nil {
-			util.Logger.Errorf("get bundling bundle error, bucket=%s, err=%s", params.BucketName, err.Error())
+			util.Logger.Errorf("get bundling bundle error, bucket=%s, err=%s", params.XBundleBucketName, err.Error())
 			return bundle.NewUploadObjectInternalServerError()
 		}
 
@@ -106,7 +51,7 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			// create new bundle
 			newBundle := database.Bundle{
 				Owner:  signerAddress.String(),
-				Bucket: params.BucketName,
+				Bucket: params.XBundleBucketName,
 			}
 
 			// get bundler account for the user
@@ -127,11 +72,11 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 
 		// create object
 		newObject := database.Object{ // TODO: add more fields
-			Bucket:      params.BucketName,
+			Bucket:      params.XBundleBucketName,
 			BundleName:  bundlingBundle.Name,
-			ObjectName:  params.FileName,
+			ObjectName:  params.XBundleFileName,
 			Owner:       signerAddress.String(),
-			ContentType: params.ContentType,
+			ContentType: params.XBundleContentType,
 		}
 
 		_, err = service.ObjectSvc.CreateObjectForBundling(newObject)

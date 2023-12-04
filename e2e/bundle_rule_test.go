@@ -3,7 +3,6 @@ package e2e
 import (
 	"bytes"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -14,14 +13,14 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/rule"
-
-	"github.com/node-real/greenfield-bundle-service/restapi/handlers"
+	"github.com/node-real/greenfield-bundle-service/types"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 // SignMessage signs a message with a given private key
 func SignMessage(privateKeyBytes []byte, message []byte) ([]byte, error) {
+	message[0] = message[0] + 10
+
 	// Convert bytes to ECDSA private key
 	privateKey, err := crypto.ToECDSA(privateKeyBytes)
 	if err != nil {
@@ -29,7 +28,7 @@ func SignMessage(privateKeyBytes []byte, message []byte) ([]byte, error) {
 	}
 
 	// Sign the message
-	signature, err := crypto.Sign(crypto.Keccak256(message), privateKey)
+	signature, err := crypto.Sign(message, privateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -40,42 +39,38 @@ func TestSetOrCreateBundleRule(t *testing.T) {
 	privateKey, _, err := util.GenerateRandomAccount()
 	require.NoError(t, err)
 
-	// sign request
-	signMessage := handlers.BundleRuleSignMessage{
-		Method:          handlers.SetBundleRuleMethod,
-		BucketName:      "test",
-		MaxFiles:        10,
-		MaxSize:         1000000,
-		MaxFinalizeTime: 10000,
-		Timestamp:       time.Now().Unix(),
-	}
-
-	signBytes, err := signMessage.SignBytes()
-	require.NoError(t, err)
-
-	signature, err := SignMessage(privateKey, signBytes)
-	require.NoError(t, err)
-
-	res, err := util.VerifySignature(crypto.Keccak256(signBytes), signature)
-	require.NoError(t, err)
-
-	reqBody := rule.SetBundleRuleBody{
-		BucketName:      &signMessage.BucketName,
-		MaxBundleSize:   &signMessage.MaxFiles,
-		MaxBundleFiles:  &signMessage.MaxSize,
-		MaxFinalizeTime: &signMessage.MaxFinalizeTime,
-		Timestamp:       &signMessage.Timestamp,
-	}
-
 	url := "http://localhost:8080/v1/setBundleRule"
-	jsonData, err := json.Marshal(reqBody)
+
+	// Define the headers based on the Swagger specification
+	headers := map[string]string{
+		"X-Bundle-Bucket-Name":       "example-bucket",
+		"X-Bundle-Max-Bundle-Size":   "1048576", // 1 MB in bytes
+		"X-Bundle-Max-Bundle-Files":  "100",
+		"X-Bundle-Max-Finalize-Time": "3600", // 1 hour in seconds
+		"X-Bundle-Expiry-Timestamp":  fmt.Sprintf("%d", time.Now().Add(1*time.Hour).Unix()),
+	}
+
+	// Create a new HTTP request
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(nil))
+	if err != nil {
+		panic(err)
+	}
+
+	// Add headers to the request
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	messageToSign := types.GetMsgToSignInBundleAuth(req)
+	messageHash := types.TextHash(messageToSign)
+
+	signature, err := SignMessage(privateKey, messageHash)
 	require.NoError(t, err)
 
-	// Create a new request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		log.Fatal("Error creating request:", err)
-	}
+	//res, err := util.VerifySignature(crypto.Keccak256(messageHash), signature)
+	//require.NoError(t, err)
+
+	req.Header.Set(types.HTTPHeaderAuthorization, hex.EncodeToString(signature))
 
 	// Set the headers
 	req.Header.Set("Content-Type", "application/json")
@@ -110,6 +105,4 @@ func TestSetOrCreateBundleRule(t *testing.T) {
 	}
 	fmt.Println("Response status:", resp.Status)
 	fmt.Println("Response body:", string(body))
-
-	println(res)
 }

@@ -10,40 +10,53 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/node-real/greenfield-bundle-service/types"
-	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 // SignMessage signs a message with a given private key
 func SignMessage(privateKeyBytes []byte, message []byte) ([]byte, error) {
-	message[0] = message[0] + 10
-
 	// Convert bytes to ECDSA private key
 	privateKey, err := crypto.ToECDSA(privateKeyBytes)
 	if err != nil {
 		return nil, err
 	}
 
+	println("hex message", hex.EncodeToString(message))
+
 	// Sign the message
 	signature, err := crypto.Sign(message, privateKey)
 	if err != nil {
 		return nil, err
 	}
+	println("hex signature", hex.EncodeToString(signature))
 	return signature, err
 }
 
+func GetAccount() ([]byte, common.Address, error) {
+	privateKeyBytes, _ := hex.DecodeString("4feafe85242413ba7914121ecc43406de4e5199d343660190768d68f87fe8611")
+	// Convert the bytes to *ecdsa.PrivateKey
+	privateKey, err := crypto.ToECDSA(privateKeyBytes)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return privateKeyBytes, crypto.PubkeyToAddress(privateKey.PublicKey), nil
+}
+
 func TestSetOrCreateBundleRule(t *testing.T) {
-	privateKey, _, err := util.GenerateRandomAccount()
+	privateKey, acc, err := GetAccount()
 	require.NoError(t, err)
+	println("address", acc.String())
 
 	url := "http://localhost:8080/v1/setBundleRule"
 
 	// Define the headers based on the Swagger specification
 	headers := map[string]string{
-		"X-Bundle-Bucket-Name":       "example-bucket",
+		"X-Bundle-Bucket-Name":       "t3ply5",
 		"X-Bundle-Max-Bundle-Size":   "1048576", // 1 MB in bytes
 		"X-Bundle-Max-Bundle-Files":  "100",
 		"X-Bundle-Max-Finalize-Time": "3600", // 1 hour in seconds
@@ -61,20 +74,16 @@ func TestSetOrCreateBundleRule(t *testing.T) {
 		req.Header.Set(key, value)
 	}
 
+	// Set the headers
+	req.Header.Set("Content-Type", "application/json")
+
 	messageToSign := types.GetMsgToSignInBundleAuth(req)
 	messageHash := types.TextHash(messageToSign)
 
 	signature, err := SignMessage(privateKey, messageHash)
 	require.NoError(t, err)
 
-	//res, err := util.VerifySignature(crypto.Keccak256(messageHash), signature)
-	//require.NoError(t, err)
-
 	req.Header.Set(types.HTTPHeaderAuthorization, hex.EncodeToString(signature))
-
-	// Set the headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Signature", hex.EncodeToString(signature))
 
 	// Create a new HTTP client and send the request
 	client := &http.Client{}

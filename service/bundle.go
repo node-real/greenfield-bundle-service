@@ -1,7 +1,11 @@
 package service
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/bnb-chain/greenfield-go-sdk/client"
+	gnfdtypes "github.com/bnb-chain/greenfield/x/storage/types"
 
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
@@ -18,21 +22,25 @@ type Bundle interface {
 	QueryBundle(bucketName string, bundleName string) (*database.Bundle, error)
 	FinalizeBundle(bucketName string, bundleName string) (*database.Bundle, error)
 	GetBundlingBundle(bucketName string) (database.Bundle, error)
+	QueryBucketFromGndf(bucketName string) (*gnfdtypes.BucketInfo, error)
 }
 
 type BundleService struct {
+	gndfClient     client.IClient
 	bundleDao      dao.BundleDao
 	bundleRuleDao  dao.BundleRuleDao
 	userBundlerDao dao.UserBundlerAccountDao
 }
 
 // NewBundleService returns a new BundleService
-func NewBundleService(bundleDao dao.BundleDao, bundleRuleDao dao.BundleRuleDao, userBundlerDao dao.UserBundlerAccountDao) Bundle {
-	return &BundleService{
+func NewBundleService(gndfClient client.IClient, bundleDao dao.BundleDao, bundleRuleDao dao.BundleRuleDao, userBundlerDao dao.UserBundlerAccountDao) Bundle {
+	bs := BundleService{
+		gndfClient:     gndfClient,
 		bundleDao:      bundleDao,
 		bundleRuleDao:  bundleRuleDao,
 		userBundlerDao: userBundlerDao,
 	}
+	return &bs
 }
 
 // GetBundlingBundle returns the bundling bundle for the bucket if it exists
@@ -44,6 +52,16 @@ func (s *BundleService) GetBundlingBundle(bucketName string) (database.Bundle, e
 	}
 
 	return bundle, nil
+}
+
+func (s *BundleService) QueryBucketFromGndf(bucketName string) (*gnfdtypes.BucketInfo, error) {
+	bucket, err := s.gndfClient.HeadBucket(context.Background(), bucketName)
+	if err != nil {
+		util.Logger.Errorf("query bucket error, bucket=%s, err=%s", bucketName, err.Error())
+		return nil, err
+	}
+
+	return bucket, nil
 }
 
 // QueryBundle returns the bundle for the bucket if it exists

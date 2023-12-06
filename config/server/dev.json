@@ -9,6 +9,10 @@
     "aws_region":"",
     "aws_secret_name":""
   },
+  "gnfd_config": {
+    "chain_id": "testnet",
+    "rpc_url": "http://localhost:26750"
+  },
   "log_config":{
     "level":"INFO",
     "filename":"",

@@ -4,8 +4,10 @@ package restapi
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/http"
 
+	"github.com/bnb-chain/greenfield-go-sdk/client"
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/swag"
@@ -101,7 +103,14 @@ func configureServer(s *http.Server, scheme, addr string) {
 	userBundlerAccountDao := dao.NewUserBundlerAccountDao(db)
 	bundlerAccountDao := dao.NewBundlerAccountDao(db)
 
-	service.BundleSvc = service.NewBundleService(bundleDao, bundleRuleDao, userBundlerAccountDao)
+	gnfdClient, err := client.New(config.GnfdConfig.ChainId, config.GnfdConfig.RpcUrl, client.Option{})
+	if err != nil {
+		panic(fmt.Errorf("unable to new greenfield client, %v", err))
+	}
+
+	service.GnfdClient = gnfdClient
+
+	service.BundleSvc = service.NewBundleService(gnfdClient, bundleDao, bundleRuleDao, userBundlerAccountDao)
 	service.BundleRuleSvc = service.NewBundleRuleService(bundleRuleDao)
 	service.ObjectSvc = service.NewObjectService(bundleDao, objectDao, userBundlerAccountDao)
 	service.UserBundlerAccountSvc = service.NewUserBundlerAccountService(userBundlerAccountDao, bundlerAccountDao)

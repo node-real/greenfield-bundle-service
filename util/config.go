@@ -5,6 +5,11 @@ import (
 	"os"
 )
 
+type GnfdConfig struct {
+	ChainId string `json:"chain_id"`
+	RpcUrl  string `json:"rpc_url"`
+}
+
 type DBConfig struct {
 	DBDialect     string `json:"db_dialect"`
 	DBPath        string `json:"db_path"`
@@ -28,8 +33,9 @@ type LogConfig struct {
 }
 
 type ServerConfig struct {
-	DBConfig  *DBConfig  `json:"db_config"`
-	LogConfig *LogConfig `json:"log_config"`
+	DBConfig   *DBConfig   `json:"db_config"`
+	GnfdConfig *GnfdConfig `json:"gnfd_config"`
+	LogConfig  *LogConfig  `json:"log_config"`
 }
 
 func ParseServerConfigFromFile(filePath string) *ServerConfig {

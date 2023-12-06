@@ -44,7 +44,7 @@ const (
 	HTTPHeaderExpiryTimestamp = "X-Bundle-Expiry-Timestamp"
 	HTTPHeaderAuthorization   = "Authorization"
 
-	// MaxExpiryAgeInSec
+	// MaxExpiryAgeInSec defines the maximum expiry age in seconds
 	MaxExpiryAgeInSec = 3600 * 24 * 7 // 7 days
 
 	BundleEcdsa = "BUNDLE-ECDSA"
@@ -236,21 +236,11 @@ func VerifySignature(req *http.Request) (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	isValid, err := util.VerifySignature(messageHash, sigBytes)
-	if err != nil {
-		return common.Address{}, err
-	}
-
-	if !isValid {
-		return common.Address{}, fmt.Errorf("invalid signature")
-	}
 
 	address, err := util.RecoverAddress(common.BytesToHash(messageHash), sigBytes)
 	if err != nil {
 		return common.Address{}, err
 	}
-	println(req.URL.String())
-	println(address.String())
 	return address, nil
 }
 

@@ -57,11 +57,7 @@ paths:
         '200':
           description: Successfully uploaded file
           schema:
-            type: object
-            properties:
-              bundleName:
-                type: string
-                description: The name of the bundle where the file has been uploaded
+            $ref: '#/definitions/UploadObjectResponse'
         '400':
           description: Invalid request or file format
           schema:
@@ -78,15 +74,50 @@ paths:
       summary: Retrieve an object as a file from a bundle
       description: >
         Fetches a specific object from a given bundle and returns it as a file.
-      operationId: bundleObject
+      operationId: viewBundleObject
       produces:
         - application/octet-stream
       parameters:
-        - name: X-Signature
-          in: header
-          description: User's digital signature for authentication
+        - name: bucketName
+          in: path
           required: true
           type: string
+          description: The bucketName of the bundle
+        - name: bundleName
+          in: path
+          required: true
+          type: string
+          description: The name of the bundle
+        - name: objectName
+          in: path
+          required: true
+          type: string
+          description: The name of the object within the bundle
+      responses:
+        '200':
+          description: Successfully retrieved file
+          schema:
+            type: file
+        '404':
+          description: Bundle or object not found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /download/{bucketName}/{bundleName}/{objectName}:
+    get:
+      tags:
+        - Bundle
+      summary: Download an object as a file from a bundle
+      description: >
+        Download a specific object from a given bundle and returns it as a file.
+      operationId: downloadBundleObject
+      produces:
+        - application/octet-stream
+      parameters:
         - name: bucketName
           in: path
           required: true
@@ -300,6 +331,13 @@ paths:
             $ref: '#/definitions/Error'
 
 definitions:
+  UploadObjectResponse:
+    type: object
+    properties:
+      bundleName:
+        type: string
+        description: The name of the bundle where the file has been uploaded
+
   BundlerAccount:
     type: object
     properties:

@@ -60,7 +60,9 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 
 	api.RuleSetBundleRuleHandler = rule.SetBundleRuleHandlerFunc(handlers.HandleSetBundleRule())
 
-	api.BundleBundleObjectHandler = bundle.BundleObjectHandlerFunc(handlers.HandleBundleObject())
+	api.BundleViewBundleObjectHandler = bundle.ViewBundleObjectHandlerFunc(handlers.HandleViewBundleObject())
+
+	api.BundleDownloadBundleObjectHandler = bundle.DownloadBundleObjectHandlerFunc(handlers.HandleDownloadBundleObject())
 
 	api.BundleCreateBundleHandler = bundle.CreateBundleHandlerFunc(handlers.HandleCreateBundle())
 
@@ -112,7 +114,7 @@ func configureServer(s *http.Server, scheme, addr string) {
 
 	service.BundleSvc = service.NewBundleService(gnfdClient, bundleDao, bundleRuleDao, userBundlerAccountDao)
 	service.BundleRuleSvc = service.NewBundleRuleService(bundleRuleDao)
-	service.ObjectSvc = service.NewObjectService(bundleDao, objectDao, userBundlerAccountDao)
+	service.ObjectSvc = service.NewObjectService(config, bundleDao, objectDao, userBundlerAccountDao)
 	service.UserBundlerAccountSvc = service.NewUserBundlerAccountService(userBundlerAccountDao, bundlerAccountDao)
 }
 

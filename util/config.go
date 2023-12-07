@@ -5,6 +5,10 @@ import (
 	"os"
 )
 
+type BundleConfig struct {
+	LocalStoragePath string `json:"local_storage_path"`
+}
+
 type GnfdConfig struct {
 	ChainId string `json:"chain_id"`
 	RpcUrl  string `json:"rpc_url"`
@@ -33,9 +37,10 @@ type LogConfig struct {
 }
 
 type ServerConfig struct {
-	DBConfig   *DBConfig   `json:"db_config"`
-	GnfdConfig *GnfdConfig `json:"gnfd_config"`
-	LogConfig  *LogConfig  `json:"log_config"`
+	DBConfig     *DBConfig     `json:"db_config"`
+	BundleConfig *BundleConfig `json:"bundle_config"`
+	GnfdConfig   *GnfdConfig   `json:"gnfd_config"`
+	LogConfig    *LogConfig    `json:"log_config"`
 }
 
 func ParseServerConfigFromFile(filePath string) *ServerConfig {

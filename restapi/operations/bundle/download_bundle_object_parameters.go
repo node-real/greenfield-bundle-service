@@ -11,31 +11,25 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/validate"
 )
 
-// NewBundleObjectParams creates a new BundleObjectParams object
+// NewDownloadBundleObjectParams creates a new DownloadBundleObjectParams object
 //
 // There are no default values defined in the spec.
-func NewBundleObjectParams() BundleObjectParams {
+func NewDownloadBundleObjectParams() DownloadBundleObjectParams {
 
-	return BundleObjectParams{}
+	return DownloadBundleObjectParams{}
 }
 
-// BundleObjectParams contains all the bound params for the bundle object operation
+// DownloadBundleObjectParams contains all the bound params for the download bundle object operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters bundleObject
-type BundleObjectParams struct {
+// swagger:parameters downloadBundleObject
+type DownloadBundleObjectParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*User's digital signature for authentication
-	  Required: true
-	  In: header
-	*/
-	XSignature string
 	/*The bucketName of the bundle
 	  Required: true
 	  In: path
@@ -56,15 +50,11 @@ type BundleObjectParams struct {
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewBundleObjectParams() beforehand.
-func (o *BundleObjectParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewDownloadBundleObjectParams() beforehand.
+func (o *DownloadBundleObjectParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
-
-	if err := o.bindXSignature(r.Header[http.CanonicalHeaderKey("X-Signature")], true, route.Formats); err != nil {
-		res = append(res, err)
-	}
 
 	rBucketName, rhkBucketName, _ := route.Params.GetOK("bucketName")
 	if err := o.bindBucketName(rBucketName, rhkBucketName, route.Formats); err != nil {
@@ -86,28 +76,8 @@ func (o *BundleObjectParams) BindRequest(r *http.Request, route *middleware.Matc
 	return nil
 }
 
-// bindXSignature binds and validates parameter XSignature from header.
-func (o *BundleObjectParams) bindXSignature(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	if !hasKey {
-		return errors.Required("X-Signature", "header", rawData)
-	}
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	// Required: true
-
-	if err := validate.RequiredString("X-Signature", "header", raw); err != nil {
-		return err
-	}
-	o.XSignature = raw
-
-	return nil
-}
-
 // bindBucketName binds and validates parameter BucketName from path.
-func (o *BundleObjectParams) bindBucketName(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *DownloadBundleObjectParams) bindBucketName(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -121,7 +91,7 @@ func (o *BundleObjectParams) bindBucketName(rawData []string, hasKey bool, forma
 }
 
 // bindBundleName binds and validates parameter BundleName from path.
-func (o *BundleObjectParams) bindBundleName(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *DownloadBundleObjectParams) bindBundleName(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -135,7 +105,7 @@ func (o *BundleObjectParams) bindBundleName(rawData []string, hasKey bool, forma
 }
 
 // bindObjectName binds and validates parameter ObjectName from path.
-func (o *BundleObjectParams) bindObjectName(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *DownloadBundleObjectParams) bindObjectName(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]

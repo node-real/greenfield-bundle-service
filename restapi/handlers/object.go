@@ -1,15 +1,23 @@
 package handlers
 
 import (
+	"bytes"
+	"io"
+	"net/http"
+	"strconv"
+
+	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/node-real/greenfield-bundle-service/database"
+	"github.com/node-real/greenfield-bundle-service/models"
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
 	"github.com/node-real/greenfield-bundle-service/service"
 	"github.com/node-real/greenfield-bundle-service/types"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
+// HandleUploadObject handles the upload object request
 func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Responder {
 	return func(params bundle.UploadObjectParams) middleware.Responder {
 		// check params
@@ -82,6 +90,13 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			}
 		}
 
+		// save object file to local storage
+		_, fileSize, err := service.ObjectSvc.StoreObjectFile(bundlingBundle.Name, params)
+		if err != nil {
+			util.Logger.Errorf("store object file error, err=%s", err.Error())
+			return bundle.NewUploadObjectInternalServerError()
+		}
+
 		// create object
 		newObject := database.Object{ // TODO: add more fields
 			Bucket:      params.XBundleBucketName,
@@ -89,6 +104,7 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			ObjectName:  params.XBundleFileName,
 			Owner:       signerAddress.String(),
 			ContentType: params.XBundleContentType,
+			Size:        fileSize,
 		}
 
 		_, err = service.ObjectSvc.CreateObjectForBundling(newObject)
@@ -97,12 +113,48 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			return bundle.NewUploadObjectInternalServerError()
 		}
 
-		return bundle.NewUploadObjectOK()
+		return bundle.NewUploadObjectOK().WithPayload(&models.UploadObjectResponse{
+			BundleName: bundlingBundle.Name,
+		})
 	}
 }
 
-func HandleBundleObject() func(params bundle.BundleObjectParams) middleware.Responder {
-	return func(params bundle.BundleObjectParams) middleware.Responder {
-		return bundle.NewBundleObjectOK()
+func GenerateRandomHTMLPage() string {
+	return "<html><body><h1>Random number: " + strconv.Itoa(10) + "</h1></body></html>"
+}
+
+// HandleViewBundleObject handles the view bundle object request
+func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middleware.Responder {
+	return func(params bundle.ViewBundleObjectParams) middleware.Responder {
+		htmlPage := GenerateRandomHTMLPage()
+
+		response := &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(bytes.NewBufferString(htmlPage)),
+		}
+
+		return middleware.ResponderFunc(func(w http.ResponseWriter, _ runtime.Producer) {
+			w.Header().Set("Content-Disposition", "inline")
+			w.Header().Set("Content-Type", "text/html")
+			io.Copy(w, response.Body)
+		})
+	}
+}
+
+// HandleDownloadBundleObject handles the download bundle object request
+func HandleDownloadBundleObject() func(params bundle.DownloadBundleObjectParams) middleware.Responder {
+	return func(params bundle.DownloadBundleObjectParams) middleware.Responder {
+		htmlPage := GenerateRandomHTMLPage()
+
+		response := &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(bytes.NewBufferString(htmlPage)),
+		}
+
+		return middleware.ResponderFunc(func(w http.ResponseWriter, _ runtime.Producer) {
+			w.Header().Set("Content-Disposition", "attachment; filename=random.html")
+			w.Header().Set("Content-Type", "text/html")
+			io.Copy(w, response.Body)
+		})
 	}
 }

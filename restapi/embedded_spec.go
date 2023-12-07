@@ -139,6 +139,62 @@ func init() {
         }
       }
     },
+    "/download/{bucketName}/{bundleName}/{objectName}": {
+      "get": {
+        "description": "Download a specific object from a given bundle and returns it as a file.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Download an object as a file from a bundle",
+        "operationId": "downloadBundleObject",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle",
+            "name": "bundleName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the object within the bundle",
+            "name": "objectName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved file",
+            "schema": {
+              "type": "file"
+            }
+          },
+          "404": {
+            "description": "Bundle or object not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/finalizeBundle": {
       "post": {
         "description": "Completes the lifecycle of an existing bundle, requiring the bundle name for authorization.\n",
@@ -347,13 +403,7 @@ func init() {
           "200": {
             "description": "Successfully uploaded file",
             "schema": {
-              "type": "object",
-              "properties": {
-                "bundleName": {
-                  "description": "The name of the bundle where the file has been uploaded",
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/UploadObjectResponse"
             }
           },
           "400": {
@@ -381,15 +431,8 @@ func init() {
           "Bundle"
         ],
         "summary": "Retrieve an object as a file from a bundle",
-        "operationId": "bundleObject",
+        "operationId": "viewBundleObject",
         "parameters": [
-          {
-            "type": "string",
-            "description": "User's digital signature for authentication",
-            "name": "X-Signature",
-            "in": "header",
-            "required": true
-          },
           {
             "type": "string",
             "description": "The bucketName of the bundle",
@@ -458,6 +501,15 @@ func init() {
           "description": "Error message",
           "type": "string",
           "example": "Bad request/Internal server error"
+        }
+      }
+    },
+    "UploadObjectResponse": {
+      "type": "object",
+      "properties": {
+        "bundleName": {
+          "description": "The name of the bundle where the file has been uploaded",
+          "type": "string"
         }
       }
     }
@@ -585,6 +637,62 @@ func init() {
         }
       }
     },
+    "/download/{bucketName}/{bundleName}/{objectName}": {
+      "get": {
+        "description": "Download a specific object from a given bundle and returns it as a file.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Download an object as a file from a bundle",
+        "operationId": "downloadBundleObject",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle",
+            "name": "bundleName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the object within the bundle",
+            "name": "objectName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved file",
+            "schema": {
+              "type": "file"
+            }
+          },
+          "404": {
+            "description": "Bundle or object not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/finalizeBundle": {
       "post": {
         "description": "Completes the lifecycle of an existing bundle, requiring the bundle name for authorization.\n",
@@ -793,13 +901,7 @@ func init() {
           "200": {
             "description": "Successfully uploaded file",
             "schema": {
-              "type": "object",
-              "properties": {
-                "bundleName": {
-                  "description": "The name of the bundle where the file has been uploaded",
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/UploadObjectResponse"
             }
           },
           "400": {
@@ -827,15 +929,8 @@ func init() {
           "Bundle"
         ],
         "summary": "Retrieve an object as a file from a bundle",
-        "operationId": "bundleObject",
+        "operationId": "viewBundleObject",
         "parameters": [
-          {
-            "type": "string",
-            "description": "User's digital signature for authentication",
-            "name": "X-Signature",
-            "in": "header",
-            "required": true
-          },
           {
             "type": "string",
             "description": "The bucketName of the bundle",
@@ -904,6 +999,15 @@ func init() {
           "description": "Error message",
           "type": "string",
           "example": "Bad request/Internal server error"
+        }
+      }
+    },
+    "UploadObjectResponse": {
+      "type": "object",
+      "properties": {
+        "bundleName": {
+          "description": "The name of the bundle where the file has been uploaded",
+          "type": "string"
         }
       }
     }

@@ -9,9 +9,12 @@
     "aws_region":"",
     "aws_secret_name":""
   },
+  "bundle_config": {
+    "local_storage_path": "/Users/wuzhenxing/Documents/development/github/greenfield-bundle-service/bundle_storage/",
+  },
   "gnfd_config": {
     "chain_id": "testnet",
-    "rpc_url": "http://localhost:26750"
+    "rpc_url": "https://greenfield-chain-ap.bnbchain.org:443"
   },
   "log_config":{
     "level":"INFO",

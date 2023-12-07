@@ -26,7 +26,7 @@ type UploadObjectOK struct {
 	/*
 	  In: Body
 	*/
-	Payload *UploadObjectOKBody `json:"body,omitempty"`
+	Payload *models.UploadObjectResponse `json:"body,omitempty"`
 }
 
 // NewUploadObjectOK creates UploadObjectOK with default headers values
@@ -36,13 +36,13 @@ func NewUploadObjectOK() *UploadObjectOK {
 }
 
 // WithPayload adds the payload to the upload object o k response
-func (o *UploadObjectOK) WithPayload(payload *UploadObjectOKBody) *UploadObjectOK {
+func (o *UploadObjectOK) WithPayload(payload *models.UploadObjectResponse) *UploadObjectOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the upload object o k response
-func (o *UploadObjectOK) SetPayload(payload *UploadObjectOKBody) {
+func (o *UploadObjectOK) SetPayload(payload *models.UploadObjectResponse) {
 	o.Payload = payload
 }
 

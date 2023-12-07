@@ -47,14 +47,14 @@ func NewBundleServiceAPI(spec *loads.Document) *BundleServiceAPI {
 		BinProducer:  runtime.ByteStreamProducer(),
 		JSONProducer: runtime.JSONProducer(),
 
-		BundleBundleObjectHandler: bundle.BundleObjectHandlerFunc(func(params bundle.BundleObjectParams) middleware.Responder {
-			return middleware.NotImplemented("operation bundle.BundleObject has not yet been implemented")
-		}),
 		BundleBundlerAccountHandler: bundle.BundlerAccountHandlerFunc(func(params bundle.BundlerAccountParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.BundlerAccount has not yet been implemented")
 		}),
 		BundleCreateBundleHandler: bundle.CreateBundleHandlerFunc(func(params bundle.CreateBundleParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.CreateBundle has not yet been implemented")
+		}),
+		BundleDownloadBundleObjectHandler: bundle.DownloadBundleObjectHandlerFunc(func(params bundle.DownloadBundleObjectParams) middleware.Responder {
+			return middleware.NotImplemented("operation bundle.DownloadBundleObject has not yet been implemented")
 		}),
 		BundleFinalizeBundleHandler: bundle.FinalizeBundleHandlerFunc(func(params bundle.FinalizeBundleParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.FinalizeBundle has not yet been implemented")
@@ -64,6 +64,9 @@ func NewBundleServiceAPI(spec *loads.Document) *BundleServiceAPI {
 		}),
 		BundleUploadObjectHandler: bundle.UploadObjectHandlerFunc(func(params bundle.UploadObjectParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.UploadObject has not yet been implemented")
+		}),
+		BundleViewBundleObjectHandler: bundle.ViewBundleObjectHandlerFunc(func(params bundle.ViewBundleObjectParams) middleware.Responder {
+			return middleware.NotImplemented("operation bundle.ViewBundleObject has not yet been implemented")
 		}),
 	}
 }
@@ -107,18 +110,20 @@ type BundleServiceAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
-	// BundleBundleObjectHandler sets the operation handler for the bundle object operation
-	BundleBundleObjectHandler bundle.BundleObjectHandler
 	// BundleBundlerAccountHandler sets the operation handler for the bundler account operation
 	BundleBundlerAccountHandler bundle.BundlerAccountHandler
 	// BundleCreateBundleHandler sets the operation handler for the create bundle operation
 	BundleCreateBundleHandler bundle.CreateBundleHandler
+	// BundleDownloadBundleObjectHandler sets the operation handler for the download bundle object operation
+	BundleDownloadBundleObjectHandler bundle.DownloadBundleObjectHandler
 	// BundleFinalizeBundleHandler sets the operation handler for the finalize bundle operation
 	BundleFinalizeBundleHandler bundle.FinalizeBundleHandler
 	// RuleSetBundleRuleHandler sets the operation handler for the set bundle rule operation
 	RuleSetBundleRuleHandler rule.SetBundleRuleHandler
 	// BundleUploadObjectHandler sets the operation handler for the upload object operation
 	BundleUploadObjectHandler bundle.UploadObjectHandler
+	// BundleViewBundleObjectHandler sets the operation handler for the view bundle object operation
+	BundleViewBundleObjectHandler bundle.ViewBundleObjectHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -202,14 +207,14 @@ func (o *BundleServiceAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
-	if o.BundleBundleObjectHandler == nil {
-		unregistered = append(unregistered, "bundle.BundleObjectHandler")
-	}
 	if o.BundleBundlerAccountHandler == nil {
 		unregistered = append(unregistered, "bundle.BundlerAccountHandler")
 	}
 	if o.BundleCreateBundleHandler == nil {
 		unregistered = append(unregistered, "bundle.CreateBundleHandler")
+	}
+	if o.BundleDownloadBundleObjectHandler == nil {
+		unregistered = append(unregistered, "bundle.DownloadBundleObjectHandler")
 	}
 	if o.BundleFinalizeBundleHandler == nil {
 		unregistered = append(unregistered, "bundle.FinalizeBundleHandler")
@@ -219,6 +224,9 @@ func (o *BundleServiceAPI) Validate() error {
 	}
 	if o.BundleUploadObjectHandler == nil {
 		unregistered = append(unregistered, "bundle.UploadObjectHandler")
+	}
+	if o.BundleViewBundleObjectHandler == nil {
+		unregistered = append(unregistered, "bundle.ViewBundleObjectHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -312,10 +320,6 @@ func (o *BundleServiceAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
-	o.handlers["GET"]["/view/{bucketName}/{bundleName}/{objectName}"] = bundle.NewBundleObject(o.context, o.BundleBundleObjectHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -324,6 +328,10 @@ func (o *BundleServiceAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/createBundle"] = bundle.NewCreateBundle(o.context, o.BundleCreateBundleHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/download/{bucketName}/{bundleName}/{objectName}"] = bundle.NewDownloadBundleObject(o.context, o.BundleDownloadBundleObjectHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -336,6 +344,10 @@ func (o *BundleServiceAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/uploadObject"] = bundle.NewUploadObject(o.context, o.BundleUploadObjectHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/view/{bucketName}/{bundleName}/{objectName}"] = bundle.NewViewBundleObject(o.context, o.BundleViewBundleObjectHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

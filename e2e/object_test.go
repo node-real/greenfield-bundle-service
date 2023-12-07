@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -12,11 +11,9 @@ import (
 	"time"
 
 	"github.com/node-real/greenfield-bundle-service/util"
-
-	"github.com/node-real/greenfield-bundle-service/types"
 )
 
-func uploadObject(fileName, bucketName, contentType string, file *os.File) error {
+func uploadObject(privateKey []byte, fileName, bucketName, contentType string, file *os.File) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -35,12 +32,6 @@ func uploadObject(fileName, bucketName, contentType string, file *os.File) error
 		return err
 	}
 
-	// Create a new HTTP request
-	req, err := http.NewRequest("POST", "http://localhost:8080/v1/uploadObject", body)
-	if err != nil {
-		return err
-	}
-
 	// Add headers to the request body
 	headers := map[string]string{
 		"X-Bundle-Bucket-Name":      bucketName,
@@ -53,35 +44,19 @@ func uploadObject(fileName, bucketName, contentType string, file *os.File) error
 		writer.WriteField(key, value)
 	}
 
-	// Set the content type, this is important
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	messageToSign := types.GetMsgToSignInBundleAuth(req)
-	messageHash := types.TextHash(messageToSign)
-
-	privateKey, _, err := util.GenerateRandomAccount()
-
-	signature, err := SignMessage(privateKey, messageHash)
-	if err != nil {
-		return err
-	}
-	req.Header.Set(types.HTTPHeaderAuthorization, hex.EncodeToString(signature))
-
-	// Do the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	url := "http://localhost:8080/v1/uploadObject"
+	resp, err := SendRequest(privateKey, url, "POST", headers, body.Bytes())
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	// print the response body
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(resp.Body)
+	bodyStr, err := ReadResponseBody(resp)
 	if err != nil {
 		return err
 	}
-	fmt.Println(buf.String())
+
+	fmt.Println(bodyStr)
 
 	// Check response status
 	if resp.StatusCode != http.StatusOK {
@@ -92,6 +67,13 @@ func uploadObject(fileName, bucketName, contentType string, file *os.File) error
 }
 
 func TestUploadObject(t *testing.T) {
+	PrepareBundleAccounts("../cmd/bundle-service-server/db.sqlite3", 1)
+
+	privateKey, _, err := util.GenerateRandomAccount()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	file, err := os.Create("test.txt")
 	if err != nil {
 		t.Fatal(err)
@@ -102,7 +84,7 @@ func TestUploadObject(t *testing.T) {
 	}
 
 	// Upload the file
-	err = uploadObject("test.txt", "test", "text/plain", file)
+	err = uploadObject(privateKey, "test.txt", "test", "text/plain", file)
 	if err != nil {
 		t.Fatal(err)
 	}

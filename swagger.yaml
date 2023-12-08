@@ -15,7 +15,7 @@ paths:
         - Bundle
       summary: Upload a single object to a bundle
       description: >
-        Allows users to upload a single file along with a signature for validation, and a timestamp.
+        Uploads a single object to a bundle, requiring details like bucket name, file name, and etc.
       operationId: uploadObject
       consumes:
         - multipart/form-data

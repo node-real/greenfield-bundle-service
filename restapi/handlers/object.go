@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
@@ -117,10 +116,6 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			BundleName: bundlingBundle.Name,
 		})
 	}
-}
-
-func GenerateRandomHTMLPage() string {
-	return "<html><body><h1>Random number: " + strconv.Itoa(10) + "</h1></body></html>"
 }
 
 // HandleViewBundleObject handles the view bundle object request

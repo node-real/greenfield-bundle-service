@@ -10,7 +10,7 @@
     "aws_secret_name":""
   },
   "bundle_config": {
-    "local_storage_path": "/Users/wuzhenxing/Documents/development/github/greenfield-bundle-service/bundle_storage/",
+    "local_storage_path": "/Users/wuzhenxing/Documents/development/github/greenfield-bundle-service/bundle_storage/"
   },
   "gnfd_config": {
     "chain_id": "testnet",

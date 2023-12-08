@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -126,11 +126,25 @@ func GenerateRandomHTMLPage() string {
 // HandleViewBundleObject handles the view bundle object request
 func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middleware.Responder {
 	return func(params bundle.ViewBundleObjectParams) middleware.Responder {
-		htmlPage := GenerateRandomHTMLPage()
+		object, err := service.ObjectSvc.GetObject(params.BucketName, params.BundleName, params.ObjectName)
+		if err != nil {
+			util.Logger.Errorf("get object error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
+			return bundle.NewViewBundleObjectInternalServerError()
+		}
+
+		if object.Id == 0 {
+			return bundle.NewViewBundleObjectNotFound()
+		}
+
+		objectFile, _, err := service.ObjectSvc.GetObjectFile(params.BucketName, params.BundleName, params.ObjectName)
+		if err != nil {
+			util.Logger.Errorf("get object file error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
+			return bundle.NewViewBundleObjectInternalServerError()
+		}
 
 		response := &http.Response{
 			StatusCode: http.StatusOK,
-			Body:       io.NopCloser(bytes.NewBufferString(htmlPage)),
+			Body:       objectFile,
 		}
 
 		return middleware.ResponderFunc(func(w http.ResponseWriter, _ runtime.Producer) {
@@ -144,16 +158,30 @@ func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middlew
 // HandleDownloadBundleObject handles the download bundle object request
 func HandleDownloadBundleObject() func(params bundle.DownloadBundleObjectParams) middleware.Responder {
 	return func(params bundle.DownloadBundleObjectParams) middleware.Responder {
-		htmlPage := GenerateRandomHTMLPage()
+		object, err := service.ObjectSvc.GetObject(params.BucketName, params.BundleName, params.ObjectName)
+		if err != nil {
+			util.Logger.Errorf("get object error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
+			return bundle.NewViewBundleObjectInternalServerError()
+		}
+
+		if object.Id == 0 {
+			return bundle.NewViewBundleObjectNotFound()
+		}
+
+		objectFile, _, err := service.ObjectSvc.GetObjectFile(params.BucketName, params.BundleName, params.ObjectName)
+		if err != nil {
+			util.Logger.Errorf("get object file error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
+			return bundle.NewViewBundleObjectInternalServerError()
+		}
 
 		response := &http.Response{
 			StatusCode: http.StatusOK,
-			Body:       io.NopCloser(bytes.NewBufferString(htmlPage)),
+			Body:       objectFile,
 		}
 
 		return middleware.ResponderFunc(func(w http.ResponseWriter, _ runtime.Producer) {
-			w.Header().Set("Content-Disposition", "attachment; filename=random.html")
-			w.Header().Set("Content-Type", "text/html")
+			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", object.ObjectName))
+			w.Header().Set("Content-Type", object.ContentType)
 			io.Copy(w, response.Body)
 		})
 	}

@@ -11,6 +11,7 @@ import (
 
 type ObjectDao interface {
 	CreateObjectForBundling(object database.Object) (database.Object, error)
+	GetObject(bucket string, bundle string, object string) (database.Object, error)
 }
 
 type dbObjectDao struct {
@@ -22,6 +23,16 @@ func NewObjectDao(db *gorm.DB) ObjectDao {
 	return &dbObjectDao{
 		db: db,
 	}
+}
+
+// GetObject gets an object
+func (s *dbObjectDao) GetObject(bucket string, bundle string, object string) (database.Object, error) {
+	var obj database.Object
+	err := s.db.Where("bucket = ? AND bundle_name = ? AND object_name = ?", bucket, bundle, object).First(&obj).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return obj, err
+	}
+	return obj, nil
 }
 
 // CreateObjectForBundling creates a new object for bundling

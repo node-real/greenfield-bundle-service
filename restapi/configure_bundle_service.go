@@ -12,6 +12,8 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/swag"
 
+	"github.com/node-real/greenfield-bundle-service/storage"
+
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
 	"github.com/node-real/greenfield-bundle-service/restapi/handlers"
@@ -110,11 +112,14 @@ func configureServer(s *http.Server, scheme, addr string) {
 		panic(fmt.Errorf("unable to new greenfield client, %v", err))
 	}
 
+	fileManager := storage.NewFileManager(config, gnfdClient)
+
+	// init services
 	service.GnfdClient = gnfdClient
 
 	service.BundleSvc = service.NewBundleService(gnfdClient, bundleDao, bundleRuleDao, userBundlerAccountDao)
 	service.BundleRuleSvc = service.NewBundleRuleService(bundleRuleDao)
-	service.ObjectSvc = service.NewObjectService(config, bundleDao, objectDao, userBundlerAccountDao)
+	service.ObjectSvc = service.NewObjectService(config, fileManager, bundleDao, objectDao, userBundlerAccountDao)
 	service.UserBundlerAccountSvc = service.NewUserBundlerAccountService(userBundlerAccountDao, bundlerAccountDao)
 }
 

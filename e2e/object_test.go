@@ -7,10 +7,9 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"testing"
 	"time"
-
-	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 func uploadObject(privateKey []byte, fileName, bucketName, contentType string, file *os.File) error {
@@ -34,6 +33,7 @@ func uploadObject(privateKey []byte, fileName, bucketName, contentType string, f
 
 	// Add headers to the request body
 	headers := map[string]string{
+		"Content-Type":              writer.FormDataContentType(),
 		"X-Bundle-Bucket-Name":      bucketName,
 		"X-Bundle-File-Name":        fileName,
 		"X-Bundle-Content-Type":     contentType,
@@ -66,25 +66,40 @@ func uploadObject(privateKey []byte, fileName, bucketName, contentType string, f
 	return nil
 }
 
+func GenerateRandomHTMLPage() string {
+	return "<html><body><h1>Random number: " + strconv.Itoa(10) + "</h1></body></html>"
+}
+
 func TestUploadObject(t *testing.T) {
 	PrepareBundleAccounts("../cmd/bundle-service-server/db.sqlite3", 1)
 
-	privateKey, _, err := util.GenerateRandomAccount()
+	privateKey, _, err := GetAccount()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	file, err := os.Create("test.txt")
+	// Create a temporary file
+	file, err := os.CreateTemp("", "test.html")
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = file.WriteString("test")
+	defer os.Remove(file.Name()) // Clean up
+
+	_, err = file.WriteString(GenerateRandomHTMLPage())
 	if err != nil {
 		t.Fatal(err)
 	}
+	file.Close() // Close the file after writing to it
 
 	// Upload the file
-	err = uploadObject(privateKey, "test.txt", "test", "text/plain", file)
+	file, err = os.Open(file.Name()) // Open the file for reading
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close() // Ensure the file is closed after it is no longer needed
+
+	// Upload the file
+	err = uploadObject(privateKey, "test.html", "bundle-test", "text/html", file)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,33 +1,35 @@
 package service
 
 import (
-	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
+	"github.com/node-real/greenfield-bundle-service/storage"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 type Object interface {
 	CreateObjectForBundling(newObject database.Object) (database.Object, error)
 	StoreObjectFile(bundleName string, params bundle.UploadObjectParams) (string, int64, error)
+	GetObject(bucket string, bundle string, object string) (database.Object, error)
+	GetObjectFile(bucket string, bundle string, object string) (io.ReadCloser, int64, error)
 }
 
 type ObjectService struct {
 	config         *util.ServerConfig
+	fileManager    *storage.FileManager
 	userBundlerDao dao.UserBundlerAccountDao
 	bundleDao      dao.BundleDao
 	objectDao      dao.ObjectDao
 }
 
 // NewObjectService returns a new ObjectService
-func NewObjectService(config *util.ServerConfig, bundleDao dao.BundleDao, objectDao dao.ObjectDao, userBundlerDao dao.UserBundlerAccountDao) Object {
+func NewObjectService(config *util.ServerConfig, fileManager *storage.FileManager, bundleDao dao.BundleDao, objectDao dao.ObjectDao, userBundlerDao dao.UserBundlerAccountDao) Object {
 	return &ObjectService{
 		config:         config,
+		fileManager:    fileManager,
 		bundleDao:      bundleDao,
 		objectDao:      objectDao,
 		userBundlerDao: userBundlerDao,
@@ -48,24 +50,15 @@ func (s *ObjectService) CreateObjectForBundling(newObject database.Object) (data
 
 // StoreObjectFile stores the object file to local storage
 func (s *ObjectService) StoreObjectFile(bundleName string, params bundle.UploadObjectParams) (string, int64, error) {
-	fileName := fmt.Sprintf("%s-%s-%s", params.XBundleBucketName, bundleName, params.XBundleFileName)
+	return s.fileManager.StoreObjectLocal(params.XBundleBucketName, bundleName, params.XBundleFileName, params.File)
+}
 
-	localFilePath := filepath.Join(s.config.BundleConfig.LocalStoragePath, fileName)
-	localFile, err := os.Create(localFilePath)
-	if err != nil {
-		return "", 0, err
-	}
-	defer localFile.Close()
+// GetObjectFile gets the object file
+func (s *ObjectService) GetObjectFile(bucket string, bundle string, object string) (io.ReadCloser, int64, error) {
+	return s.fileManager.GetObject(bucket, bundle, object)
+}
 
-	_, err = io.Copy(localFile, params.File)
-	if err != nil {
-		return "", 0, err
-	}
-
-	fileInfo, err := os.Stat(localFilePath)
-	if err != nil {
-		return "", 0, err
-	}
-
-	return localFilePath, fileInfo.Size(), nil
+// GetObject gets an object from database
+func (s *ObjectService) GetObject(bucket string, bundle string, object string) (database.Object, error) {
+	return s.objectDao.GetObject(bucket, bundle, object)
 }

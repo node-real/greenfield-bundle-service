@@ -17,7 +17,8 @@ func TestSetOrCreateBundleRule(t *testing.T) {
 	url := "http://localhost:8080/v1/setBundleRule"
 
 	headers := map[string]string{
-		"X-Bundle-Bucket-Name":       "t3ply5",
+		"Content-Type":               "application/json",
+		"X-Bundle-Bucket-Name":       "bundle-test",
 		"X-Bundle-Max-Bundle-Size":   "1048576",
 		"X-Bundle-Max-Bundle-Files":  "100",
 		"X-Bundle-Max-Finalize-Time": "3600",

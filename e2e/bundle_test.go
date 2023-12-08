@@ -6,20 +6,19 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 func TestCreateBundle(t *testing.T) {
 	PrepareBundleAccounts("../cmd/bundle-service-server/db.sqlite3", 1)
 
-	privateKey, _, err := util.GenerateRandomAccount()
+	privateKey, _, err := GetAccount()
 	require.NoError(t, err)
 
 	url := "http://localhost:8080/v1/createBundle"
 
 	headers := map[string]string{
-		"X-Bundle-Bucket-Name":      "example-bucket",
+		"Content-Type":              "application/json",
+		"X-Bundle-Bucket-Name":      "bundle-test",
 		"X-Bundle-Name":             "example-bundle",
 		"X-Bundle-Expiry-Timestamp": fmt.Sprintf("%d", time.Now().Add(1*time.Hour).Unix()),
 	}
@@ -38,14 +37,15 @@ func TestCreateBundle(t *testing.T) {
 func TestFinalizeBundle(t *testing.T) {
 	PrepareBundleAccounts("../cmd/bundle-service-server/db.sqlite3", 1)
 
-	privateKey, addr, err := util.GenerateRandomAccount()
+	privateKey, addr, err := GetAccount()
 	println(addr.String())
 	require.NoError(t, err)
 
 	bundleName := RandomString(10)
-	bucketName := RandomString(10)
+	bucketName := "bundle-test"
 
 	headers := map[string]string{
+		"Content-Type":              "application/json",
 		"X-Bundle-Bucket-Name":      bucketName,
 		"X-Bundle-Name":             bundleName,
 		"X-Bundle-Expiry-Timestamp": fmt.Sprintf("%d", time.Now().Add(1*time.Hour).Unix()),

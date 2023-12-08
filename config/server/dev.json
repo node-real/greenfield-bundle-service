@@ -14,7 +14,7 @@
   },
   "gnfd_config": {
     "chain_id": "testnet",
-    "rpc_url": "https://greenfield-chain-ap.bnbchain.org:443"
+    "rpc_url": "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
   },
   "log_config":{
     "level":"INFO",

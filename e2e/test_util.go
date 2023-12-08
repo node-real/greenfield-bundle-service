@@ -18,7 +18,7 @@ import (
 )
 
 func GetAccount() ([]byte, common.Address, error) {
-	privateKeyBytes, _ := hex.DecodeString("4feafe85242413ba7914121ecc43406de4e5199d343660190768d68f87fe8611")
+	privateKeyBytes, _ := hex.DecodeString("7013b62758059b6fbd08bd38a987c54e6a50cc4d306788db744c1818f18a08a5")
 	// Convert the bytes to *ecdsa.PrivateKey
 	privateKey, err := crypto.ToECDSA(privateKeyBytes)
 	if err != nil {
@@ -54,14 +54,14 @@ func PrepareBundleAccounts(dbPath string, n int) {
 		DBPath:    dbPath,
 	})
 	if err != nil {
-		util.Logger.Error("connect to db error, err=%s", err.Error())
+		util.Logger.Errorf("connect to db error, err=%s", err.Error())
 		return
 	}
 
 	for i := 0; i < n; i++ {
 		_, account, err := util.GenerateRandomAccount()
 		if err != nil {
-			util.Logger.Error("generate random account error, err=%s", err.Error())
+			util.Logger.Errorf("generate random account error, err=%s", err.Error())
 			continue
 		}
 
@@ -72,7 +72,7 @@ func PrepareBundleAccounts(dbPath string, n int) {
 
 		result := db.Create(&bundlerAccount)
 		if result.Error != nil {
-			util.Logger.Error("create bundler account error, err=%s", result.Error.Error())
+			util.Logger.Errorf("create bundler account error, err=%s", result.Error.Error())
 		}
 	}
 }
@@ -100,7 +100,7 @@ func SendRequest(privateKey []byte, url, method string, headers map[string]strin
 		req.Header.Set(key, value)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	//req.Header.Set("Content-Type", "application/json")
 
 	messageToSign := types.GetMsgToSignInBundleAuth(req)
 	messageHash := types.TextHash(messageToSign)

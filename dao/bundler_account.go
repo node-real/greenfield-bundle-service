@@ -12,6 +12,7 @@ import (
 
 type BundlerAccountDao interface {
 	GetBundlerAccountForUser(user string) (database.BundlerAccount, error)
+	GetAllBundlerAccounts() ([]database.BundlerAccount, error)
 }
 
 type dbBundlerAccountDao struct {

@@ -19,6 +19,8 @@ type BundleDao interface {
 	UpdateBundle(bundle database.Bundle) (*database.Bundle, error)
 	GetBundlingBundle(bucket string) (database.Bundle, error)
 	DeleteBundle(bucket string, name string) error
+	GetTimeOutBundlingBundles() ([]*database.Bundle, error)
+	GetFinalizedBundlesByBundlerAccount(account string) ([]*database.Bundle, error)
 }
 
 type dbBundleDao struct {
@@ -127,4 +129,12 @@ func (s *dbBundleDao) CreateBundleIfNotBundlingExist(newBundle database.Bundle) 
 	}
 
 	return newBundle, nil
+}
+
+func (s *dbBundleDao) GetTimeOutBundlingBundles() ([]*database.Bundle, error) {
+	return nil, nil
+}
+
+func (s *dbBundleDao) GetFinalizedBundlesByBundlerAccount(account string) ([]*database.Bundle, error) {
+	return nil, nil
 }

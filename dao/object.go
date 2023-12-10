@@ -12,6 +12,7 @@ import (
 type ObjectDao interface {
 	CreateObjectForBundling(object database.Object) (database.Object, error)
 	GetObject(bucket string, bundle string, object string) (database.Object, error)
+	GetBundleObjects(bucket string, bundle string) ([]*database.Object, error)
 }
 
 type dbObjectDao struct {
@@ -33,6 +34,10 @@ func (s *dbObjectDao) GetObject(bucket string, bundle string, object string) (da
 		return obj, err
 	}
 	return obj, nil
+}
+
+func (s *dbObjectDao) GetBundleObjects(bucket string, bundle string) ([]*database.Object, error) {
+	return nil, nil
 }
 
 // CreateObjectForBundling creates a new object for bundling

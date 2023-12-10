@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/aws/aws-sdk-go v1.48.6
-	github.com/bnb-chain/greenfield-bundle-sdk v0.0.0-20231208083232-3a882c488742
+	github.com/bnb-chain/greenfield-bundle-sdk v0.0.0-20231209110235-2eecb5867bd3
 	github.com/consensys/gnark-crypto v0.7.0 // indirect
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/go-openapi/errors v0.20.4
@@ -145,8 +145,8 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.15.0 // indirect
+	github.com/spf13/pflag v1.0.5
+	github.com/spf13/viper v1.15.0
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect

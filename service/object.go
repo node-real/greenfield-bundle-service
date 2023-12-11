@@ -5,16 +5,15 @@ import (
 
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
-	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
 	"github.com/node-real/greenfield-bundle-service/storage"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 type Object interface {
 	CreateObjectForBundling(newObject database.Object) (database.Object, error)
-	StoreObjectFile(bundleName string, params bundle.UploadObjectParams) (string, int64, error)
 	GetObject(bucket string, bundle string, object string) (database.Object, error)
 	GetObjectFile(bucket string, bundle string, object string) (io.ReadCloser, int64, error)
+	StoreObjectFile(bucketName, bundleName string, objectName string, file io.ReadCloser) (string, int64, error)
 }
 
 type ObjectService struct {
@@ -49,8 +48,8 @@ func (s *ObjectService) CreateObjectForBundling(newObject database.Object) (data
 }
 
 // StoreObjectFile stores the object file to local storage
-func (s *ObjectService) StoreObjectFile(bundleName string, params bundle.UploadObjectParams) (string, int64, error) {
-	return s.fileManager.StoreObjectLocal(params.XBundleBucketName, bundleName, params.XBundleFileName, params.File)
+func (s *ObjectService) StoreObjectFile(bucketName, bundleName string, objectName string, file io.ReadCloser) (string, int64, error) {
+	return s.fileManager.StoreObjectLocal(bucketName, bundleName, objectName, file)
 }
 
 // GetObjectFile gets the object file

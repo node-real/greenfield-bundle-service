@@ -42,6 +42,16 @@ paths:
           description: Content type of the file
           required: true
           type: string
+        - name: X-Bundle-File-Sha256
+          in: header
+          description: SHA256 hash of the file
+          required: true
+          type: string
+        - name: X-Bundle-Attributes
+          in: header
+          description: Attributes of the file
+          required: false
+          type: string
         - name: X-Bundle-Expiry-Timestamp
           in: header
           description: Expiry timestamp of the request

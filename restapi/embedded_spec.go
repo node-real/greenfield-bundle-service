@@ -342,7 +342,7 @@ func init() {
     },
     "/uploadObject": {
       "post": {
-        "description": "Allows users to upload a single file along with a signature for validation, and a timestamp.\n",
+        "description": "Uploads a single object to a bundle, requiring details like bucket name, file name, and etc.\n",
         "consumes": [
           "multipart/form-data"
         ],
@@ -382,6 +382,19 @@ func init() {
             "name": "X-Bundle-Content-Type",
             "in": "header",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "SHA256 hash of the file",
+            "name": "X-Bundle-File-Sha256",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Attributes of the file",
+            "name": "X-Bundle-Attributes",
+            "in": "header"
           },
           {
             "type": "integer",
@@ -840,7 +853,7 @@ func init() {
     },
     "/uploadObject": {
       "post": {
-        "description": "Allows users to upload a single file along with a signature for validation, and a timestamp.\n",
+        "description": "Uploads a single object to a bundle, requiring details like bucket name, file name, and etc.\n",
         "consumes": [
           "multipart/form-data"
         ],
@@ -880,6 +893,19 @@ func init() {
             "name": "X-Bundle-Content-Type",
             "in": "header",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "SHA256 hash of the file",
+            "name": "X-Bundle-File-Sha256",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Attributes of the file",
+            "name": "X-Bundle-Attributes",
+            "in": "header"
           },
           {
             "type": "integer",

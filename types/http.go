@@ -20,50 +20,30 @@ import (
 )
 
 const (
-	HTTPHeaderContentType     = "Content-Type"
-	HTTPHeaderTransactionHash = "X-Bundle-Txn-Hash"
-	HTTPHeaderResource        = "X-Bundle-Resource"
-	HTTPHeaderPieceIndex      = "X-Bundle-Piece-Index"
-	HTTPHeaderObjectID        = "X-Bundle-Object-ID"
-	HTTPHeaderRedundancyIndex = "X-Bundle-Redundancy-Index"
-	HTTPHeaderUnsignedMsg     = "X-Bundle-Unsigned-Msg"
+	HTTPHeaderContentType = "Content-Type"
+	HTTPHeaderUnsignedMsg = "X-Bundle-Unsigned-Msg"
 
-	HTTPHeaderContentMD5 = "Content-MD5"
-	HTTPHeaderRange      = "Range"
-
-	HTTPHeaderContentSHA256   = "X-Bundle-Content-Sha256"
-	HTTPHeaderBucketName      = " X-Bundle-Bucket-Name"
+	HTTPHeaderFileSHA256      = "X-Bundle-File-Sha256"
+	HTTPHeaderBucketName      = "X-Bundle-Bucket-Name"
+	HTTPHeaderAttributes      = "X-Bundle-Attributes"
 	HTTPHeaderMaxBundleSize   = "X-Bundle-Max-Bundle-Size"
 	HTTPHeaderMaxFileSize     = "X-Bundle-Max-File-Size"
 	HTTPHeaderMaxFinalizeTime = "X-Bundle-Max-Finalize-Time"
 
-	HTTPHeaderUserAddress = "X-Bundle-User-Address"
-	// HTTPHeaderDate The date and time format must follow the ISO 8601 standard, and must be formatted with the "yyyyMMddTHHmmssZ" format. For example if the date and time was "08/01/2016 15:32:41.982-700" then it must first be converted to UTC (Coordinated Universal Time) and then submitted as "20160801T223241Z".
-	HTTPHeaderDate = "X-Bundle-Date"
 	// HTTPHeaderExpiryTimestamp defines the expiry timestamp, which is the ISO 8601 datetime string (e.g. 2021-09-30T16:25:24Z), and the maximum Timestamp since the request sent must be less than MaxExpiryAgeInSec (seven days).
 	HTTPHeaderExpiryTimestamp = "X-Bundle-Expiry-Timestamp"
 	HTTPHeaderAuthorization   = "Authorization"
 
 	// MaxExpiryAgeInSec defines the maximum expiry age in seconds
 	MaxExpiryAgeInSec = 3600 * 24 * 7 // 7 days
-
-	BundleEcdsa = "BUNDLE-ECDSA"
 )
 
 var supportedHeaders = []string{
-	HTTPHeaderContentSHA256,
-	HTTPHeaderTransactionHash,
-	HTTPHeaderObjectID,
-	HTTPHeaderRedundancyIndex,
-	HTTPHeaderResource,
-	HTTPHeaderDate,
-	HTTPHeaderRange,
-	HTTPHeaderPieceIndex,
+	HTTPHeaderFileSHA256,
 	HTTPHeaderContentType,
-	HTTPHeaderContentMD5,
 	HTTPHeaderUnsignedMsg,
-	HTTPHeaderUserAddress,
 	HTTPHeaderBucketName,
+	HTTPHeaderAttributes,
 	HTTPHeaderMaxBundleSize,
 	HTTPHeaderMaxFileSize,
 	HTTPHeaderMaxFinalizeTime,

@@ -34,7 +34,7 @@ func NewUploadObject(ctx *middleware.Context, handler UploadObjectHandler) *Uplo
 
 # Upload a single object to a bundle
 
-Allows users to upload a single file along with a signature for validation, and a timestamp.
+Uploads a single object to a bundle, requiring details like bucket name, file name, and etc.
 */
 type UploadObject struct {
 	Context *middleware.Context

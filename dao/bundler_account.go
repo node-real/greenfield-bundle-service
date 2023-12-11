@@ -33,20 +33,6 @@ func (s *dbBundlerAccountDao) GetBundlerAccountForUser(user string) (database.Bu
 		return database.BundlerAccount{}, err
 	}
 
-	if len(allBundlers) == 0 {
-		// todo: remove these test code
-		_, account, err := util.GenerateRandomAccount()
-		if err != nil {
-			util.Logger.Error("generate random account error, err=%s", err.Error())
-			return database.BundlerAccount{}, err
-		}
-
-		return database.BundlerAccount{
-			Id:             1,
-			AccountAddress: account.String(),
-		}, nil
-	}
-
 	bundlerForUser, err := types.PickBundlerIndexForAccount(len(allBundlers), user)
 	if err != nil {
 		util.Logger.Error("pick bundler index for account error, err=%s", err.Error())

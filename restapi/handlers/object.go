@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,21 +19,56 @@ import (
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
+func ValidateUploadObjectParams(params bundle.UploadObjectParams) *models.Error {
+	if params.XBundleFileName == "" {
+		return ErrorInvalidFileName
+	}
+	if params.XBundleContentType == "" {
+		return ErrorInvalidContentType
+	}
+	if params.XBundleBucketName == "" {
+		return ErrorInvalidBucketName
+	}
+	if params.Authorization == "" {
+		return ErrorInvalidSignature
+	}
+
+	return nil
+}
+
+func ValidateFileContent(file io.ReadCloser, headerHash string) (io.ReadCloser, error) {
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		util.Logger.Errorf("read file error, err=%s", err.Error())
+		return nil, err
+	}
+
+	hash := sha256.New()
+	hash.Write(fileBytes)
+
+	hashInBytes := hash.Sum(nil)[:]
+	calculatedHash := hex.EncodeToString(hashInBytes)
+	if calculatedHash != headerHash {
+		util.Logger.Errorf("file hash does not match header hash, calculatedHash=%s, headerHash=%s", calculatedHash, headerHash)
+		return nil, fmt.Errorf("file hash does not match header hash, calculatedHash=%s, headerHash=%s", calculatedHash, headerHash)
+	}
+
+	return io.NopCloser(bytes.NewReader(fileBytes)), nil
+}
+
 // HandleUploadObject handles the upload object request
 func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Responder {
 	return func(params bundle.UploadObjectParams) middleware.Responder {
 		// check params
-		if params.XBundleFileName == "" {
-			return bundle.NewUploadObjectBadRequest()
+		if err := ValidateUploadObjectParams(params); err != nil {
+			return bundle.NewUploadObjectBadRequest().WithPayload(err)
 		}
-		if params.XBundleContentType == "" {
-			return bundle.NewUploadObjectBadRequest()
-		}
-		if params.XBundleBucketName == "" {
-			return bundle.NewUploadObjectBadRequest()
-		}
-		if params.Authorization == "" {
-			return bundle.NewUploadObjectBadRequest().WithPayload(ErrorInvalidSignature)
+
+		// check file content
+		file, err := ValidateFileContent(params.File, params.XBundleFileSha256)
+		if err != nil {
+			util.Logger.Errorf("validate file content error, err=%s", err.Error())
+			return bundle.NewUploadObjectBadRequest().WithPayload(ErrorInvalidFileContent)
 		}
 
 		// check signature
@@ -90,20 +128,23 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 		}
 
 		// save object file to local storage
-		_, fileSize, err := service.ObjectSvc.StoreObjectFile(bundlingBundle.Name, params)
+		_, fileSize, err := service.ObjectSvc.StoreObjectFile(params.XBundleBucketName, bundlingBundle.Name, params.XBundleFileName, file)
 		if err != nil {
 			util.Logger.Errorf("store object file error, err=%s", err.Error())
 			return bundle.NewUploadObjectInternalServerError()
 		}
 
 		// create object
-		newObject := database.Object{ // TODO: add more fields
+		newObject := database.Object{
 			Bucket:      params.XBundleBucketName,
 			BundleName:  bundlingBundle.Name,
 			ObjectName:  params.XBundleFileName,
 			Owner:       signerAddress.String(),
 			ContentType: params.XBundleContentType,
 			Size:        fileSize,
+		}
+		if params.XBundleAttributes != nil {
+			newObject.Attributes = *params.XBundleAttributes
 		}
 
 		_, err = service.ObjectSvc.CreateObjectForBundling(newObject)

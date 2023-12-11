@@ -50,4 +50,16 @@ var (
 		Code:    10007,
 		Message: "Invalid bundle owner",
 	}
+	ErrorInvalidFileName = &models.Error{
+		Code:    10008,
+		Message: "Invalid file name",
+	}
+	ErrorInvalidContentType = &models.Error{
+		Code:    10009,
+		Message: "Invalid content type",
+	}
+	ErrorInvalidFileContent = &models.Error{
+		Code:    10010,
+		Message: "Invalid file content",
+	}
 )

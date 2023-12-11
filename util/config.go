@@ -6,8 +6,11 @@ import (
 )
 
 type BundleConfig struct {
-	LocalStoragePath string `json:"local_storage_path"`
-	OssBucketUrl     string `json:"oss_bucket_url"`
+	BundlerPrivateKeys []string `json:"bundler_private_keys"`
+	AWSRegion          string   `json:"aws_region"`
+	AWSSecretName      string   `json:"aws_secret_name"`
+	LocalStoragePath   string   `json:"local_storage_path"`
+	OssBucketUrl       string   `json:"oss_bucket_url"`
 }
 
 type GnfdConfig struct {
@@ -59,6 +62,10 @@ func ParseServerConfigFromFile(filePath string) *ServerConfig {
 		config.DBConfig.Username, config.DBConfig.Password = GetDBUsernamePassword(config.DBConfig)
 	}
 
+	if len(config.BundleConfig.BundlerPrivateKeys) == 0 {
+		config.BundleConfig.BundlerPrivateKeys = GetBundlerPrivateKeys(config.BundleConfig)
+	}
+
 	return &config
 }
 
@@ -77,4 +84,20 @@ func GetDBUsernamePassword(cfg *DBConfig) (string, string) {
 		panic(err)
 	}
 	return dbPassword.Username, dbPassword.Password
+}
+
+func GetBundlerPrivateKeys(cfg *BundleConfig) []string {
+	result, err := GetSecret(cfg.AWSSecretName, cfg.AWSRegion)
+	if err != nil {
+		panic(err)
+	}
+	type DBKeys struct {
+		BundlerPrivateKeys []string `json:"bundler_private_keys"`
+	}
+	var dbKeys DBKeys
+	err = json.Unmarshal([]byte(result), &dbKeys)
+	if err != nil {
+		panic(err)
+	}
+	return dbKeys.BundlerPrivateKeys
 }

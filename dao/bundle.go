@@ -19,7 +19,7 @@ type BundleDao interface {
 	UpdateBundle(bundle database.Bundle) (*database.Bundle, error)
 	GetBundlingBundle(bucket string) (database.Bundle, error)
 	DeleteBundle(bucket string, name string) error
-	GetTimeOutBundlingBundles() ([]*database.Bundle, error)
+	GetBundlingBundles() ([]*database.Bundle, error)
 	GetFinalizedBundlesByBundlerAccount(account string) ([]*database.Bundle, error)
 }
 
@@ -131,10 +131,20 @@ func (s *dbBundleDao) CreateBundleIfNotBundlingExist(newBundle database.Bundle) 
 	return newBundle, nil
 }
 
-func (s *dbBundleDao) GetTimeOutBundlingBundles() ([]*database.Bundle, error) {
-	return nil, nil
+func (s *dbBundleDao) GetBundlingBundles() ([]*database.Bundle, error) {
+	var bundles []*database.Bundle
+	err := s.db.Where("status = ?", database.BundleStatusBundling).Find(&bundles).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	return bundles, nil
 }
 
 func (s *dbBundleDao) GetFinalizedBundlesByBundlerAccount(account string) ([]*database.Bundle, error) {
-	return nil, nil
+	var bundles []*database.Bundle
+	err := s.db.Where("status = ? AND bundler_account = ?", database.BundleStatusFinalized, account).Find(&bundles).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	return bundles, nil
 }

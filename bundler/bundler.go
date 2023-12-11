@@ -37,7 +37,7 @@ func NewBundler(config *util.ServerConfig, db *gorm.DB) (*Bundler, error) {
 		util.Logger.Fatalf("unable to new greenfield client, %v", err)
 	}
 
-	fileManager := storage.NewFileManager(config, gnfdClient)
+	fileManager := storage.NewFileManager(config, objectDao, gnfdClient)
 	return &Bundler{
 		config:            config,
 		objectDao:         objectDao,
@@ -59,18 +59,23 @@ func (b *Bundler) timeOutLoop() {
 	for {
 		select {
 		case <-ticker.C:
-			bundles, err := b.bundleDao.GetTimeOutBundlingBundles()
+			bundles, err := b.bundleDao.GetBundlingBundles()
 			if err != nil {
 				util.Logger.Errorf("get time out bundling bundles failed, err=%v", err.Error())
 				continue
 			}
 
-			// TODO: Batch update
+			cur := time.Now()
 			for _, bundle := range bundles {
+				if cur.Sub(bundle.CreatedAt).Seconds() < float64(bundle.MaxFinalizeTime) {
+					continue
+				}
+
 				bundle.Status = database.BundleStatusFinalized
 				_, err := b.bundleDao.UpdateBundle(*bundle)
 				if err != nil {
 					util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
+					continue
 				}
 			}
 		}
@@ -78,38 +83,36 @@ func (b *Bundler) timeOutLoop() {
 }
 
 func (b *Bundler) startSubmitLoops() {
-	bundlerAccounts, err := b.bundlerAccountDao.GetAllBundlerAccounts()
-	if err != nil {
-		util.Logger.Fatalf("get bundler accounts failed, err=%s", err.Error())
+	if len(b.config.BundleConfig.BundlerPrivateKeys) == 0 {
+		util.Logger.Fatal("no bundler account available")
 	}
 
-	for _, account := range bundlerAccounts {
+	for _, privateKey := range b.config.BundleConfig.BundlerPrivateKeys {
+		account, err := types.NewAccountFromPrivateKey("bundler-account", privateKey)
+		if err != nil {
+			util.Logger.Fatalf("create bundler account failed, err=%v", err.Error())
+		}
+
 		go b.submitLoop(account)
 	}
 }
 
-func (b *Bundler) submitLoop(bundler database.BundlerAccount) {
+func (b *Bundler) submitLoop(account *types.Account) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
-	// TODO: Get account private key
-	privateKey := ""
-	account, err := types.NewAccountFromPrivateKey("bundler-account", privateKey)
-	if err != nil {
-		util.Logger.Fatalf("create bundler account failed, account=%s, err=%v", bundler.AccountAddress, err.Error())
-	}
-
+	accountAddr := account.GetAddress().String()
 	client, err := client.New(b.config.GnfdConfig.ChainId, b.config.GnfdConfig.RpcUrl, client.Option{DefaultAccount: account})
 	if err != nil {
-		util.Logger.Fatalf("create bundler account failed, account=%s, err=%v", bundler.AccountAddress, err.Error())
+		util.Logger.Fatalf("create greenfield client failed, account=%s, err=%v", accountAddr, err.Error())
 	}
 
 	for {
 		select {
 		case <-ticker.C:
-			bundles, err := b.bundleDao.GetFinalizedBundlesByBundlerAccount(bundler.AccountAddress)
+			bundles, err := b.bundleDao.GetFinalizedBundlesByBundlerAccount(accountAddr)
 			if err != nil {
-				util.Logger.Errorf("get finalized bundles by bundler account failed, bundler=%s, err=%v", bundler.AccountAddress, err.Error())
+				util.Logger.Errorf("get finalized bundles by bundler account failed, bundler=%s, err=%v", accountAddr, err.Error())
 				continue
 			}
 
@@ -148,14 +151,21 @@ func (b *Bundler) assembleBundleObject(bundleRecord *database.Bundle) (io.ReadSe
 	}
 
 	for _, object := range objects {
-		objectReader, size, err := b.fileManager.GetObject(bundleRecord.Bucket, bundleRecord.Name, object.ObjectName)
+		objectReader, err := b.fileManager.GetObject(bundleRecord.Bucket, bundleRecord.Name, object.ObjectName)
 		if err != nil {
 			return nil, 0, fmt.Errorf("get object failed, object=%s, err=%v", object.ObjectName, err)
 		}
 
-		_, err = newBundle.AppendObject(object.ObjectName, size, objectReader, nil)
+		// TODO: Fix zero size
+		objectMeta, err := newBundle.AppendObject(object.ObjectName, 0, objectReader, nil)
 		if err != nil {
 			return nil, 0, fmt.Errorf("append object to bundle object failed, object=%s, err=%v", object.ObjectName, err)
+		}
+
+		object.OffsetInBundle = int64(objectMeta.Offset)
+		_, err = b.objectDao.UpdateObject(*object)
+		if err != nil {
+			return nil, 0, fmt.Errorf("update object error, object=%+v, err=%s", object, err.Error())
 		}
 	}
 

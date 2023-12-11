@@ -11,6 +11,7 @@ import (
 
 type ObjectDao interface {
 	CreateObjectForBundling(object database.Object) (database.Object, error)
+	UpdateObject(object database.Object) (*database.Object, error)
 	GetObject(bucket string, bundle string, object string) (database.Object, error)
 	GetBundleObjects(bucket string, bundle string) ([]*database.Object, error)
 }
@@ -26,6 +27,14 @@ func NewObjectDao(db *gorm.DB) ObjectDao {
 	}
 }
 
+func (s *dbObjectDao) UpdateObject(object database.Object) (*database.Object, error) {
+	err := s.db.Save(&object).Error
+	if err != nil {
+		return nil, err
+	}
+	return &object, nil
+}
+
 // GetObject gets an object
 func (s *dbObjectDao) GetObject(bucket string, bundle string, object string) (database.Object, error) {
 	var obj database.Object
@@ -37,7 +46,12 @@ func (s *dbObjectDao) GetObject(bucket string, bundle string, object string) (da
 }
 
 func (s *dbObjectDao) GetBundleObjects(bucket string, bundle string) ([]*database.Object, error) {
-	return nil, nil
+	var objs []*database.Object
+	err := s.db.Where("bucket = ? AND bundle_name = ?", bucket, bundle).Find(objs).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	return objs, nil
 }
 
 // CreateObjectForBundling creates a new object for bundling

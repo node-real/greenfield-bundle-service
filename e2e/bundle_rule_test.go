@@ -9,7 +9,7 @@ import (
 )
 
 func TestSetOrCreateBundleRule(t *testing.T) {
-	PrepareBundleAccounts("../cmd/bundle-service-server/db.sqlite3", 1)
+	PrepareBundleAccounts("../build/db.sqlite3", 1)
 
 	privateKey, _, err := GetAccount()
 	require.NoError(t, err)

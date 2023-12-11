@@ -2,6 +2,7 @@ package dao
 
 import (
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -46,6 +47,7 @@ func (dao *dbBundleRuleDao) Create(rule database.BundleRule) (database.BundleRul
 
 // Update updates a bundle rule
 func (dao *dbBundleRuleDao) Update(rule database.BundleRule) (database.BundleRule, error) {
+	rule.UpdatedAt = time.Now()
 	err := dao.db.Save(&rule).Error
 	if err != nil {
 		return rule, err

@@ -45,7 +45,7 @@ func getBundlerAccount(userAddress string) (string, error) {
 }
 
 func TestGetUserBundlerAccount(t *testing.T) {
-	PrepareBundleAccounts("../cmd/bundle-service-server/db.sqlite3", 1)
+	PrepareBundleAccounts("../build/db.sqlite3", 1)
 
 	_, address, err := util.GenerateRandomAccount()
 	if err != nil {

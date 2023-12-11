@@ -1,7 +1,7 @@
 {
   "db_config":{
     "db_dialect":"sqlite3",
-    "db_path":"./db.sqlite3",
+    "db_path":"./build/db.sqlite3",
     "password":"12345678",
     "username":"root",
     "max_idle_conns":0,
@@ -10,7 +10,7 @@
     "aws_secret_name":""
   },
   "bundle_config": {
-    "local_storage_path": "/Users/wuzhenxing/Documents/development/github/greenfield-bundle-service/bundle_storage/"
+    "local_storage_path": "./bundle_storage/"
   },
   "gnfd_config": {
     "chain_id": "testnet",

@@ -4,6 +4,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/go-openapi/runtime/middleware"
 
+	"github.com/node-real/greenfield-bundle-service/types"
+
 	"github.com/node-real/greenfield-bundle-service/models"
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
 	"github.com/node-real/greenfield-bundle-service/service"
@@ -14,7 +16,7 @@ func HandleGetUserBundlerAccount() func(params bundle.BundlerAccountParams) midd
 		userAddress := common.HexToAddress(params.UserAddress)
 		bundlerAccount, err := service.UserBundlerAccountSvc.GetOrCreateUserBundlerAccount(userAddress.String())
 		if err != nil {
-			return bundle.NewBundlerAccountInternalServerError()
+			return bundle.NewBundlerAccountInternalServerError().WithPayload(types.InternalErrorWithError(err))
 		}
 
 		return bundle.NewBundlerAccountOK().WithPayload(&models.BundlerAccount{

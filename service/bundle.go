@@ -80,7 +80,8 @@ func (s *BundleService) QueryBundle(bucketName string, bundleName string) (*data
 	return bundle, nil
 }
 
-// CreateBundle creates a new bundle for the bucket if it does not exist
+// CreateBundle creates a new bundle for the bucket if it does not exist, it also checks the permission for the bucket
+// of the bundler
 func (s *BundleService) CreateBundle(newBundle database.Bundle) (database.Bundle, error) {
 	// check permission for the bucket
 	isPermissionGranted, err := s.authManager.IsBucketPermissionGranted(common.HexToAddress(newBundle.BundlerAccount), newBundle.Bucket)

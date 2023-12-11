@@ -1,12 +1,8 @@
 package types
 
-import (
-	"github.com/node-real/greenfield-bundle-service/models"
-)
+import "github.com/node-real/greenfield-bundle-service/models"
 
 const (
-	TimestampExpireTime = 60 * 5 // 5 min
-
 	DefaultMaxBundleFiles  = 100
 	DefaultMaxBundleSize   = 1024 * 1024 * 1024 // 1GB
 	DefaultMaxFinalizeTime = 60 * 60 * 24       // 1 day
@@ -18,9 +14,9 @@ var (
 		Message: "Internal error",
 	}
 
-	ErrorInvalidTimestamp = &models.Error{
+	ErrorInvalidExpiryTimestamp = &models.Error{
 		Code:    10000,
-		Message: "Invalid timestamp",
+		Message: "Invalid expiry timestamp",
 	}
 	ErrorInvalidSignature = &models.Error{
 		Code:    10001,
@@ -50,4 +46,23 @@ var (
 		Code:    10007,
 		Message: "Invalid bundle owner",
 	}
+	ErrorInvalidFileName = &models.Error{
+		Code:    10008,
+		Message: "Invalid file name",
+	}
+	ErrorInvalidContentType = &models.Error{
+		Code:    10009,
+		Message: "Invalid content type",
+	}
+	ErrorInvalidFileContent = &models.Error{
+		Code:    10010,
+		Message: "Invalid file content",
+	}
 )
+
+func InternalErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    500,
+		Message: err.Error(),
+	}
+}

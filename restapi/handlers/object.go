@@ -185,7 +185,7 @@ func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middlew
 
 		return middleware.ResponderFunc(func(w http.ResponseWriter, _ runtime.Producer) {
 			w.Header().Set("Content-Disposition", "inline")
-			w.Header().Set("Content-Type", "text/html")
+			w.Header().Set("Content-Type", object.ContentType)
 			io.Copy(w, response.Body)
 		})
 	}

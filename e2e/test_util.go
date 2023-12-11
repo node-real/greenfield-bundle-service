@@ -58,7 +58,10 @@ func PrepareBundleAccounts(dbPath string, n int) {
 		return
 	}
 
-	for i := 0; i < n; i++ {
+	var count int64
+	db.Model(&database.BundlerAccount{}).Count(&count)
+
+	for i := count; i < int64(n); i++ {
 		_, account, err := util.GenerateRandomAccount()
 		if err != nil {
 			util.Logger.Errorf("generate random account error, err=%s", err.Error())

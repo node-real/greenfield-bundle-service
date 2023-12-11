@@ -12,6 +12,8 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/swag"
 
+	"github.com/node-real/greenfield-bundle-service/auth"
+
 	"github.com/node-real/greenfield-bundle-service/storage"
 
 	"github.com/node-real/greenfield-bundle-service/dao"
@@ -113,11 +115,12 @@ func configureServer(s *http.Server, scheme, addr string) {
 	}
 
 	fileManager := storage.NewFileManager(config, gnfdClient)
+	authManager := auth.NewAuthManager(gnfdClient)
 
 	// init services
 	service.GnfdClient = gnfdClient
 
-	service.BundleSvc = service.NewBundleService(gnfdClient, bundleDao, bundleRuleDao, userBundlerAccountDao)
+	service.BundleSvc = service.NewBundleService(gnfdClient, authManager, bundleDao, bundleRuleDao, userBundlerAccountDao)
 	service.BundleRuleSvc = service.NewBundleRuleService(bundleRuleDao)
 	service.ObjectSvc = service.NewObjectService(config, fileManager, bundleDao, objectDao, userBundlerAccountDao)
 	service.UserBundlerAccountSvc = service.NewUserBundlerAccountService(userBundlerAccountDao, bundlerAccountDao)

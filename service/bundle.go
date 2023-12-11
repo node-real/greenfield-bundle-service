@@ -6,7 +6,9 @@ import (
 
 	"github.com/bnb-chain/greenfield-go-sdk/client"
 	gnfdtypes "github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/node-real/greenfield-bundle-service/auth"
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
 	"github.com/node-real/greenfield-bundle-service/types"
@@ -27,15 +29,17 @@ type Bundle interface {
 
 type BundleService struct {
 	gndfClient     client.IClient
+	authManager    *auth.AuthManager
 	bundleDao      dao.BundleDao
 	bundleRuleDao  dao.BundleRuleDao
 	userBundlerDao dao.UserBundlerAccountDao
 }
 
 // NewBundleService returns a new BundleService
-func NewBundleService(gndfClient client.IClient, bundleDao dao.BundleDao, bundleRuleDao dao.BundleRuleDao, userBundlerDao dao.UserBundlerAccountDao) Bundle {
+func NewBundleService(gndfClient client.IClient, authManager *auth.AuthManager, bundleDao dao.BundleDao, bundleRuleDao dao.BundleRuleDao, userBundlerDao dao.UserBundlerAccountDao) Bundle {
 	bs := BundleService{
 		gndfClient:     gndfClient,
+		authManager:    authManager,
 		bundleDao:      bundleDao,
 		bundleRuleDao:  bundleRuleDao,
 		userBundlerDao: userBundlerDao,
@@ -54,6 +58,7 @@ func (s *BundleService) GetBundlingBundle(bucketName string) (database.Bundle, e
 	return bundle, nil
 }
 
+// QueryBucketFromGndf queries the bucket info from gndf
 func (s *BundleService) QueryBucketFromGndf(bucketName string) (*gnfdtypes.BucketInfo, error) {
 	bucket, err := s.gndfClient.HeadBucket(context.Background(), bucketName)
 	if err != nil {
@@ -77,6 +82,19 @@ func (s *BundleService) QueryBundle(bucketName string, bundleName string) (*data
 
 // CreateBundle creates a new bundle for the bucket if it does not exist
 func (s *BundleService) CreateBundle(newBundle database.Bundle) (database.Bundle, error) {
+	// check permission for the bucket
+	isPermissionGranted, err := s.authManager.IsBucketPermissionGranted(common.HexToAddress(newBundle.BundlerAccount), newBundle.Bucket)
+	if err != nil {
+		util.Logger.Errorf("check bucket permission error, bucket=%s, err=%s", newBundle.Bucket, err.Error())
+		return database.Bundle{}, err
+	}
+
+	if !isPermissionGranted {
+		util.Logger.Errorf("bucket(%s) permission not granted for bundler(%s)", newBundle.Bucket, newBundle.BundlerAccount)
+		return database.Bundle{}, fmt.Errorf("bucket(%s) permission not granted for bundler(%s)", newBundle.Bucket, newBundle.BundlerAccount)
+	}
+
+	// get bundle rule for the bucket
 	bundleRule, err := s.bundleRuleDao.Get(newBundle.Owner, newBundle.Bucket)
 	if err != nil {
 		util.Logger.Errorf("get bundle rule error, owner=%s, bucket=%s, err=%s", newBundle.Owner, newBundle.Bucket, err.Error())

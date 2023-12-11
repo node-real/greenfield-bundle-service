@@ -11,13 +11,6 @@ import (
 
 func HandleSetBundleRule() func(params rule.SetBundleRuleParams) middleware.Responder {
 	return func(params rule.SetBundleRuleParams) middleware.Responder {
-		// check params
-		if params.XBundleBucketName == "" {
-			return rule.NewSetBundleRuleBadRequest().WithPayload(types.ErrorInvalidBucketName)
-		}
-		if params.Authorization == "" {
-			return rule.NewSetBundleRuleBadRequest().WithPayload(types.ErrorInvalidSignature)
-		}
 		// check signature
 		signerAddress, err := types.VerifySignature(params.HTTPRequest)
 		if err != nil {

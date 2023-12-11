@@ -13,16 +13,6 @@ import (
 // HandleCreateBundle handles create bundle request
 func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Responder {
 	return func(params bundle.CreateBundleParams) middleware.Responder {
-		if params.XBundleBucketName == "" {
-			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInvalidBucketName)
-		}
-		if params.XBundleName == "" {
-			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInvalidBundleName)
-		}
-		if params.Authorization == "" {
-			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInvalidSignature)
-		}
-
 		// check signature
 		signerAddress, err := types.VerifySignature(params.HTTPRequest)
 		if err != nil {
@@ -76,16 +66,6 @@ func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Resp
 // HandleFinalizeBundle handles finalize bundle request
 func HandleFinalizeBundle() func(params bundle.FinalizeBundleParams) middleware.Responder {
 	return func(params bundle.FinalizeBundleParams) middleware.Responder {
-		if params.XBundleName == "" {
-			return bundle.NewFinalizeBundleBadRequest().WithPayload(types.ErrorInvalidBundleName)
-		}
-		if params.XBundleBucketName == "" {
-			return bundle.NewFinalizeBundleBadRequest().WithPayload(types.ErrorInvalidBucketName)
-		}
-		if params.Authorization == "" {
-			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInvalidSignature)
-		}
-
 		// query bundle
 		queriedBundle, err := service.BundleSvc.QueryBundle(params.XBundleBucketName, params.XBundleName)
 		if err != nil {

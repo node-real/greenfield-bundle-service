@@ -3,6 +3,8 @@ package types
 import "github.com/node-real/greenfield-bundle-service/models"
 
 const (
+	DefaultMaxFileSize = 10 * 1024 * 1024 // 10MB
+
 	DefaultMaxBundleFiles  = 100
 	DefaultMaxBundleSize   = 1024 * 1024 * 1024 // 1GB
 	DefaultMaxFinalizeTime = 60 * 60 * 24       // 1 day
@@ -58,11 +60,22 @@ var (
 		Code:    10010,
 		Message: "Invalid file content",
 	}
+	ErrorInvalidFileSha256 = &models.Error{
+		Code:    10011,
+		Message: "Invalid file sha256",
+	}
 )
 
 func InternalErrorWithError(err error) *models.Error {
 	return &models.Error{
 		Code:    500,
+		Message: err.Error(),
+	}
+}
+
+func InvalidFileContentErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10010,
 		Message: err.Error(),
 	}
 }

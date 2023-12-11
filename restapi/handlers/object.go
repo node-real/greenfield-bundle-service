@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
@@ -19,26 +20,21 @@ import (
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
-func ValidateUploadObjectParams(params bundle.UploadObjectParams) *models.Error {
-	if params.XBundleFileName == "" {
-		return types.ErrorInvalidFileName
-	}
-	if params.XBundleContentType == "" {
-		return types.ErrorInvalidContentType
-	}
-	if params.XBundleBucketName == "" {
-		return types.ErrorInvalidBucketName
-	}
-	if params.Authorization == "" {
-		return types.ErrorInvalidSignature
-	}
-
-	return nil
-}
-
 // ValidateFileContent validates the file content against the hash in the header
-func ValidateFileContent(file io.ReadCloser, headerHash string) (io.ReadCloser, error) {
-	fileBytes, err := io.ReadAll(file)
+func ValidateFileContent(params bundle.UploadObjectParams) (io.ReadCloser, error) {
+	contentLength := params.HTTPRequest.Header.Get("Content-Length")
+
+	fileSize, err := strconv.Atoi(contentLength)
+	if err != nil {
+		util.Logger.Errorf("invalid Content-Length header, err=%s", err.Error())
+		return nil, err
+	}
+	if fileSize > types.DefaultMaxFileSize {
+		util.Logger.Errorf("file size exceeds limit, size=%d", fileSize)
+		return nil, fmt.Errorf("file size exceeds limit, size=%d", fileSize)
+	}
+
+	fileBytes, err := io.ReadAll(params.File)
 	if err != nil {
 		util.Logger.Errorf("read file error, err=%s", err.Error())
 		return nil, err
@@ -49,9 +45,9 @@ func ValidateFileContent(file io.ReadCloser, headerHash string) (io.ReadCloser, 
 
 	hashInBytes := hash.Sum(nil)[:]
 	calculatedHash := hex.EncodeToString(hashInBytes)
-	if calculatedHash != headerHash {
-		util.Logger.Errorf("file hash does not match header hash, calculatedHash=%s, headerHash=%s", calculatedHash, headerHash)
-		return nil, fmt.Errorf("file hash does not match header hash, calculatedHash=%s, headerHash=%s", calculatedHash, headerHash)
+	if calculatedHash != params.XBundleFileSha256 {
+		util.Logger.Errorf("file hash does not match header hash, calculatedHash=%s, headerHash=%s", calculatedHash, params.XBundleFileSha256)
+		return nil, fmt.Errorf("file hash does not match header hash, calculatedHash=%s, headerHash=%s", calculatedHash, params.XBundleFileSha256)
 	}
 
 	return io.NopCloser(bytes.NewReader(fileBytes)), nil
@@ -60,16 +56,11 @@ func ValidateFileContent(file io.ReadCloser, headerHash string) (io.ReadCloser, 
 // HandleUploadObject handles the upload object request
 func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Responder {
 	return func(params bundle.UploadObjectParams) middleware.Responder {
-		// check params
-		if err := ValidateUploadObjectParams(params); err != nil {
-			return bundle.NewUploadObjectBadRequest().WithPayload(err)
-		}
-
 		// check file content
-		file, err := ValidateFileContent(params.File, params.XBundleFileSha256)
+		file, err := ValidateFileContent(params)
 		if err != nil {
 			util.Logger.Errorf("validate file content error, err=%s", err.Error())
-			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorInvalidFileContent)
+			return bundle.NewUploadObjectBadRequest().WithPayload(types.InvalidFileContentErrorWithError(err))
 		}
 
 		// check signature

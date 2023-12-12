@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/bnb-chain/greenfield-bundle-sdk/bundle"
@@ -16,6 +17,10 @@ import (
 	"github.com/node-real/greenfield-bundle-service/database"
 	"github.com/node-real/greenfield-bundle-service/storage"
 	"github.com/node-real/greenfield-bundle-service/util"
+)
+
+const (
+	MaxSealOnChainTime = 60 * 60 * 24 // 1 day
 )
 
 type Bundler struct {
@@ -49,10 +54,10 @@ func NewBundler(config *util.ServerConfig, db *gorm.DB) (*Bundler, error) {
 
 func (b *Bundler) Run() {
 	b.startSubmitLoops()
-	b.timeOutLoop()
+	b.finalizeLoop()
 }
 
-func (b *Bundler) timeOutLoop() {
+func (b *Bundler) finalizeLoop() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
@@ -67,15 +72,14 @@ func (b *Bundler) timeOutLoop() {
 
 			cur := time.Now()
 			for _, bundle := range bundles {
-				if cur.Sub(bundle.CreatedAt).Seconds() < float64(bundle.MaxFinalizeTime) {
-					continue
-				}
-
-				bundle.Status = database.BundleStatusFinalized
-				_, err := b.bundleDao.UpdateBundle(*bundle)
-				if err != nil {
-					util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
-					continue
+				if bundle.Size >= bundle.MaxSize || bundle.Files >= bundle.MaxFiles ||
+					cur.Sub(bundle.CreatedAt).Seconds() >= float64(bundle.MaxFinalizeTime) {
+					bundle.Status = database.BundleStatusFinalized
+					_, err := b.bundleDao.UpdateBundle(*bundle)
+					if err != nil {
+						util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
+						continue
+					}
 				}
 			}
 		}
@@ -100,6 +104,8 @@ func (b *Bundler) startSubmitLoops() {
 func (b *Bundler) submitLoop(account *types.Account) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
+	sealTicker := time.NewTicker(30 * time.Second)
+	defer sealTicker.Stop()
 
 	accountAddr := account.GetAddress().String()
 	client, err := client.New(b.config.GnfdConfig.ChainId, b.config.GnfdConfig.RpcUrl, client.Option{DefaultAccount: account})
@@ -123,13 +129,51 @@ func (b *Bundler) submitLoop(account *types.Account) {
 					continue
 				}
 
-				err = b.submitBundledObject(client, bundle, bundledObject, size)
+				objectDetail, err := b.submitBundledObject(client, bundle, bundledObject, size)
 				if err != nil {
 					util.Logger.Errorf("submit bundle object failed, bundle=%s, err=%v", bundle.Bucket+bundle.Name, err.Error())
 					continue
 				}
 
 				bundle.Status = database.BundleStatusCreatedOnChain
+				bundle.ObjectId = objectDetail.ObjectInfo.Id.Uint64()
+				_, err = b.bundleDao.UpdateBundle(*bundle)
+				if err != nil {
+					util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
+				}
+			}
+
+		case <-sealTicker.C:
+			bundles, err := b.bundleDao.GetCreatedOnChainBundlesByBundlerAccount(accountAddr)
+			if err != nil {
+				util.Logger.Errorf("get created onchain bundles by bundler account failed, bundler=%s, err=%v", accountAddr, err.Error())
+				continue
+			}
+
+			for _, bundle := range bundles {
+				sealed := b.checkBundleSealed(client, bundle)
+				if sealed {
+					bundle.Status = database.BundleStatusSealedOnChain
+					_, err = b.bundleDao.UpdateBundle(*bundle)
+					if err != nil {
+						util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
+					}
+					continue
+				}
+
+				if time.Now().Sub(bundle.UpdatedAt).Seconds() < MaxSealOnChainTime {
+					continue
+				}
+
+				// Cancel create for sealing timeout bundled object.
+				_, err = client.CancelCreateObject(context.Background(), bundle.Bucket, bundle.Name, types.CancelCreateOption{})
+				if err != nil {
+					util.Logger.Errorf("cancel create timeout bundle error, bundle=%+v, err=%s", bundle, err.Error())
+					continue
+				}
+
+				// Change the bundle status to "finalized" to trigger resubmission.
+				bundle.Status = database.BundleStatusFinalized
 				_, err = b.bundleDao.UpdateBundle(*bundle)
 				if err != nil {
 					util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
@@ -177,14 +221,13 @@ func (b *Bundler) assembleBundleObject(bundleRecord *database.Bundle) (io.ReadSe
 	return bundledObject, size, nil
 }
 
-func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bundle, object io.ReadSeekCloser, size int64) error {
+func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bundle, object io.ReadSeekCloser, size int64) (*types.ObjectDetail, error) {
 	if size == 0 {
-		return fmt.Errorf("invalid bundle size")
+		return nil, fmt.Errorf("invalid bundle size")
 	}
 
-	_, err := client.HeadObject(context.Background(), bundle.Bucket, bundle.Name)
+	objectDetail, err := client.HeadObject(context.Background(), bundle.Bucket, bundle.Name)
 	if err != nil {
-		// Create object on chain
 		opts := types.CreateObjectOptions{
 			Visibility:  storageTypes.VISIBILITY_TYPE_PUBLIC_READ,
 			ContentType: "bundle",
@@ -192,7 +235,12 @@ func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bu
 
 		_, err := client.CreateObject(context.Background(), bundle.Bucket, bundle.Name, object, opts)
 		if err != nil {
-			return fmt.Errorf("create bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
+			return nil, fmt.Errorf("create bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
+		}
+
+		objectDetail, err = client.HeadObject(context.Background(), bundle.Bucket, bundle.Name)
+		if err != nil {
+			return nil, fmt.Errorf("head bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
 		}
 
 		object.Seek(0, 0)
@@ -201,5 +249,15 @@ func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bu
 	opts := types.PutObjectOptions{
 		ContentType: "bundle",
 	}
-	return client.PutObject(context.Background(), bundle.Bucket, bundle.Name, size, object, opts)
+	return objectDetail, client.PutObject(context.Background(), bundle.Bucket, bundle.Name, size, object, opts)
+}
+
+func (b *Bundler) checkBundleSealed(client client.IClient, bundle *database.Bundle) bool {
+	objectDetail, err := client.HeadObjectByID(context.Background(), strconv.FormatUint(bundle.ObjectId, 10))
+	if err != nil {
+		util.Logger.Errorf("head bundle object failed, bundle=%s, objectId = %d, err=%v", bundle.Bucket+bundle.Name, bundle.ObjectId, err)
+		return false
+	}
+
+	return objectDetail.ObjectInfo.ObjectStatus == storageTypes.OBJECT_STATUS_SEALED
 }

@@ -8,7 +8,8 @@ const (
 	BundleStatusBundling       BundleStatus = 0
 	BundleStatusFinalized      BundleStatus = 1
 	BundleStatusCreatedOnChain BundleStatus = 2
-	BundleStatusDeleted        BundleStatus = 3
+	BundleStatusSealedOnChain  BundleStatus = 3
+	BundleStatusDeleted        BundleStatus = 4
 )
 
 // Bundle is used to store the bundle information
@@ -24,7 +25,8 @@ type Bundle struct {
 	MaxFiles        int64        `json:"max_files"`
 	MaxSize         int64        `json:"max_size"`
 	MaxFinalizeTime int64        `json:"max_finalize_time"`
-	Nonce           int64        `json:"nonce"` // nonce is used to generate bundle name for auto generated bundle
+	Nonce           int64        `json:"nonce"`     // nonce is used to generate bundle name for auto generated bundle
+	ObjectId        uint64       `json:"object_id"` // object_id is used to record the bundled object id on Greenfield
 	CreatedAt       time.Time    `json:"created_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP;<-:create"`
 	UpdatedAt       time.Time    `json:"updated_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP"`
 }

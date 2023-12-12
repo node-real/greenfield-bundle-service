@@ -139,6 +139,70 @@ func init() {
         }
       }
     },
+    "/deleteBundle": {
+      "post": {
+        "description": "Delete an bundle after object deletion on Greenfield\n",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Delete an bundle after object deletion on Greenfield",
+        "operationId": "deleteBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authorization",
+            "name": "Authorization",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle to be finalized",
+            "name": "X-Bundle-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted bundle"
+          },
+          "400": {
+            "description": "Invalid request or parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/download/{bucketName}/{bundleName}/{objectName}": {
       "get": {
         "description": "Download a specific object from a given bundle and returns it as a file.\n",
@@ -634,6 +698,70 @@ func init() {
         "responses": {
           "200": {
             "description": "Successfully managed bundle"
+          },
+          "400": {
+            "description": "Invalid request or parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/deleteBundle": {
+      "post": {
+        "description": "Delete an bundle after object deletion on Greenfield\n",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Delete an bundle after object deletion on Greenfield",
+        "operationId": "deleteBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authorization",
+            "name": "Authorization",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle to be finalized",
+            "name": "X-Bundle-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted bundle"
           },
           "400": {
             "description": "Invalid request or parameters",

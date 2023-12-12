@@ -70,6 +70,8 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 
 	api.BundleCreateBundleHandler = bundle.CreateBundleHandlerFunc(handlers.HandleCreateBundle())
 
+	api.BundleDeleteBundleHandler = bundle.DeleteBundleHandlerFunc(handlers.HandleDeleteBundle())
+
 	api.BundleFinalizeBundleHandler = bundle.FinalizeBundleHandlerFunc(handlers.HandleFinalizeBundle())
 
 	api.BundleUploadObjectHandler = bundle.UploadObjectHandlerFunc(handlers.HandleUploadObject())

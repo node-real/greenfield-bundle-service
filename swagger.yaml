@@ -249,6 +249,52 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /deleteBundle:
+    post:
+      tags:
+        - Bundle
+      summary: Delete an bundle after object deletion on Greenfield
+      description: >
+        Delete an bundle after object deletion on Greenfield
+      operationId: deleteBundle
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Authorization
+          in: header
+          description: User's digital signature for authorization
+          required: true
+          type: string
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
+          required: true
+          type: string
+        - name: X-Bundle-Name
+          in: header
+          description: The name of the bundle to be finalized
+          required: true
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Successfully deleted bundle
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
   /bundlerAccount/{userAddress}:
     post:
       tags:

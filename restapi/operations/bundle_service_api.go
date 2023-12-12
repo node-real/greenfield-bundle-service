@@ -53,6 +53,9 @@ func NewBundleServiceAPI(spec *loads.Document) *BundleServiceAPI {
 		BundleCreateBundleHandler: bundle.CreateBundleHandlerFunc(func(params bundle.CreateBundleParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.CreateBundle has not yet been implemented")
 		}),
+		BundleDeleteBundleHandler: bundle.DeleteBundleHandlerFunc(func(params bundle.DeleteBundleParams) middleware.Responder {
+			return middleware.NotImplemented("operation bundle.DeleteBundle has not yet been implemented")
+		}),
 		BundleDownloadBundleObjectHandler: bundle.DownloadBundleObjectHandlerFunc(func(params bundle.DownloadBundleObjectParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.DownloadBundleObject has not yet been implemented")
 		}),
@@ -114,6 +117,8 @@ type BundleServiceAPI struct {
 	BundleBundlerAccountHandler bundle.BundlerAccountHandler
 	// BundleCreateBundleHandler sets the operation handler for the create bundle operation
 	BundleCreateBundleHandler bundle.CreateBundleHandler
+	// BundleDeleteBundleHandler sets the operation handler for the delete bundle operation
+	BundleDeleteBundleHandler bundle.DeleteBundleHandler
 	// BundleDownloadBundleObjectHandler sets the operation handler for the download bundle object operation
 	BundleDownloadBundleObjectHandler bundle.DownloadBundleObjectHandler
 	// BundleFinalizeBundleHandler sets the operation handler for the finalize bundle operation
@@ -212,6 +217,9 @@ func (o *BundleServiceAPI) Validate() error {
 	}
 	if o.BundleCreateBundleHandler == nil {
 		unregistered = append(unregistered, "bundle.CreateBundleHandler")
+	}
+	if o.BundleDeleteBundleHandler == nil {
+		unregistered = append(unregistered, "bundle.DeleteBundleHandler")
 	}
 	if o.BundleDownloadBundleObjectHandler == nil {
 		unregistered = append(unregistered, "bundle.DownloadBundleObjectHandler")
@@ -328,6 +336,10 @@ func (o *BundleServiceAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/createBundle"] = bundle.NewCreateBundle(o.context, o.BundleCreateBundleHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/deleteBundle"] = bundle.NewDeleteBundle(o.context, o.BundleDeleteBundleHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

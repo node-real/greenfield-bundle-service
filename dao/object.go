@@ -53,14 +53,6 @@ func (s *dbObjectDao) CreateObjectForBundling(object database.Object) (database.
 		bundle.Files++
 		bundle.Sizes += object.Size
 
-		if bundle.Files >= bundle.MaxFiles {
-			bundle.Status = database.BundleStatusFinalized
-		}
-
-		if bundle.Sizes >= bundle.MaxSize {
-			bundle.Status = database.BundleStatusFinalized
-		}
-
 		// save the updated bundle
 		if err := tx.Save(&bundle).Error; err != nil {
 			return err

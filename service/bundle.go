@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bnb-chain/greenfield-go-sdk/client"
+	sdktypes "github.com/bnb-chain/greenfield-go-sdk/types"
 	gnfdtypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -16,6 +17,7 @@ import (
 )
 
 const (
+	BundleNamePrefix = "bundle-"
 	BundleNameFormat = "bundle-%d"
 )
 
@@ -25,6 +27,8 @@ type Bundle interface {
 	FinalizeBundle(bucketName string, bundleName string) (*database.Bundle, error)
 	GetBundlingBundle(bucketName string) (database.Bundle, error)
 	QueryBucketFromGndf(bucketName string) (*gnfdtypes.BucketInfo, error)
+	HeadObjectFromGnfd(bucketName string, objectName string) (*sdktypes.ObjectDetail, error)
+	DeleteBundle(bucketName, bundleName string) error
 }
 
 type BundleService struct {
@@ -67,6 +71,27 @@ func (s *BundleService) QueryBucketFromGndf(bucketName string) (*gnfdtypes.Bucke
 	}
 
 	return bucket, nil
+}
+
+// DeleteBundle deletes the bundle for the bucket
+func (s *BundleService) DeleteBundle(bucketName, bundleName string) error {
+	err := s.bundleDao.DeleteBundle(bucketName, bundleName)
+	if err != nil {
+		util.Logger.Errorf("delete bundle error, bucket=%s, bundle=%s, err=%s", bucketName, bundleName, err.Error())
+		return err
+	}
+	return nil
+}
+
+// HeadObjectFromGnfd queries the object info from gndf
+func (s *BundleService) HeadObjectFromGnfd(bucketName string, objectName string) (*sdktypes.ObjectDetail, error) {
+	object, err := s.gndfClient.HeadObject(context.Background(), bucketName, objectName)
+	if err != nil {
+		util.Logger.Errorf("query object error, bucket=%s, object=%s, err=%s", bucketName, objectName, err.Error())
+		return nil, err
+	}
+
+	return object, nil
 }
 
 // QueryBundle returns the bundle for the bucket if it exists

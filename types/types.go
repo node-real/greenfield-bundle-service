@@ -64,6 +64,18 @@ var (
 		Code:    10011,
 		Message: "Invalid file sha256",
 	}
+	ErrorObjectExist = &models.Error{
+		Code:    10012,
+		Message: "Object exists",
+	}
+	ErrorBundleNotExist = &models.Error{
+		Code:    10013,
+		Message: "Bundle does not exist",
+	}
+	ErrorInvalidBundleStatus = &models.Error{
+		Code:    10014,
+		Message: "Invalid bundle status",
+	}
 )
 
 func InternalErrorWithError(err error) *models.Error {

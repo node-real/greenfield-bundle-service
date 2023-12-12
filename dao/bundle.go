@@ -16,6 +16,7 @@ type BundleDao interface {
 	QueryBundle(bucket string, name string) (*database.Bundle, error)
 	UpdateBundle(bundle database.Bundle) (*database.Bundle, error)
 	GetBundlingBundle(bucket string) (database.Bundle, error)
+	DeleteBundle(bucket string, name string) error
 }
 
 type dbBundleDao struct {
@@ -37,6 +38,26 @@ func (s *dbBundleDao) UpdateBundle(bundle database.Bundle) (*database.Bundle, er
 		return nil, err
 	}
 	return &bundle, nil
+}
+
+// DeleteBundle deletes a bundle and related objects
+func (s *dbBundleDao) DeleteBundle(bucket string, name string) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		// todo(igor): This function can be optimized by a offline job if there is performance issue. we can mark the
+		// bundle as deleted and delete the bundle and related objects in the offline job
+
+		// Delete the Object records that have the specified bucket and bundleName
+		if err := tx.Where("bucket = ? AND bundle_name = ?", bucket, name).Delete(&database.Object{}).Error; err != nil {
+			return err
+		}
+
+		// Delete the Bundle record that has the specified bucket and name
+		if err := tx.Where("bucket = ? AND name = ?", bucket, name).Delete(&database.Bundle{}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 // GetBundlingBundle returns the bundling bundle for the bucket if it exists

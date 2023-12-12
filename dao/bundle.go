@@ -29,6 +29,7 @@ func NewBundleDao(db *gorm.DB) BundleDao {
 	}
 }
 
+// UpdateBundle updates a bundle
 func (s *dbBundleDao) UpdateBundle(bundle database.Bundle) (*database.Bundle, error) {
 	bundle.UpdatedAt = time.Now()
 	err := s.db.Save(&bundle).Error

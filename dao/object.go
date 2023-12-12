@@ -49,6 +49,23 @@ func (s *dbObjectDao) CreateObjectForBundling(object database.Object) (database.
 			return errors.New("bundle name mismatch")
 		}
 
+		// update Files and Sizes in the bundle
+		bundle.Files++
+		bundle.Sizes += object.Size
+
+		if bundle.Files >= bundle.MaxFiles {
+			bundle.Status = database.BundleStatusFinalized
+		}
+
+		if bundle.Sizes >= bundle.MaxSize {
+			bundle.Status = database.BundleStatusFinalized
+		}
+
+		// save the updated bundle
+		if err := tx.Save(&bundle).Error; err != nil {
+			return err
+		}
+
 		return tx.Create(&object).Error
 	})
 

@@ -47,7 +47,7 @@ func (s *dbObjectDao) GetObject(bucket string, bundle string, object string) (da
 
 func (s *dbObjectDao) GetBundleObjects(bucket string, bundle string) ([]*database.Object, error) {
 	var objs []*database.Object
-	err := s.db.Where("bucket = ? AND bundle_name = ?", bucket, bundle).Find(objs).Error
+	err := s.db.Where("bucket = ? AND bundle_name = ?", bucket, bundle).Find(&objs).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}

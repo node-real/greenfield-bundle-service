@@ -89,7 +89,7 @@ func GetDBUsernamePassword(cfg *DBConfig) (string, string) {
 func GetBundlerPrivateKeys(cfg *BundleConfig) []string {
 	result, err := GetSecret(cfg.AWSSecretName, cfg.AWSRegion)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	type DBKeys struct {
 		BundlerPrivateKeys []string `json:"bundler_private_keys"`
@@ -97,7 +97,7 @@ func GetBundlerPrivateKeys(cfg *BundleConfig) []string {
 	var dbKeys DBKeys
 	err = json.Unmarshal([]byte(result), &dbKeys)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	return dbKeys.BundlerPrivateKeys
 }

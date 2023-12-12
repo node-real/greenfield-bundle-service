@@ -10,7 +10,7 @@
     "aws_secret_name":""
   },
   "bundle_config": {
-    "bundler_private_keys": "",
+    "bundler_private_keys": [""],
     "aws_region":"",
     "aws_secret_name":"",
     "local_storage_path": "./bundle_storage/",

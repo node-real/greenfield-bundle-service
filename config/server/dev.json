@@ -13,7 +13,7 @@
     "local_storage_path": "./bundle_storage/"
   },
   "gnfd_config": {
-    "chain_id": "testnet",
+    "chain_id": "greenfield_5600-1",
     "rpc_url": "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
   },
   "log_config":{

@@ -3,18 +3,19 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"github.com/bnb-chain/greenfield-go-sdk/client"
-	"github.com/bnb-chain/greenfield-go-sdk/types"
-	storageTypes "github.com/bnb-chain/greenfield/x/storage/types"
-	"github.com/node-real/greenfield-bundle-service/storage"
 	"gorm.io/gorm"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/bnb-chain/greenfield-go-sdk/client"
+	"github.com/bnb-chain/greenfield-go-sdk/types"
+	storageTypes "github.com/bnb-chain/greenfield/x/storage/types"
+
 	"github.com/node-real/greenfield-bundle-service/bundler"
 	"github.com/node-real/greenfield-bundle-service/database"
+	"github.com/node-real/greenfield-bundle-service/storage"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 

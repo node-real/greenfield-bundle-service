@@ -62,10 +62,6 @@ func NewOssStore(bucketURL string, accessKeyId string, accessKeySecret string) (
 		return nil, err
 	}
 
-	println("endpoint: ", endpoint)
-	println("bucketName: ", bucketName)
-	println("region: ", region)
-
 	cli, err := oss.New(endpoint, accessKeyId, accessKeySecret, oss.Region(region), oss.HTTPClient(getHTTPClient(false)))
 	if err != nil {
 		util.Logger.Errorf("create oss client error, err=%s", err.Error())

@@ -9,9 +9,12 @@ import (
 	"time"
 
 	"github.com/bnb-chain/greenfield-bundle-sdk/bundle"
+	bundleTypes "github.com/bnb-chain/greenfield-bundle-sdk/types"
 	"github.com/bnb-chain/greenfield-go-sdk/client"
 	"github.com/bnb-chain/greenfield-go-sdk/types"
+	gnfdsdktypes "github.com/bnb-chain/greenfield/sdk/types"
 	storageTypes "github.com/bnb-chain/greenfield/x/storage/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
@@ -21,6 +24,7 @@ import (
 
 const (
 	MaxSealOnChainTime = 60 * 60 * 24 // 1 day
+	EmptyErrMessage    = ""
 )
 
 type Bundler struct {
@@ -123,20 +127,38 @@ func (b *Bundler) submitLoop(account *types.Account) {
 			}
 
 			for _, bundle := range bundles {
+				if !bundle.IsTimeToRetry() {
+					continue
+				}
+
 				bundledObject, size, err := b.assembleBundleObject(bundle)
 				if err != nil {
 					util.Logger.Errorf("assemble bundle object failed, bundle=%s, err=%v", bundle.Bucket+bundle.Name, err.Error())
+					bundle.RetryCounter++
+					bundle.ErrMessage = fmt.Sprintf("assemble bundle failed: %v", err)
+					_, err = b.bundleDao.UpdateBundle(*bundle)
+					if err != nil {
+						util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
+					}
 					continue
 				}
 
 				objectDetail, err := b.submitBundledObject(client, bundle, bundledObject, size)
 				if err != nil {
 					util.Logger.Errorf("submit bundle object failed, bundle=%s, err=%v", bundle.Bucket+bundle.Name, err.Error())
+					bundle.RetryCounter++
+					bundle.ErrMessage = fmt.Sprintf("submit bundle failed: %v", err)
+					_, err = b.bundleDao.UpdateBundle(*bundle)
+					if err != nil {
+						util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
+					}
 					continue
 				}
 
 				bundle.Status = database.BundleStatusCreatedOnChain
 				bundle.ObjectId = objectDetail.ObjectInfo.Id.Uint64()
+				bundle.RetryCounter = 0
+				bundle.ErrMessage = EmptyErrMessage
 				_, err = b.bundleDao.UpdateBundle(*bundle)
 				if err != nil {
 					util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
@@ -161,19 +183,30 @@ func (b *Bundler) submitLoop(account *types.Account) {
 					continue
 				}
 
-				if time.Now().Sub(bundle.UpdatedAt).Seconds() < MaxSealOnChainTime {
+				if bundle.RetryCounter == 0 && time.Now().Sub(bundle.UpdatedAt).Seconds() < MaxSealOnChainTime {
 					continue
 				}
 
 				// Cancel create for sealing timeout bundled object.
-				_, err = client.CancelCreateObject(context.Background(), bundle.Bucket, bundle.Name, types.CancelCreateOption{})
+				if !bundle.IsTimeToRetry() {
+					continue
+				}
+				err = b.cancelCreateBundle(client, bundle)
 				if err != nil {
 					util.Logger.Errorf("cancel create timeout bundle error, bundle=%+v, err=%s", bundle, err.Error())
+					bundle.RetryCounter++
+					bundle.ErrMessage = fmt.Sprintf("seal timeout, but cancel bundle failed: %v", err)
+					_, err = b.bundleDao.UpdateBundle(*bundle)
+					if err != nil {
+						util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
+					}
 					continue
 				}
 
 				// Change the bundle status to "finalized" to trigger resubmission.
 				bundle.Status = database.BundleStatusFinalized
+				bundle.RetryCounter = 0
+				bundle.ErrMessage = EmptyErrMessage
 				_, err = b.bundleDao.UpdateBundle(*bundle)
 				if err != nil {
 					util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
@@ -201,7 +234,12 @@ func (b *Bundler) assembleBundleObject(bundleRecord *database.Bundle) (io.ReadSe
 		}
 
 		// TODO: Fix zero size
-		objectMeta, err := newBundle.AppendObject(object.ObjectName, 0, objectReader, nil)
+		objectMeta, err := newBundle.AppendObject(object.ObjectName, 0, objectReader, &bundleTypes.AppendObjectOptions{
+			HashAlgo:    object.HashAlgo,
+			Hash:        object.Hash,
+			ContentType: object.ContentType,
+			Tags:        nil, // TODO: add object tags
+		})
 		if err != nil {
 			return nil, 0, fmt.Errorf("append object to bundle object failed, object=%s, err=%v", object.ObjectName, err)
 		}
@@ -226,11 +264,17 @@ func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bu
 		return nil, fmt.Errorf("invalid bundle size")
 	}
 
+	owner, err := sdk.AccAddressFromHexUnsafe(bundle.Owner)
+	if err != nil {
+		return nil, fmt.Errorf("invalid owner address, owner=%s, err=%v", bundle.Owner, err)
+	}
+
 	objectDetail, err := client.HeadObject(context.Background(), bundle.Bucket, bundle.Name)
 	if err != nil {
 		opts := types.CreateObjectOptions{
 			Visibility:  storageTypes.VISIBILITY_TYPE_PUBLIC_READ,
 			ContentType: "bundle",
+			TxOpts:      &gnfdsdktypes.TxOption{FeeGranter: owner},
 		}
 
 		_, err := client.CreateObject(context.Background(), bundle.Bucket, bundle.Name, object, opts)
@@ -260,4 +304,17 @@ func (b *Bundler) checkBundleSealed(client client.IClient, bundle *database.Bund
 	}
 
 	return objectDetail.ObjectInfo.ObjectStatus == storageTypes.OBJECT_STATUS_SEALED
+}
+
+func (b *Bundler) cancelCreateBundle(client client.IClient, bundle *database.Bundle) error {
+	owner, err := sdk.AccAddressFromHexUnsafe(bundle.Owner)
+	if err != nil {
+		return fmt.Errorf("invalid owner address, owner=%s, err=%v", bundle.Owner, err)
+	}
+
+	_, err = client.CancelCreateObject(context.Background(), bundle.Bucket, bundle.Name, types.CancelCreateOption{
+		TxOpts: &gnfdsdktypes.TxOption{FeeGranter: owner}},
+	)
+
+	return err
 }

@@ -24,7 +24,7 @@ type Bundle struct {
 	MaxFiles        int64        `json:"max_files"`
 	MaxSize         int64        `json:"max_size"`
 	MaxFinalizeTime int64        `json:"max_finalize_time"`
-	Nonce           int64        `json:"nonce"`
+	Nonce           int64        `json:"nonce"` // nonce is used to generate bundle name for auto generated bundle
 	CreatedAt       time.Time    `json:"created_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP;<-:create"`
 	UpdatedAt       time.Time    `json:"updated_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP"`
 }

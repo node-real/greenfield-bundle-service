@@ -116,7 +116,7 @@ func configureServer(s *http.Server, scheme, addr string) {
 		panic(fmt.Errorf("unable to new greenfield client, %v", err))
 	}
 
-	fileManager := storage.NewFileManager(config, gnfdClient)
+	fileManager := storage.NewFileManager(config, objectDao, gnfdClient)
 	authManager := auth.NewAuthManager(gnfdClient)
 
 	// init services

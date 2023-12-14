@@ -28,6 +28,7 @@ require (
 	github.com/bnb-chain/greenfield-go-sdk v1.1.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
+	github.com/viki-org/dnscache v0.0.0-20130720023526-c70c1f23c5d8
 	golang.org/x/crypto v0.15.0
 )
 

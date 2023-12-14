@@ -7,6 +7,7 @@ import (
 
 type BundleConfig struct {
 	LocalStoragePath string `json:"local_storage_path"`
+	OssBucketUrl     string `json:"oss_bucket_url"`
 }
 
 type GnfdConfig struct {

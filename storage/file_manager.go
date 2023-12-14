@@ -1,107 +1,175 @@
 package storage
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	"github.com/bnb-chain/greenfield-bundle-sdk/bundle"
 	"github.com/bnb-chain/greenfield-go-sdk/client"
 	"github.com/bnb-chain/greenfield-go-sdk/types"
 
+	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 const (
-	LocalPathBundlePrefix = "bundle"
 	LocalPathObjectPrefix = "object"
 )
-
-func GetBundlePath(storagePath, bucket, bundle string) string {
-	return filepath.Join(storagePath, LocalPathBundlePrefix, bucket, bundle)
-}
 
 func GetObjectPath(storagePath, bucket, bundle, object string) string {
 	return filepath.Join(storagePath, LocalPathObjectPrefix, bucket, bundle, object)
 }
 
-type FileManager struct {
-	config     *util.ServerConfig
-	gnfdClient client.IClient
+func GetObjectKeyInOss(bucket, bundle, object string) string {
+	return fmt.Sprintf("%s/%s/%s", bucket, bundle, object)
 }
 
-func NewFileManager(config *util.ServerConfig, gnfdClient client.IClient) *FileManager {
-	return &FileManager{
+type FileManager struct {
+	config          *util.ServerConfig
+	useLocalStorage bool
+	ossStore        *OssStore
+	objectDao       dao.ObjectDao
+	gnfdClient      client.IClient
+}
+
+func NewFileManager(config *util.ServerConfig, objectDao dao.ObjectDao, gnfdClient client.IClient) *FileManager {
+	fileManager := &FileManager{
 		config:     config,
 		gnfdClient: gnfdClient,
 	}
-}
 
-func (f *FileManager) GetObject(bucket string, bundle string, object string) (io.ReadCloser, int64, error) {
-	return f.GetObjectLocal(bucket, bundle, object)
-}
-
-func (f *FileManager) GetObjectFromBundle(bucket string, bundleName string, object string) (io.ReadCloser, int64, error) {
-	bundleFilePath := GetBundlePath(f.config.BundleConfig.LocalStoragePath, bucket, bundleName)
-
-	// check if bundleName exists
-	if _, err := os.Stat(bundleFilePath); os.IsNotExist(err) {
-		// bundleName not exists, get from gnfd
-		objectFile, _, err := f.gnfdClient.GetObject(context.Background(), bucket, bundleName, types.GetObjectOptions{})
-		if err != nil {
-			return nil, 0, err
-		}
-
-		bundleFilePath, _, err = f.StoreBundleFileLocal(bucket, bundleName, objectFile)
-		if err != nil {
-			return nil, 0, err
-		}
+	if config.BundleConfig.LocalStoragePath != "" {
+		fileManager.useLocalStorage = true
 	}
 
-	bundleFile, err := bundle.NewBundleFromFile(bundleFilePath)
+	if config.BundleConfig.OssBucketUrl != "" {
+		util.Logger.Infof("use oss storage, bucketUrl=%s", config.BundleConfig.OssBucketUrl)
+		fileManager.useLocalStorage = false
+		ossStore, err := NewOssStoreFromEnv(config.BundleConfig.OssBucketUrl)
+		if err != nil {
+			panic(err)
+		}
+		fileManager.ossStore = ossStore
+	}
+
+	util.Logger.Infof("use local storage %v", fileManager.useLocalStorage)
+
+	return fileManager
+}
+
+func (f *FileManager) GetObject(bucket string, bundle string, object string) (io.ReadCloser, error) {
+	if f.useLocalStorage {
+		return f.GetObjectLocal(bucket, bundle, object)
+	}
+	return f.GetObjectFromOss(bucket, bundle, object)
+}
+
+func (f *FileManager) GetObjectFromGnfd(bucket string, bundle string, object string) (io.ReadCloser, error) {
+	// get object from database
+	dbObject, err := f.objectDao.GetObject(bucket, bundle, object)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
+	}
+	if dbObject.Id == 0 {
+		return nil, fmt.Errorf("object not found, bucket=%s, bundle=%s, object=%s", bucket, bundle, object)
+	}
+	// query object from gnfd
+	getObjectOption := types.GetObjectOptions{}
+	getObjectOption.SetRange(dbObject.OffsetInBundle, dbObject.OffsetInBundle+dbObject.Size-1) // [start, end]
+
+	objectFile, _, err := f.gnfdClient.GetObject(context.Background(), bucket, bundle, types.GetObjectOptions{})
+	if err != nil {
+		return nil, err
 	}
 
-	return bundleFile.GetObject(object)
+	return objectFile, nil
+}
+
+func (f *FileManager) GetObjectFromOss(bucket string, bundle string, object string) (io.ReadCloser, error) {
+	objectKey := GetObjectKeyInOss(bucket, bundle, object)
+
+	objectFile, err := f.ossStore.GetObject(context.Background(), objectKey, 0, 0)
+	if err != nil {
+		if IsNoSuchKey(err) {
+			objectFile, err := f.GetObjectFromGnfd(bucket, bundle, object)
+			if err != nil {
+				return nil, err
+			}
+
+			// store object to oss
+			err = f.ossStore.PutObject(context.Background(), objectKey, objectFile)
+			if err != nil {
+				util.Logger.Errorf("failed to store object to oss, bucket=%s, bundle=%s, object=%s, err=%s", bucket, bundle, object, err.Error())
+				return nil, err
+			}
+
+			return objectFile, nil
+		}
+		return nil, err
+	}
+	return objectFile, nil
 }
 
 // GetObjectLocal returns the object file from local storage
-func (f *FileManager) GetObjectLocal(bucket string, bundle string, object string) (io.ReadCloser, int64, error) {
+func (f *FileManager) GetObjectLocal(bucket string, bundle string, object string) (io.ReadCloser, error) {
 	filePath := GetObjectPath(f.config.BundleConfig.LocalStoragePath, bucket, bundle, object)
 
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return nil, 0, err
+		objectFile, err := f.GetObjectFromGnfd(bucket, bundle, object)
+		if err != nil {
+			return nil, err
+		}
+
+		// store object to local
+		_, _, err = f.storeLocalFile(filePath, objectFile)
+		if err != nil {
+			util.Logger.Errorf("failed to store object to local, bucket=%s, bundle=%s, object=%s, err=%s", bucket, bundle, object, err.Error())
+			return nil, err
+		}
+		return objectFile, nil
 	}
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	fileInfo, err := file.Stat()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return file, fileInfo.Size(), nil
+	return file, nil
 }
 
 func (f *FileManager) StoreObject(bucket string, bundle string, object string, in io.ReadCloser) (string, int64, error) {
-	return f.StoreObjectLocal(bucket, bundle, object, in)
+	if f.useLocalStorage {
+		util.Logger.Infof("store object to local, bucket=%s, bundle=%s, object=%s", bucket, bundle, object)
+		return f.StoreObjectLocal(bucket, bundle, object, in)
+	}
+	util.Logger.Infof("store object to oss, bucket=%s, bundle=%s, object=%s", bucket, bundle, object)
+	return f.StoreObjectToOss(bucket, bundle, object, in)
+}
+
+// StoreObjectToOss stores the object file to oss
+func (f *FileManager) StoreObjectToOss(bucket string, bundle string, object string, in io.ReadCloser) (string, int64, error) {
+	objectKey := GetObjectKeyInOss(bucket, bundle, object)
+
+	buf := new(bytes.Buffer)
+	size, err := io.Copy(buf, in)
+	if err != nil {
+		return "", 0, err
+	}
+
+	err = f.ossStore.PutObject(context.Background(), objectKey, buf)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return objectKey, size, nil
 }
 
 // StoreObjectLocal stores the object file to local storage
 func (f *FileManager) StoreObjectLocal(bucket string, bundle string, object string, in io.ReadCloser) (string, int64, error) {
 	filePath := GetObjectPath(f.config.BundleConfig.LocalStoragePath, bucket, bundle, object)
-
-	return f.storeLocalFile(filePath, in)
-}
-
-// StoreBundleFileLocal stores the bundle file to local storage
-func (f *FileManager) StoreBundleFileLocal(bucket string, bundle string, in io.ReadCloser) (string, int64, error) {
-	filePath := GetBundlePath(f.config.BundleConfig.LocalStoragePath, bucket, bundle)
 
 	return f.storeLocalFile(filePath, in)
 }

@@ -12,7 +12,7 @@ import (
 type Object interface {
 	CreateObjectForBundling(newObject database.Object) (database.Object, error)
 	GetObject(bucket string, bundle string, object string) (database.Object, error)
-	GetObjectFile(bucket string, bundle string, object string) (io.ReadCloser, int64, error)
+	GetObjectFile(bucket string, bundle string, object string) (io.ReadCloser, error)
 	StoreObjectFile(bucketName, bundleName string, objectName string, file io.ReadCloser) (string, int64, error)
 }
 
@@ -49,11 +49,11 @@ func (s *ObjectService) CreateObjectForBundling(newObject database.Object) (data
 
 // StoreObjectFile stores the object file to local storage
 func (s *ObjectService) StoreObjectFile(bucketName, bundleName string, objectName string, file io.ReadCloser) (string, int64, error) {
-	return s.fileManager.StoreObjectLocal(bucketName, bundleName, objectName, file)
+	return s.fileManager.StoreObject(bucketName, bundleName, objectName, file)
 }
 
 // GetObjectFile gets the object file
-func (s *ObjectService) GetObjectFile(bucket string, bundle string, object string) (io.ReadCloser, int64, error) {
+func (s *ObjectService) GetObjectFile(bucket string, bundle string, object string) (io.ReadCloser, error) {
 	return s.fileManager.GetObject(bucket, bundle, object)
 }
 

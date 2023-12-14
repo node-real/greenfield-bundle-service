@@ -144,20 +144,20 @@ func (s *BundleService) CreateBundle(newBundle database.Bundle) (database.Bundle
 		newBundle.MaxFinalizeTime = bundleRule.MaxFinalizeTime
 	}
 
-	// set nonce
-	previousBundle, err := s.bundleDao.QueryBundleWithMaxNonce(newBundle.Bucket)
-	if err != nil {
-		util.Logger.Errorf("get bundle with max nonce error, bucket=%s, err=%s", newBundle.Bucket, err.Error())
-		return database.Bundle{}, err
-	}
-	if previousBundle == nil {
-		newBundle.Nonce = 0
-	} else {
-		newBundle.Nonce = previousBundle.Nonce + 1
-	}
-
-	// set bundle name if not specified
+	// set bundle name if not specified, will record the nonce in the bundle name,
+	// the nonce is increased by 1 from the previous auto generated bundle
 	if newBundle.Name == "" {
+		previousBundle, err := s.bundleDao.QueryBundleWithMaxNonce(newBundle.Bucket)
+		if err != nil {
+			util.Logger.Errorf("get bundle with max nonce error, bucket=%s, err=%s", newBundle.Bucket, err.Error())
+			return database.Bundle{}, err
+		}
+		if previousBundle == nil {
+			newBundle.Nonce = 0
+		} else {
+			newBundle.Nonce = previousBundle.Nonce + 1
+		}
+
 		newBundle.Name = fmt.Sprintf(BundleNameFormat, newBundle.Nonce)
 	}
 

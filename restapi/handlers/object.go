@@ -164,7 +164,7 @@ func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middlew
 			return bundle.NewViewBundleObjectNotFound()
 		}
 
-		objectFile, _, err := service.ObjectSvc.GetObjectFile(params.BucketName, params.BundleName, params.ObjectName)
+		objectFile, err := service.ObjectSvc.GetObjectFile(params.BucketName, params.BundleName, params.ObjectName)
 		if err != nil {
 			util.Logger.Errorf("get object file error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
 			return bundle.NewViewBundleObjectInternalServerError()
@@ -196,7 +196,7 @@ func HandleDownloadBundleObject() func(params bundle.DownloadBundleObjectParams)
 			return bundle.NewViewBundleObjectNotFound()
 		}
 
-		objectFile, _, err := service.ObjectSvc.GetObjectFile(params.BucketName, params.BundleName, params.ObjectName)
+		objectFile, err := service.ObjectSvc.GetObjectFile(params.BucketName, params.BundleName, params.ObjectName)
 		if err != nil {
 			util.Logger.Errorf("get object file error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
 			return bundle.NewViewBundleObjectInternalServerError()

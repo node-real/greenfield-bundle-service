@@ -166,6 +166,10 @@ github.com/bnb-chain/greenfield v1.1.0 h1:YecOCXjSoxGNm2zJvJhxdquo4eox5b3MiDFFVW
 github.com/bnb-chain/greenfield v1.1.0/go.mod h1:HMfL/0AqbhkVKTEQIWowu6jHXTxSB94QzgJ4gWHTWlA=
 github.com/bnb-chain/greenfield-bundle-sdk v0.0.0-20231208083232-3a882c488742 h1:w/oSf0KmiUhGG5biyayZuQf8IWo1creC6oGACSJA3YE=
 github.com/bnb-chain/greenfield-bundle-sdk v0.0.0-20231208083232-3a882c488742/go.mod h1:NCjQp0sniAbBR5yR5pYiXpYwYd1okSIBLj+31sTpmXA=
+github.com/bnb-chain/greenfield-bundle-sdk v0.0.0-20231209110235-2eecb5867bd3 h1:WdZPcka18QsT4AnIma7L69B7nBwLQRqDYq/X1uDXqig=
+github.com/bnb-chain/greenfield-bundle-sdk v0.0.0-20231209110235-2eecb5867bd3/go.mod h1:NCjQp0sniAbBR5yR5pYiXpYwYd1okSIBLj+31sTpmXA=
+github.com/bnb-chain/greenfield-bundle-sdk v1.0.1-0.20231218084749-489969893fd4 h1:QtxG2/mxFM3efisMzwoWbz2vXOCsDFJte6OWnDypN38=
+github.com/bnb-chain/greenfield-bundle-sdk v1.0.1-0.20231218084749-489969893fd4/go.mod h1:NCjQp0sniAbBR5yR5pYiXpYwYd1okSIBLj+31sTpmXA=
 github.com/bnb-chain/greenfield-cometbft v1.1.0 h1:jqnkDWIZW6f/rUn5/pE26YZMT9xzpp0qTswNy7FPRBk=
 github.com/bnb-chain/greenfield-cometbft v1.1.0/go.mod h1:NZ2/ZJK2HYe3++0CsPiw4LTG6UrC6pH7fQ3VOz6pqJw=
 github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1 h1:XcWulGacHVRiSCx90Q8Y//ajOrLNBQWR/KDB89dy3cU=

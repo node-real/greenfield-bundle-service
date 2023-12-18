@@ -29,13 +29,13 @@ func NewBundlerAccountDao(db *gorm.DB) BundlerAccountDao {
 func (s *dbBundlerAccountDao) GetBundlerAccountForUser(user string) (database.BundlerAccount, error) {
 	allBundlers, err := s.GetAllBundlerAccounts()
 	if err != nil {
-		util.Logger.Error("get all bundler accounts error, err=%s", err.Error())
+		util.Logger.Errorf("get all bundler accounts error, err=%s", err.Error())
 		return database.BundlerAccount{}, err
 	}
 
 	bundlerForUser, err := types.PickBundlerIndexForAccount(len(allBundlers), user)
 	if err != nil {
-		util.Logger.Error("pick bundler index for account error, err=%s", err.Error())
+		util.Logger.Errorf("pick bundler index for account error, err=%s", err.Error())
 		return database.BundlerAccount{}, err
 	}
 	return allBundlers[bundlerForUser], nil

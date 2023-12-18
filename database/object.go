@@ -12,7 +12,7 @@ type Object struct {
 	Owner          string    `json:"owner" gorm:"size:64"`
 	Size           int64     `json:"size"`
 	OffsetInBundle int64     `json:"offset_in_bundle"`
-	Attributes     string    `json:"attributes"`
+	Tags           string    `json:"tags"`
 	CreatedAt      time.Time `json:"created_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP;<-:create"`
 	UpdatedAt      time.Time `json:"updated_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP"`
 }

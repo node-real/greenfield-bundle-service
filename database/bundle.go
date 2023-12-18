@@ -20,7 +20,7 @@ type Bundle struct {
 	BundlerAccount  string       `json:"bundler_account" gorm:"size:64"`
 	Status          BundleStatus `json:"status"`
 	Files           int64        `json:"files"`
-	Sizes           int64        `json:"size"`
+	Size            int64        `json:"size"`
 	MaxFiles        int64        `json:"max_files"`
 	MaxSize         int64        `json:"max_size"`
 	MaxFinalizeTime int64        `json:"max_finalize_time"`

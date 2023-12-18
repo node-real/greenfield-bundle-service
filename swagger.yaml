@@ -47,9 +47,9 @@ paths:
           description: SHA256 hash of the file
           required: true
           type: string
-        - name: X-Bundle-Attributes
+        - name: X-Bundle-Tags
           in: header
-          description: Attributes of the file
+          description: Tags of the file
           required: false
           type: string
         - name: X-Bundle-Expiry-Timestamp
@@ -116,6 +116,42 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/Error'
+
+  /queryBundle/{bucketName}/{bundleName}:
+    get:
+      tags:
+        - Bundle
+      summary: Query bundle information
+      description: >
+        Queries a specific object from a given bundle and returns its related information.
+      operationId: queryBundle
+      produces:
+        - application/octet-stream
+      parameters:
+        - name: bucketName
+          in: path
+          required: true
+          type: string
+          description: The bucketName of the bundle
+        - name: bundleName
+          in: path
+          required: true
+          type: string
+          description: The name of the bundle
+      responses:
+        '200':
+          description: Successfully queried bundle
+          schema:
+            $ref: '#/definitions/QueryBundleResponse'
+        '404':
+          description: Bundle not found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
 
   /download/{bucketName}/{bundleName}/{objectName}:
     get:
@@ -393,6 +429,31 @@ definitions:
       bundleName:
         type: string
         description: The name of the bundle where the file has been uploaded
+
+  QueryBundleResponse:
+    type: object
+    properties:
+      bucketName:
+        type: string
+        description: The name of the bucket where the file has been uploaded
+      bundleName:
+        type: string
+        description: The name of the bundle where the file has been uploaded
+      files:
+        type: integer
+        description: The number of files in the bundle
+      size:
+        type: integer
+        description: The size of the bundle
+      createdTimestamp:
+        type: integer
+        description: The creation timestamp of the bundle
+      status:
+        type: integer
+        description: The status of the object
+      errorMessage:
+        type: string
+        description: The error message of the object
 
   BundlerAccount:
     type: object

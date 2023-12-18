@@ -49,9 +49,9 @@ func (s *dbObjectDao) CreateObjectForBundling(object database.Object) (database.
 			return errors.New("bundle name mismatch")
 		}
 
-		// update Files and Sizes in the bundle
+		// update Files and Size in the bundle
 		bundle.Files++
-		bundle.Sizes += object.Size
+		bundle.Size += object.Size
 
 		// save the updated bundle
 		if err := tx.Save(&bundle).Error; err != nil {

@@ -64,6 +64,8 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 
 	api.RuleSetBundleRuleHandler = rule.SetBundleRuleHandlerFunc(handlers.HandleSetBundleRule())
 
+	api.BundleQueryBundleHandler = bundle.QueryBundleHandlerFunc(handlers.HandleQueryBundle())
+
 	api.BundleViewBundleObjectHandler = bundle.ViewBundleObjectHandlerFunc(handlers.HandleViewBundleObject())
 
 	api.BundleDownloadBundleObjectHandler = bundle.DownloadBundleObjectHandlerFunc(handlers.HandleDownloadBundleObject())

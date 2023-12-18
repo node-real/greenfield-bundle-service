@@ -63,17 +63,11 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			return bundle.NewUploadObjectBadRequest().WithPayload(types.InvalidFileContentErrorWithError(err))
 		}
 
-		// check signature
-		signerAddress, err := types.VerifySignature(params.HTTPRequest)
-		if err != nil {
-			util.Logger.Errorf("sig check error, err=%s", err.Error())
-			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorInvalidSignature)
-		}
-
-		// check expiry timestamp
-		if err := types.ValidateExpiryTimestamp(params.HTTPRequest); err != nil {
-			util.Logger.Errorf("validate expiry timestamp error, err=%s", err.Error())
-			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorInvalidExpiryTimestamp)
+		// validate headers
+		signerAddress, merr := types.ValidateHeaders(params.HTTPRequest)
+		if merr != nil {
+			util.Logger.Errorf("sig check error, code=%d, msg=%s", merr.Code, merr.Message)
+			return bundle.NewUploadObjectBadRequest().WithPayload(merr)
 		}
 
 		// check if the signer is the owner of the bucket
@@ -135,8 +129,8 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			ContentType: params.XBundleContentType,
 			Size:        fileSize,
 		}
-		if params.XBundleAttributes != nil {
-			newObject.Attributes = *params.XBundleAttributes
+		if params.XBundleTags != nil {
+			newObject.Tags = *params.XBundleTags
 		}
 
 		_, err = service.ObjectSvc.CreateObjectForBundling(newObject)
@@ -211,6 +205,30 @@ func HandleDownloadBundleObject() func(params bundle.DownloadBundleObjectParams)
 			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", object.ObjectName))
 			w.Header().Set("Content-Type", object.ContentType)
 			io.Copy(w, response.Body)
+		})
+	}
+}
+
+// HandleQueryBundle handles the query bundle request
+func HandleQueryBundle() func(params bundle.QueryBundleParams) middleware.Responder {
+	return func(params bundle.QueryBundleParams) middleware.Responder {
+		bundleInfo, err := service.BundleSvc.QueryBundle(params.BucketName, params.BundleName)
+		if err != nil {
+			util.Logger.Errorf("query bundle error, bucket=%s, bundle=%s, err=%s", params.BucketName, params.BundleName, err.Error())
+			return bundle.NewQueryBundleInternalServerError().WithPayload(types.InternalErrorWithError(err))
+		}
+
+		if bundleInfo == nil {
+			return bundle.NewQueryBundleNotFound()
+		}
+
+		return bundle.NewQueryBundleOK().WithPayload(&models.QueryBundleResponse{
+			BucketName:       bundleInfo.Bucket,
+			BundleName:       bundleInfo.Name,
+			Status:           int64(bundleInfo.Status),
+			Files:            bundleInfo.Files,
+			Size:             bundleInfo.Size,
+			CreatedTimestamp: bundleInfo.CreatedAt.Unix(),
 		})
 	}
 }

@@ -47,10 +47,6 @@ type UploadObjectParams struct {
 	  In: header
 	*/
 	Authorization string
-	/*Attributes of the file
-	  In: header
-	*/
-	XBundleAttributes *string
 	/*The name of the bucket
 	  Required: true
 	  In: header
@@ -76,6 +72,10 @@ type UploadObjectParams struct {
 	  In: header
 	*/
 	XBundleFileSha256 string
+	/*Tags of the file
+	  In: header
+	*/
+	XBundleTags *string
 	/*The file to be uploaded
 	  Required: true
 	  In: formData
@@ -104,10 +104,6 @@ func (o *UploadObjectParams) BindRequest(r *http.Request, route *middleware.Matc
 		res = append(res, err)
 	}
 
-	if err := o.bindXBundleAttributes(r.Header[http.CanonicalHeaderKey("X-Bundle-Attributes")], true, route.Formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := o.bindXBundleBucketName(r.Header[http.CanonicalHeaderKey("X-Bundle-Bucket-Name")], true, route.Formats); err != nil {
 		res = append(res, err)
 	}
@@ -125,6 +121,10 @@ func (o *UploadObjectParams) BindRequest(r *http.Request, route *middleware.Matc
 	}
 
 	if err := o.bindXBundleFileSha256(r.Header[http.CanonicalHeaderKey("X-Bundle-File-Sha256")], true, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.bindXBundleTags(r.Header[http.CanonicalHeaderKey("X-Bundle-Tags")], true, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -159,23 +159,6 @@ func (o *UploadObjectParams) bindAuthorization(rawData []string, hasKey bool, fo
 		return err
 	}
 	o.Authorization = raw
-
-	return nil
-}
-
-// bindXBundleAttributes binds and validates parameter XBundleAttributes from header.
-func (o *UploadObjectParams) bindXBundleAttributes(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	// Required: false
-
-	if raw == "" { // empty values pass all other validations
-		return nil
-	}
-	o.XBundleAttributes = &raw
 
 	return nil
 }
@@ -281,6 +264,23 @@ func (o *UploadObjectParams) bindXBundleFileSha256(rawData []string, hasKey bool
 		return err
 	}
 	o.XBundleFileSha256 = raw
+
+	return nil
+}
+
+// bindXBundleTags binds and validates parameter XBundleTags from header.
+func (o *UploadObjectParams) bindXBundleTags(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.XBundleTags = &raw
 
 	return nil
 }

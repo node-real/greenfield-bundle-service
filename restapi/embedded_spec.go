@@ -323,6 +323,55 @@ func init() {
         }
       }
     },
+    "/queryBundle/{bucketName}/{bundleName}": {
+      "get": {
+        "description": "Queries a specific object from a given bundle and returns its related information.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Query bundle information",
+        "operationId": "queryBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle",
+            "name": "bundleName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully queried bundle",
+            "schema": {
+              "$ref": "#/definitions/QueryBundleResponse"
+            }
+          },
+          "404": {
+            "description": "Bundle not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/setBundleRule": {
       "post": {
         "description": "Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.\n",
@@ -456,8 +505,8 @@ func init() {
           },
           {
             "type": "string",
-            "description": "Attributes of the file",
-            "name": "X-Bundle-Attributes",
+            "description": "Tags of the file",
+            "name": "X-Bundle-Tags",
             "in": "header"
           },
           {
@@ -578,6 +627,39 @@ func init() {
           "description": "Error message",
           "type": "string",
           "example": "Bad request/Internal server error"
+        }
+      }
+    },
+    "QueryBundleResponse": {
+      "type": "object",
+      "properties": {
+        "bucketName": {
+          "description": "The name of the bucket where the file has been uploaded",
+          "type": "string"
+        },
+        "bundleName": {
+          "description": "The name of the bundle where the file has been uploaded",
+          "type": "string"
+        },
+        "createdTimestamp": {
+          "description": "The creation timestamp of the bundle",
+          "type": "integer"
+        },
+        "errorMessage": {
+          "description": "The error message of the object",
+          "type": "string"
+        },
+        "files": {
+          "description": "The number of files in the bundle",
+          "type": "integer"
+        },
+        "size": {
+          "description": "The size of the bundle",
+          "type": "integer"
+        },
+        "status": {
+          "description": "The status of the object",
+          "type": "integer"
         }
       }
     },
@@ -898,6 +980,55 @@ func init() {
         }
       }
     },
+    "/queryBundle/{bucketName}/{bundleName}": {
+      "get": {
+        "description": "Queries a specific object from a given bundle and returns its related information.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Query bundle information",
+        "operationId": "queryBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle",
+            "name": "bundleName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully queried bundle",
+            "schema": {
+              "$ref": "#/definitions/QueryBundleResponse"
+            }
+          },
+          "404": {
+            "description": "Bundle not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/setBundleRule": {
       "post": {
         "description": "Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.\n",
@@ -1031,8 +1162,8 @@ func init() {
           },
           {
             "type": "string",
-            "description": "Attributes of the file",
-            "name": "X-Bundle-Attributes",
+            "description": "Tags of the file",
+            "name": "X-Bundle-Tags",
             "in": "header"
           },
           {
@@ -1153,6 +1284,39 @@ func init() {
           "description": "Error message",
           "type": "string",
           "example": "Bad request/Internal server error"
+        }
+      }
+    },
+    "QueryBundleResponse": {
+      "type": "object",
+      "properties": {
+        "bucketName": {
+          "description": "The name of the bucket where the file has been uploaded",
+          "type": "string"
+        },
+        "bundleName": {
+          "description": "The name of the bundle where the file has been uploaded",
+          "type": "string"
+        },
+        "createdTimestamp": {
+          "description": "The creation timestamp of the bundle",
+          "type": "integer"
+        },
+        "errorMessage": {
+          "description": "The error message of the object",
+          "type": "string"
+        },
+        "files": {
+          "description": "The number of files in the bundle",
+          "type": "integer"
+        },
+        "size": {
+          "description": "The size of the bundle",
+          "type": "integer"
+        },
+        "status": {
+          "description": "The status of the object",
+          "type": "integer"
         }
       }
     },

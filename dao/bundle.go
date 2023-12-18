@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/node-real/greenfield-bundle-service/util"
+
 	"github.com/node-real/greenfield-bundle-service/database"
 )
 
@@ -98,11 +100,13 @@ func (s *dbBundleDao) CreateBundleIfNotBundlingExist(newBundle database.Bundle) 
 			Where("bucket = ? AND status = ?", newBundle.Bucket, database.BundleStatusBundling).
 			Clauses(clause.Locking{Strength: "UPDATE"}).
 			Count(&count).Error; err != nil {
+			util.Logger.Errorf("count bundle error, err=%s", err.Error())
 			return err
 		}
 
 		// Check if a bundle with the same bucket and 'Bundling' status already exists
 		if count > 0 {
+			util.Logger.Errorf("a bundling bundle for the bucket already exists")
 			// A bundle with the same bucket and 'Bundling' status already exists
 			return errors.New("a bundling bundle for the bucket already exists")
 		}
@@ -111,6 +115,7 @@ func (s *dbBundleDao) CreateBundleIfNotBundlingExist(newBundle database.Bundle) 
 
 		// No existing bundle found, safe to create a new one
 		if err := tx.Create(&newBundle).Error; err != nil {
+			util.Logger.Errorf("create bundle error, err=%s", err.Error())
 			return err
 		}
 

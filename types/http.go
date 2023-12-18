@@ -16,6 +16,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/sha3"
 
+	"github.com/node-real/greenfield-bundle-service/models"
+
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
@@ -25,7 +27,7 @@ const (
 
 	HTTPHeaderFileSHA256      = "X-Bundle-File-Sha256"
 	HTTPHeaderBucketName      = "X-Bundle-Bucket-Name"
-	HTTPHeaderAttributes      = "X-Bundle-Attributes"
+	HTTPHeaderAttributes      = "X-Bundle-Tags"
 	HTTPHeaderMaxBundleSize   = "X-Bundle-Max-Bundle-Size"
 	HTTPHeaderMaxFileSize     = "X-Bundle-Max-File-Size"
 	HTTPHeaderMaxFinalizeTime = "X-Bundle-Max-Finalize-Time"
@@ -244,4 +246,17 @@ func ValidateExpiryTimestamp(req *http.Request) error {
 		return fmt.Errorf("expiry timestamp is too far in the future")
 	}
 	return nil
+}
+
+// ValidateHeaders validates the headers, like expiry timestamp, signature
+func ValidateHeaders(req *http.Request) (common.Address, *models.Error) {
+	err := ValidateExpiryTimestamp(req)
+	if err != nil {
+		return common.Address{}, ErrorInvalidExpiryTimestamp
+	}
+	signerAddress, err := VerifySignature(req)
+	if err != nil {
+		return common.Address{}, ErrorInvalidSignature
+	}
+	return signerAddress, nil
 }

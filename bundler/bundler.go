@@ -2,6 +2,7 @@ package bundler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"gorm.io/gorm"
 	"io"
@@ -233,12 +234,17 @@ func (b *Bundler) assembleBundleObject(bundleRecord *database.Bundle) (io.ReadSe
 			return nil, 0, fmt.Errorf("get object failed, object=%s, err=%v", object.ObjectName, err)
 		}
 
-		// TODO: Fix zero size
-		objectMeta, err := newBundle.AppendObject(object.ObjectName, 0, objectReader, &bundleTypes.AppendObjectOptions{
+		var tags map[string]string
+		err = json.Unmarshal([]byte(object.Tags), &tags)
+		if err != nil {
+			util.Logger.Warnf("unmarshal tags failed, tags=%s, err=%v", object.Tags, err.Error())
+			tags = nil
+		}
+		objectMeta, err := newBundle.AppendObject(object.ObjectName, objectReader, &bundleTypes.AppendObjectOptions{
 			HashAlgo:    object.HashAlgo,
 			Hash:        object.Hash,
 			ContentType: object.ContentType,
-			Tags:        nil, // TODO: add object tags
+			Tags:        tags,
 		})
 		if err != nil {
 			return nil, 0, fmt.Errorf("append object to bundle object failed, object=%s, err=%v", object.ObjectName, err)

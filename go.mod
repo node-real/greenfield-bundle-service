@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/aws/aws-sdk-go v1.48.6
-	github.com/bnb-chain/greenfield-bundle-sdk v0.0.0-20231209110235-2eecb5867bd3
+	github.com/bnb-chain/greenfield-bundle-sdk v1.0.1-0.20231218084749-489969893fd4
 	github.com/consensys/gnark-crypto v0.7.0 // indirect
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/go-openapi/errors v0.20.4

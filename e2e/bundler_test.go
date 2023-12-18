@@ -93,6 +93,14 @@ func grantFeesAndPermission() {
 				return
 			}
 		}
+		txHash, err = gnfdClient.RevokeAllowance(ctx, bundlerAcc.GetAddress().String(), types2.TxOption{})
+		if err != nil {
+			util.Logger.Warnf("revoke fee allowance failed: %v", err)
+		}
+		_, err = gnfdClient.WaitForTx(ctx, txHash)
+		if err != nil {
+			util.Logger.Warnf("wait for revoke allowance tx failed: %v", err)
+		}
 	}
 
 	txHash, err = gnfdClient.GrantBasicAllowance(ctx, bundlerAcc.GetAddress().String(), allowanceAmount, nil, types2.TxOption{})

@@ -19,9 +19,6 @@ type BundleDao interface {
 	UpdateBundle(bundle database.Bundle) (*database.Bundle, error)
 	GetBundlingBundle(bucket string) (database.Bundle, error)
 	DeleteBundle(bucket string, name string) error
-	GetBundlingBundles() ([]*database.Bundle, error)
-	GetFinalizedBundlesByBundlerAccount(account string) ([]*database.Bundle, error)
-	GetCreatedOnChainBundlesByBundlerAccount(account string) ([]*database.Bundle, error)
 }
 
 type dbBundleDao struct {
@@ -130,31 +127,4 @@ func (s *dbBundleDao) CreateBundleIfNotBundlingExist(newBundle database.Bundle) 
 	}
 
 	return newBundle, nil
-}
-
-func (s *dbBundleDao) GetBundlingBundles() ([]*database.Bundle, error) {
-	var bundles []*database.Bundle
-	err := s.db.Where("status = ?", database.BundleStatusBundling).Find(&bundles).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	}
-	return bundles, nil
-}
-
-func (s *dbBundleDao) GetFinalizedBundlesByBundlerAccount(account string) ([]*database.Bundle, error) {
-	var bundles []*database.Bundle
-	err := s.db.Where("status = ? AND bundler_account = ?", database.BundleStatusFinalized, account).Find(&bundles).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	}
-	return bundles, nil
-}
-
-func (s *dbBundleDao) GetCreatedOnChainBundlesByBundlerAccount(account string) ([]*database.Bundle, error) {
-	var bundles []*database.Bundle
-	err := s.db.Where("status = ? AND bundler_account = ?", database.BundleStatusCreatedOnChain, account).Find(&bundles).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	}
-	return bundles, nil
 }

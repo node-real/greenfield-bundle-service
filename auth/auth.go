@@ -20,8 +20,6 @@ func NewAuthManager(gnfdClient client.IClient) *AuthManager {
 
 // IsBucketPermissionGranted check if the bucket permission is granted
 func (a *AuthManager) IsBucketPermissionGranted(bundlerAddress common.Address, bucket string) (bool, error) {
-	return true, nil // todo: remove this line
-
 	effect, err := a.gnfdClient.IsBucketPermissionAllowed(context.Background(), bundlerAddress.Hex(), bucket, types.ACTION_CREATE_OBJECT)
 	if err != nil {
 		return false, err

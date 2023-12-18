@@ -1,20 +1,18 @@
 package handlers
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/node-real/greenfield-bundle-service/database"
+	"github.com/node-real/greenfield-bundle-service/models"
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
 	"github.com/node-real/greenfield-bundle-service/service"
 	"github.com/node-real/greenfield-bundle-service/types"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
-
-func IsObjectNotFoundError(err error) bool {
-	return strings.Contains(err.Error(), "No such object")
-}
 
 // HandleDeleteBundle handles delete bundle request
 func HandleDeleteBundle() func(params bundle.DeleteBundleParams) middleware.Responder {
@@ -64,7 +62,7 @@ func HandleDeleteBundle() func(params bundle.DeleteBundleParams) middleware.Resp
 		if err == nil {
 			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorObjectExist)
 		}
-		if !IsObjectNotFoundError(err) {
+		if !service.IsObjectNotFoundError(err) {
 			return bundle.NewCreateBundleBadRequest().WithPayload(types.InternalErrorWithError(err))
 		}
 
@@ -77,6 +75,18 @@ func HandleDeleteBundle() func(params bundle.DeleteBundleParams) middleware.Resp
 
 		return bundle.NewDeleteBundleOK()
 	}
+}
+
+func validateBundleName(bundleName string) error {
+	if len(bundleName) >= 64 {
+		return errors.New("bundle name length should be less than 64")
+	}
+
+	if strings.Contains(bundleName, "/") {
+		return errors.New("bundle name should not contain '/'")
+	}
+
+	return nil
 }
 
 // HandleCreateBundle handles create bundle request
@@ -111,7 +121,11 @@ func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Resp
 			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInvalidBundleName)
 		}
 
-		// todo: validate bundle params
+		// validate bundle name
+		if err := validateBundleName(params.XBundleName); err != nil {
+			util.Logger.Errorf("invalid bundle name, err=%s", err.Error())
+			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInvalidBundleName)
+		}
 
 		newBundle := database.Bundle{
 			Owner:  signerAddress.String(),
@@ -175,5 +189,30 @@ func HandleFinalizeBundle() func(params bundle.FinalizeBundleParams) middleware.
 		}
 
 		return bundle.NewFinalizeBundleOK()
+	}
+}
+
+// HandleQueryBundle handles the query bundle request
+func HandleQueryBundle() func(params bundle.QueryBundleParams) middleware.Responder {
+	return func(params bundle.QueryBundleParams) middleware.Responder {
+		bundleInfo, err := service.BundleSvc.QueryBundle(params.BucketName, params.BundleName)
+		if err != nil {
+			util.Logger.Errorf("query bundle error, bucket=%s, bundle=%s, err=%s", params.BucketName, params.BundleName, err.Error())
+			return bundle.NewQueryBundleInternalServerError().WithPayload(types.InternalErrorWithError(err))
+		}
+
+		if bundleInfo.Id == 0 {
+			return bundle.NewQueryBundleNotFound()
+		}
+
+		return bundle.NewQueryBundleOK().WithPayload(&models.QueryBundleResponse{
+			BucketName:       bundleInfo.Bucket,
+			BundleName:       bundleInfo.Name,
+			Status:           int64(bundleInfo.Status),
+			Files:            bundleInfo.Files,
+			Size:             bundleInfo.Size,
+			ErrorMessage:     bundleInfo.ErrMessage,
+			CreatedTimestamp: bundleInfo.CreatedAt.Unix(),
+		})
 	}
 }

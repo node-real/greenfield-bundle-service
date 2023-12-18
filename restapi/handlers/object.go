@@ -208,27 +208,3 @@ func HandleDownloadBundleObject() func(params bundle.DownloadBundleObjectParams)
 		})
 	}
 }
-
-// HandleQueryBundle handles the query bundle request
-func HandleQueryBundle() func(params bundle.QueryBundleParams) middleware.Responder {
-	return func(params bundle.QueryBundleParams) middleware.Responder {
-		bundleInfo, err := service.BundleSvc.QueryBundle(params.BucketName, params.BundleName)
-		if err != nil {
-			util.Logger.Errorf("query bundle error, bucket=%s, bundle=%s, err=%s", params.BucketName, params.BundleName, err.Error())
-			return bundle.NewQueryBundleInternalServerError().WithPayload(types.InternalErrorWithError(err))
-		}
-
-		if bundleInfo == nil {
-			return bundle.NewQueryBundleNotFound()
-		}
-
-		return bundle.NewQueryBundleOK().WithPayload(&models.QueryBundleResponse{
-			BucketName:       bundleInfo.Bucket,
-			BundleName:       bundleInfo.Name,
-			Status:           int64(bundleInfo.Status),
-			Files:            bundleInfo.Files,
-			Size:             bundleInfo.Size,
-			CreatedTimestamp: bundleInfo.CreatedAt.Unix(),
-		})
-	}
-}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm"
 	"io"
 	"strconv"
 	"time"
@@ -16,6 +15,7 @@ import (
 	gnfdsdktypes "github.com/bnb-chain/greenfield/sdk/types"
 	storageTypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"gorm.io/gorm"
 
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"

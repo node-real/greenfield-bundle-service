@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,6 +23,17 @@ import (
 
 // ValidateFileContent validates the file content against the hash in the header
 func ValidateFileContent(params bundle.UploadObjectParams) (io.ReadCloser, error) {
+	// check tags
+	if params.XBundleTags != nil && *params.XBundleTags != "" {
+		// json unmarshal
+		var tags map[string]string
+		err := json.Unmarshal([]byte(*params.XBundleTags), &tags)
+		if err != nil {
+			util.Logger.Errorf("invalid tags, err=%s", err.Error())
+			return nil, fmt.Errorf("invalid tags, err=%s", err.Error())
+		}
+	}
+
 	contentLength := params.HTTPRequest.Header.Get("Content-Length")
 
 	fileSize, err := strconv.Atoi(contentLength)

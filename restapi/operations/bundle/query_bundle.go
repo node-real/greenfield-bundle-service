@@ -34,7 +34,7 @@ func NewQueryBundle(ctx *middleware.Context, handler QueryBundleHandler) *QueryB
 
 # Query bundle information
 
-Queries a specific object from a given bundle and returns its related information.
+Queries the bundle information of a given bundle.
 */
 type QueryBundle struct {
 	Context *middleware.Context

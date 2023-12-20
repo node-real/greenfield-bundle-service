@@ -20,7 +20,7 @@ The bundle service is composed of two parts: bundle service server and bundler:
   bundle rules.
 * Bundler: a service that bundles small files together before uploading to Greenfield and uploads the bundle to Greenfield.
 
-// todo: add architecture picture when bundler is ready
+![arc](assets/arc.png)
 
 ## Build
 
@@ -30,29 +30,49 @@ The bundle service is composed of two parts: bundle service server and bundler:
 $ make build-server
 ```
 
-## Bundle Service Server API 
+### Build bundler
+
+```shell
+$ make build-bundler
+```
+
+## Run
+
+### Run bundle service server
+
+```shell
+$ ./build/bundle-service-server --host 0.0.0.0 --port 8080 -c ./config/server/dev.json
+```
+
+### Run bundler
+
+```shell
+$ ./build/bundler --config-path ./config/bundler/dev.json
+```
+
+## Bundle Service Server API
 
 The Bundle Service Server API provides several endpoints for managing and interacting with bundles. Here's a brief overview:
 
-1. **Upload a single object to a bundle (`POST /uploadObject`):** This endpoint allows users to uploads a single object to a bundle, requiring details like bucket name, file name, and etc.
+1. **Upload a single object to a bundle (`POST /uploadObject`):** This endpoint allows users to upload a single object to a bundle, requiring details like bucket name, file name, and etc.
 
 2. **Retrieve an object as a file from a bundle (`GET /view/{bucketName}/{bundleName}/{objectName}`):** This endpoint fetches a specific object from a given bundle and returns it as a file.
 
 3. **Download an object as a file from a bundle (`GET /download/{bucketName}/{bundleName}/{objectName}`):** This endpoint allows users to download a specific object from a given bundle and returns it as a file.
 
-4. **Start a New Bundle (`POST /createBundle`):** This endpoint initiates a new bundle, requiring details like bucket name and bundle name.
+4. **Query bundle information (`GET /queryBundle/{bucketName}/{bundleName}`):** This endpoint queries a specific object from a given bundle and returns its related information.
 
-5. **Finalize an Existing Bundle (`POST /finalizeBundle`):** This endpoint completes the lifecycle of an existing bundle created by user, requiring the bundle name for authorization.
+5. **Start a New Bundle (`POST /createBundle`):** This endpoint initiates a new bundle, requiring details like bucket name and bundle name.
 
-6. **Get Bundler Account for a User (`POST /bundlerAccount/{userAddress}`):** This endpoint returns the bundler account for a given user.
+6. **Finalize an Existing Bundle (`POST /finalizeBundle`):** This endpoint completes the lifecycle of an existing bundle, requiring the bundle name for authorization.
 
-7. **Set New Bundling Rules (`POST /setBundleRule`):** This endpoint allows users to set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
+7. **Delete an Existing Bundle (`POST /deleteBundle`):** This endpoint deletes an existing bundle after object deletion on Greenfield.
+
+8. **Get Bundler Account for a User (`POST /bundlerAccount/{userAddress}`):** This endpoint returns the bundler account for a given user.
+
+9. **Set New Bundling Rules (`POST /setBundleRule`):** This endpoint allows users to set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
 
 For more detailed information about each endpoint, including required parameters and response formats, please refer to the `swagger.yaml` file.
-
-### Authorization
-
-The `### Authorization` section of the `README.md` file can be filled as follows:
 
 ### Authorization
 
@@ -89,3 +109,16 @@ req.Header.Add("Authorization", hex.EncodeToString(signature))
 ```
 
 Please replace `privateKey` with the actual private key. 
+
+## Bundler
+
+The bundler is a service that bundles small files together before uploading to Greenfield and uploads the bundle to Greenfield.
+It will also manage the lifecycle of bundles, like finalizing the bundles.
+
+It has two main functions:
+
+1. finalize bundles: finalize the bundling bundles according to the bundling rules. It will finalize the bundles when the
+   number of files in the bundle reaches the maximum number of files, or the size of the bundle reaches the maximum size, or
+   the time of the bundle reaches the maximum time.
+
+2. submit bundles: submit the finalized bundles to Greenfield. It will pack the finalized bundles and upload them to Greenfield.

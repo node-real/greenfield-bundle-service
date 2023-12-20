@@ -3,3 +3,6 @@ genswagger:
 
 build-server:
 	go build -o build/bundle-service-server ./cmd/bundle-service-server/main.go
+
+build-bundler:
+	go build -o build/bundler ./cmd/bundler/main.go

@@ -325,7 +325,7 @@ func init() {
     },
     "/queryBundle/{bucketName}/{bundleName}": {
       "get": {
-        "description": "Queries a specific object from a given bundle and returns its related information.\n",
+        "description": "Queries the bundle information of a given bundle.\n",
         "produces": [
           "application/octet-stream"
         ],
@@ -982,7 +982,7 @@ func init() {
     },
     "/queryBundle/{bucketName}/{bundleName}": {
       "get": {
-        "description": "Queries a specific object from a given bundle and returns its related information.\n",
+        "description": "Queries the bundle information of a given bundle.\n",
         "produces": [
           "application/octet-stream"
         ],

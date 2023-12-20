@@ -123,7 +123,7 @@ paths:
         - Bundle
       summary: Query bundle information
       description: >
-        Queries a specific object from a given bundle and returns its related information.
+        Queries the bundle information of a given bundle.
       operationId: queryBundle
       produces:
         - application/octet-stream

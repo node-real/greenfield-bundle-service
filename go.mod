@@ -17,8 +17,8 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	golang.org/x/net v0.18.0
-	gorm.io/driver/mysql v1.5.2
-	gorm.io/driver/sqlite v1.5.4
+	gorm.io/driver/mysql v1.5.1
+	gorm.io/driver/sqlite v1.5.3
 	gorm.io/gorm v1.25.5
 )
 

@@ -4,7 +4,7 @@ genswagger:
 build: build-server build-bundler
 
 build-server:
-	go build -o build/bundle-service-server ./cmd/bundle-service-server/main.go
+	CGO_CFLAGS="-D_LARGEFILE64_SOURCE" go build  -o build/bundle-service-server ./cmd/bundle-service-server/main.go
 
 build-bundler:
-	go build -o build/bundler ./cmd/bundler/main.go
+	CGO_CFLAGS="-D_LARGEFILE64_SOURCE" go build -o build/bundler ./cmd/bundler/main.go

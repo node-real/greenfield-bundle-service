@@ -102,7 +102,32 @@ func (b *Bundler) startSubmitLoops() {
 			util.Logger.Fatalf("create bundler account failed, err=%v", err.Error())
 		}
 
+		// register bundler account
+		b.registerBundler(account)
+
 		go b.submitLoop(account)
+	}
+}
+
+func (b *Bundler) registerBundler(account *types.Account) {
+	accountAddr := account.GetAddress().String()
+	bundlerAccount, err := b.bundlerAccountDao.GetBundlerAccount(accountAddr)
+	if err != nil {
+		util.Logger.Errorf("get bundler account failed, bundler=%s, err=%v", accountAddr, err.Error())
+		return
+	}
+
+	if bundlerAccount.Id != 0 {
+		return
+	}
+
+	bundlerAccount = database.BundlerAccount{
+		AccountAddress: accountAddr,
+	}
+	err = b.bundlerAccountDao.CreateBundlerAccount(bundlerAccount)
+	if err != nil {
+		util.Logger.Errorf("create bundler account failed, bundler=%s, err=%v", accountAddr, err.Error())
+		return
 	}
 }
 

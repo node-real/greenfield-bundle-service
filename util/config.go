@@ -67,7 +67,11 @@ func ParseServerConfigFromFile(filePath string) *ServerConfig {
 	}
 
 	if len(config.BundleConfig.BundlerPrivateKeys) == 0 {
-		config.BundleConfig.BundlerPrivateKeys = GetBundlerPrivateKeys(config.BundleConfig)
+		config.BundleConfig.BundlerPrivateKeys = GetBundlerPrivateKeysFromEnv(config.BundleConfig)
+	}
+
+	if len(config.BundleConfig.BundlerPrivateKeys) == 0 {
+		config.BundleConfig.BundlerPrivateKeys = GetBundlerPrivateKeysFromSM(config.BundleConfig)
 	}
 
 	return &config
@@ -96,7 +100,20 @@ func GetDBUsernamePasswordFromSM(cfg *DBConfig) (string, string) {
 	return dbPassword.Username, dbPassword.Password
 }
 
-func GetBundlerPrivateKeys(cfg *BundleConfig) []string {
+func GetBundlerPrivateKeysFromEnv(cfg *BundleConfig) []string {
+	result := os.Getenv("BUNDLER_PRIVATE_KEYS")
+	type DBKeys struct {
+		BundlerPrivateKeys []string `json:"bundler_private_keys"`
+	}
+	var dbKeys DBKeys
+	err := json.Unmarshal([]byte(result), &dbKeys)
+	if err != nil {
+		return nil
+	}
+	return dbKeys.BundlerPrivateKeys
+}
+
+func GetBundlerPrivateKeysFromSM(cfg *BundleConfig) []string {
 	result, err := GetSecret(cfg.AWSSecretName, cfg.AWSRegion)
 	if err != nil {
 		return nil

@@ -318,7 +318,7 @@ func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bu
 			return nil, fmt.Errorf("head bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
 		}
 
-		object.Seek(0, 0)
+		_, _ = object.Seek(0, 0)
 	}
 
 	opts := types.PutObjectOptions{

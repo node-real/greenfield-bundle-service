@@ -184,7 +184,10 @@ func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middlew
 		return middleware.ResponderFunc(func(w http.ResponseWriter, _ runtime.Producer) {
 			w.Header().Set("Content-Disposition", "inline")
 			w.Header().Set("Content-Type", object.ContentType)
-			io.Copy(w, response.Body)
+			_, err := io.Copy(w, response.Body)
+			if err != nil {
+				util.Logger.Errorf("copy object file error, err=%s", err.Error())
+			}
 		})
 	}
 }
@@ -216,7 +219,10 @@ func HandleDownloadBundleObject() func(params bundle.DownloadBundleObjectParams)
 		return middleware.ResponderFunc(func(w http.ResponseWriter, _ runtime.Producer) {
 			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", object.ObjectName))
 			w.Header().Set("Content-Type", object.ContentType)
-			io.Copy(w, response.Body)
+			_, err := io.Copy(w, response.Body)
+			if err != nil {
+				util.Logger.Errorf("copy object file error, err=%s", err.Error())
+			}
 		})
 	}
 }

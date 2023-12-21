@@ -33,10 +33,8 @@ type OssStore struct {
 }
 
 type ossStorageSecretKey struct {
-	region       string
-	accessKey    string
-	secretKey    string
-	sessionToken string
+	accessKey string
+	secretKey string
 }
 
 func getOSSSecretKeyFromEnv(accessId, secretKey string) *ossStorageSecretKey {

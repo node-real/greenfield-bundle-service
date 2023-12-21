@@ -30,7 +30,7 @@ func uploadObject(privateKey []byte, fileName, bucketName, contentType string, f
 	hashInHex := hex.EncodeToString(hashInBytes)
 
 	// Reset the file read pointer to the beginning
-	file.Seek(0, 0)
+	_, _ = file.Seek(0, 0)
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)

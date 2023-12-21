@@ -78,7 +78,11 @@ func (f *FileManager) GetObjectFromGnfd(bucket string, bundle string, object str
 	}
 	// query object from gnfd
 	getObjectOption := types.GetObjectOptions{}
-	getObjectOption.SetRange(dbObject.OffsetInBundle, dbObject.OffsetInBundle+dbObject.Size-1) // [start, end]
+	err = getObjectOption.SetRange(dbObject.OffsetInBundle, dbObject.OffsetInBundle+dbObject.Size-1) // [start, end]
+	if err != nil {
+		util.Logger.Errorf("failed to set range for object, bucket=%s, bundle=%s, object=%s, err=%s", bucket, bundle, object, err.Error())
+		return nil, err
+	}
 
 	objectFile, _, err := f.gnfdClient.GetObject(context.Background(), bucket, bundle, types.GetObjectOptions{})
 	if err != nil {

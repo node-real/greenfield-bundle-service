@@ -24,8 +24,8 @@ func TestOssStore_PutObject(t *testing.T) {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
 	defer os.Remove(tempFile.Name())
-	tempFile.WriteString("This is some test data")
-	tempFile.Seek(0, 0)
+	_, _ = tempFile.WriteString("This is some test data")
+	_, _ = tempFile.Seek(0, 0)
 
 	err = store.PutObject(context.Background(), "testfile", tempFile)
 	assert.NoError(t, err, "PutObject should not return an error")

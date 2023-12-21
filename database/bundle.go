@@ -49,5 +49,5 @@ func (b *Bundle) IsTimeToRetry() bool {
 	}
 
 	interval := retryIntervals[index]
-	return time.Now().Sub(b.UpdatedAt) >= interval
+	return time.Since(b.UpdatedAt) >= interval
 }

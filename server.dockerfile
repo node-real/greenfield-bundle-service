@@ -53,4 +53,4 @@ ENV CONFIG_FILE_PATH /opt/app/config/config.json
 COPY --from=builder /opt/app/build/bundle-service-server /app/server
 
 # Run the web service on container startup.
-CMD ["/app/server", "--host", "0.0.0.0", "--port", "8080", "--config-path", "$CONFIG_FILE_PATH"]
+CMD /app/server --host 0.0.0.0 --port 8080 --config-path "$CONFIG_FILE_PATH"

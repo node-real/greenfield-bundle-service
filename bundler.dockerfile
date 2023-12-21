@@ -48,4 +48,4 @@ ENV CONFIG_FILE_PATH /opt/app/config/config.json
 COPY --from=builder /opt/app/build/bundler /app/bundler
 
 # Run the bundler service on container startup.
-CMD ["/app/bundler", "--config-path", "$CONFIG_FILE_PATH"]
+CMD /app/bundler --config-path "$CONFIG_FILE_PATH"

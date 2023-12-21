@@ -187,6 +187,10 @@ func TestBundler(t *testing.T) {
 	bundleName := setupDatabaseRecords(db, config)
 
 	bundler, err := bundler.NewBundler(config, db)
+	if err != nil {
+		util.Logger.Fatalf("new bundler error, err=%s", err.Error())
+	}
+
 	go bundler.Run()
 
 	ticker := time.NewTicker(1 * time.Second)

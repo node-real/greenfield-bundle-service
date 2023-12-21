@@ -66,25 +66,22 @@ func (b *Bundler) finalizeLoop() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			bundles, err := b.bundleDao.GetBundlingBundles()
-			if err != nil {
-				util.Logger.Errorf("get time out bundling bundles failed, err=%v", err.Error())
-				continue
-			}
+	for range ticker.C {
+		bundles, err := b.bundleDao.GetBundlingBundles()
+		if err != nil {
+			util.Logger.Errorf("get time out bundling bundles failed, err=%v", err.Error())
+			continue
+		}
 
-			cur := time.Now()
-			for _, bundle := range bundles {
-				if bundle.Size >= bundle.MaxSize || bundle.Files >= bundle.MaxFiles ||
-					cur.Sub(bundle.CreatedAt).Seconds() >= float64(bundle.MaxFinalizeTime) {
-					bundle.Status = database.BundleStatusFinalized
-					_, err := b.bundleDao.UpdateBundle(*bundle)
-					if err != nil {
-						util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
-						continue
-					}
+		cur := time.Now()
+		for _, bundle := range bundles {
+			if bundle.Size >= bundle.MaxSize || bundle.Files >= bundle.MaxFiles ||
+				cur.Sub(bundle.CreatedAt).Seconds() >= float64(bundle.MaxFinalizeTime) {
+				bundle.Status = database.BundleStatusFinalized
+				_, err := b.bundleDao.UpdateBundle(*bundle)
+				if err != nil {
+					util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())
+					continue
 				}
 			}
 		}
@@ -209,7 +206,7 @@ func (b *Bundler) submitLoop(account *types.Account) {
 					continue
 				}
 
-				if bundle.RetryCounter == 0 && time.Now().Sub(bundle.UpdatedAt).Seconds() < MaxSealOnChainTime {
+				if bundle.RetryCounter == 0 && time.Since(bundle.UpdatedAt).Seconds() < MaxSealOnChainTime {
 					continue
 				}
 

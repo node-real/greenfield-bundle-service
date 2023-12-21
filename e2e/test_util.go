@@ -3,7 +3,7 @@ package e2e
 import (
 	"bytes"
 	"encoding/hex"
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -120,7 +120,7 @@ func SendRequest(privateKey []byte, url, method string, headers map[string]strin
 }
 
 func ReadResponseBody(resp *http.Response) (string, error) {
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}

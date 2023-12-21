@@ -2,13 +2,14 @@ package e2e
 
 import (
 	"context"
-	"cosmossdk.io/math"
 	"fmt"
-	"gorm.io/gorm"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"cosmossdk.io/math"
+	"gorm.io/gorm"
 
 	"github.com/bnb-chain/greenfield-go-sdk/client"
 	"github.com/bnb-chain/greenfield-go-sdk/pkg/utils"
@@ -190,23 +191,20 @@ func TestBundler(t *testing.T) {
 
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			objDetails, err := gnfdClient.HeadObject(context.Background(), bucketName, bundleName)
+	for range ticker.C {
+		objDetails, err := gnfdClient.HeadObject(context.Background(), bucketName, bundleName)
+		if err != nil {
+			continue
+		}
+
+		util.Logger.Infof("bundle on-chain success, name=%s, status=%v", objDetails.ObjectInfo.ObjectName, objDetails.ObjectInfo.ObjectStatus)
+		if objDetails.ObjectInfo.ObjectStatus == storageTypes.OBJECT_STATUS_SEALED {
+			_, _, err := gnfdClient.GetObject(context.Background(), bucketName, bundleName, types.GetObjectOptions{})
 			if err != nil {
-				continue
+				util.Logger.Fatalf("get bundled object failed, err=%v", err.Error())
 			}
 
-			util.Logger.Infof("bundle on-chain success, name=%s, status=%v", objDetails.ObjectInfo.ObjectName, objDetails.ObjectInfo.ObjectStatus)
-			if objDetails.ObjectInfo.ObjectStatus == storageTypes.OBJECT_STATUS_SEALED {
-				_, _, err := gnfdClient.GetObject(context.Background(), bucketName, bundleName, types.GetObjectOptions{})
-				if err != nil {
-					util.Logger.Fatalf("get bundled object failed, err=%v", err.Error())
-				}
-
-				return
-			}
+			return
 		}
 	}
 }

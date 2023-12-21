@@ -13,7 +13,9 @@ import (
 func ConnectDBWithConfig(config *util.DBConfig) (*gorm.DB, error) {
 	if config.DBDialect == "sqlite3" {
 		db, err := gorm.Open(sqlite.Open(config.DBPath), &gorm.Config{})
-
+		if err != nil {
+			panic(err)
+		}
 		if err = db.AutoMigrate(&Bundle{}); err != nil {
 			panic(err)
 		}

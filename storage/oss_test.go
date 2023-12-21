@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -19,7 +19,7 @@ func TestOssStore_PutObject(t *testing.T) {
 		t.Fatalf("Failed to create OssStore: %v", err)
 	}
 
-	tempFile, err := ioutil.TempFile("", "oss_test")
+	tempFile, err := os.CreateTemp("", "oss_test")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
@@ -39,7 +39,7 @@ func TestOssStore_PutObject(t *testing.T) {
 	}
 	defer object.Close()
 
-	content, err := ioutil.ReadAll(object)
+	content, err := io.ReadAll(object)
 	if err != nil {
 		t.Fatalf("Failed to read object content: %v", err)
 	}

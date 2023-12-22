@@ -4,7 +4,9 @@ package restapi
 
 import (
 	"crypto/tls"
+	"encoding/hex"
 	"fmt"
+	"github.com/bnb-chain/greenfield-go-sdk/types"
 	"net/http"
 
 	"github.com/bnb-chain/greenfield-go-sdk/client"
@@ -117,6 +119,14 @@ func configureServer(s *http.Server, scheme, addr string) {
 	if err != nil {
 		panic(fmt.Errorf("unable to new greenfield client, %v", err))
 	}
+
+	// set a random default account for server gnfd client
+	privkey, _, err := util.GenerateRandomAccount()
+	if err != nil {
+		panic(err)
+	}
+	serverAccount, err := types.NewAccountFromPrivateKey("server-account", hex.EncodeToString(privkey))
+	gnfdClient.SetDefaultAccount(serverAccount)
 
 	fileManager := storage.NewFileManager(config, objectDao, gnfdClient)
 	authManager := auth.NewAuthManager(gnfdClient)

@@ -38,6 +38,7 @@ type FileManager struct {
 func NewFileManager(config *util.ServerConfig, objectDao dao.ObjectDao, gnfdClient client.IClient) *FileManager {
 	fileManager := &FileManager{
 		config:     config,
+		objectDao:  objectDao,
 		gnfdClient: gnfdClient,
 	}
 

@@ -30,7 +30,7 @@ func NewBundlerAccountDao(db *gorm.DB) BundlerAccountDao {
 // GetBundlerAccount returns the bundler account for the specified bundler
 func (s *dbBundlerAccountDao) GetBundlerAccount(bundler string) (database.BundlerAccount, error) {
 	var bundlerAccount database.BundlerAccount
-	err := s.db.Where("bundler = ?", bundler).Take(&bundlerAccount).Error
+	err := s.db.Where("account_address = ?", bundler).Take(&bundlerAccount).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		util.Logger.Errorf("get bundler account error, err=%s", err.Error())
 		return database.BundlerAccount{}, err

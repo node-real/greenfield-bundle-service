@@ -125,6 +125,17 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			}
 		}
 
+		// check if the object already exists
+		queriedObject, err := service.ObjectSvc.GetObject(params.XBundleBucketName, bundlingBundle.Name, params.XBundleFileName)
+		if err != nil {
+			util.Logger.Errorf("get object error, bucket=%s, bundle=%s, object=%s, err=%s", params.XBundleBucketName, bundlingBundle.Name, params.XBundleFileName, err.Error())
+			return bundle.NewUploadObjectInternalServerError().WithPayload(types.InternalErrorWithError(err))
+		}
+		if queriedObject.Id != 0 {
+			util.Logger.Errorf("object already exists, bucket=%s, bundle=%s, object=%s", params.XBundleBucketName, bundlingBundle.Name, params.XBundleFileName)
+			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorObjectAlreadyExists)
+		}
+
 		// save object file to local storage
 		_, fileSize, err := service.ObjectSvc.StoreObjectFile(params.XBundleBucketName, bundlingBundle.Name, params.XBundleFileName, file)
 		if err != nil {

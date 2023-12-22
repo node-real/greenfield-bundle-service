@@ -126,6 +126,10 @@ func configureServer(s *http.Server, scheme, addr string) {
 		panic(err)
 	}
 	serverAccount, err := types.NewAccountFromPrivateKey("server-account", hex.EncodeToString(privkey))
+	if err != nil {
+		panic(err)
+	}
+	util.Logger.Infof("set greenfield client default server account: %s", serverAccount.GetAddress().String())
 	gnfdClient.SetDefaultAccount(serverAccount)
 
 	fileManager := storage.NewFileManager(config, objectDao, gnfdClient)

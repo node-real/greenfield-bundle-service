@@ -193,6 +193,10 @@ func (o *OssStore) PutObject(ctx context.Context, key string, in io.Reader) erro
 	return err
 }
 
+func (o *OssStore) DeleteObject(ctx context.Context, key string) error {
+	return o.bucket.DeleteObject(key)
+}
+
 func IsNoSuchKey(err error) bool {
 	if err == nil {
 		return false

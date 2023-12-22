@@ -30,6 +30,14 @@ func TestOssStore_PutObject(t *testing.T) {
 	err = store.PutObject(context.Background(), "testfile", tempFile)
 	assert.NoError(t, err, "PutObject should not return an error")
 
+	err = store.DeleteObject(context.Background(), GetObjectKeyInOss("bundle-test", "bundle-1", "test.html"))
+	if err != nil {
+		println(err.Error())
+		return
+	}
+
+	println("delete success")
+
 	// Get the object that was just put
 	object, err := store.GetObject(context.Background(), "xxx", 0, 0)
 	if err != nil {

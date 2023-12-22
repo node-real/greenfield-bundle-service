@@ -76,6 +76,10 @@ var (
 		Code:    10014,
 		Message: "Invalid bundle status",
 	}
+	ErrorObjectAlreadyExists = &models.Error{
+		Code:    10015,
+		Message: "Object already exists",
+	}
 )
 
 func InternalErrorWithError(err error) *models.Error {

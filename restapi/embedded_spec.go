@@ -372,6 +372,48 @@ func init() {
         }
       }
     },
+    "/queryBundlingBundle/{bucketName}": {
+      "get": {
+        "description": "Queries the bundling bundle information of a given user.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Query bundling bundle information of user",
+        "operationId": "queryBundlingBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully queried bundle",
+            "schema": {
+              "$ref": "#/definitions/QueryBundleResponse"
+            }
+          },
+          "404": {
+            "description": "Bundle not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/setBundleRule": {
       "post": {
         "description": "Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.\n",
@@ -1003,6 +1045,48 @@ func init() {
             "type": "string",
             "description": "The name of the bundle",
             "name": "bundleName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully queried bundle",
+            "schema": {
+              "$ref": "#/definitions/QueryBundleResponse"
+            }
+          },
+          "404": {
+            "description": "Bundle not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/queryBundlingBundle/{bucketName}": {
+      "get": {
+        "description": "Queries the bundling bundle information of a given user.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Query bundling bundle information of user",
+        "operationId": "queryBundlingBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
             "in": "path",
             "required": true
           }

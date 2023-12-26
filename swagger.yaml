@@ -152,6 +152,35 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /queryBundlingBundle/{bucketName}:
+    get:
+      tags:
+        - Bundle
+      summary: Query bundling bundle information of a bucket
+      description: >
+        Queries the bundling bundle information of a given bucket.
+      operationId: queryBundlingBundle
+      produces:
+        - application/octet-stream
+      parameters:
+        - name: bucketName
+          in: path
+          required: true
+          type: string
+          description: The bucketName of the bundle
+      responses:
+        '200':
+          description: Successfully queried bundle
+          schema:
+            $ref: '#/definitions/QueryBundleResponse'
+        '404':
+          description: Bundle not found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
 
   /download/{bucketName}/{bundleName}/{objectName}:
     get:

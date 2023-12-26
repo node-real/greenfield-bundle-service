@@ -62,15 +62,17 @@ The Bundle Service Server API provides several endpoints for managing and intera
 
 4. **Query bundle information (`GET /queryBundle/{bucketName}/{bundleName}`):** This endpoint queries a specific object from a given bundle and returns its related information.
 
-5. **Start a New Bundle (`POST /createBundle`):** This endpoint initiates a new bundle, requiring details like bucket name and bundle name.
+5. **Query bundling bundle information of a bucket (`GET /queryBundlingBundle/{bucketName}`):** This endpoint queries the bundling bundle information of a given bucket.
 
-6. **Finalize an Existing Bundle (`POST /finalizeBundle`):** This endpoint completes the lifecycle of an existing bundle, requiring the bundle name for authorization.
+6. **Start a New Bundle (`POST /createBundle`):** This endpoint initiates a new bundle, requiring details like bucket name and bundle name.
 
-7. **Delete an Existing Bundle (`POST /deleteBundle`):** This endpoint deletes an existing bundle after object deletion on Greenfield.
+7**Finalize an Existing Bundle (`POST /finalizeBundle`):** This endpoint completes the lifecycle of an existing bundle, requiring the bundle name for authorization.
 
-8. **Get Bundler Account for a User (`POST /bundlerAccount/{userAddress}`):** This endpoint returns the bundler account for a given user.
+8**Delete an Existing Bundle (`POST /deleteBundle`):** This endpoint deletes an existing bundle after object deletion on Greenfield.
 
-9. **Set New Bundling Rules (`POST /setBundleRule`):** This endpoint allows users to set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
+9**Get Bundler Account for a User (`POST /bundlerAccount/{userAddress}`):** This endpoint returns the bundler account for a given user.
+
+10**Set New Bundling Rules (`POST /setBundleRule`):** This endpoint allows users to set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
 
 For more detailed information about each endpoint, including required parameters and response formats, please refer to the `swagger.yaml` file.
 

@@ -166,7 +166,7 @@ func (b *Bundler) submitLoop(account *types.Account) {
 					continue
 				}
 
-				objectDetail, err := b.submitBundledObject(client, bundle, bundledObject, size)
+				txHash, objectDetail, err := b.submitBundledObject(client, bundle, bundledObject, size)
 				if err != nil {
 					util.Logger.Errorf("submit bundle object failed, bundle=%s, err=%v", bundle.Bucket+bundle.Name, err.Error())
 					bundle.RetryCounter++
@@ -179,6 +179,7 @@ func (b *Bundler) submitLoop(account *types.Account) {
 				}
 
 				bundle.Status = database.BundleStatusCreatedOnChain
+				bundle.TxHash = txHash
 				bundle.ObjectId = objectDetail.ObjectInfo.Id.Uint64()
 				bundle.RetryCounter = 0
 				bundle.ErrMessage = EmptyErrMessage
@@ -287,16 +288,17 @@ func (b *Bundler) assembleBundleObject(bundleRecord *database.Bundle) (io.ReadSe
 	return bundledObject, size, nil
 }
 
-func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bundle, object io.ReadSeekCloser, size int64) (*types.ObjectDetail, error) {
+func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bundle, object io.ReadSeekCloser, size int64) (string, *types.ObjectDetail, error) {
 	if size == 0 {
-		return nil, fmt.Errorf("invalid bundle size")
+		return "", nil, fmt.Errorf("invalid bundle size")
 	}
 
 	owner, err := sdk.AccAddressFromHexUnsafe(bundle.Owner)
 	if err != nil {
-		return nil, fmt.Errorf("invalid owner address, owner=%s, err=%v", bundle.Owner, err)
+		return "", nil, fmt.Errorf("invalid owner address, owner=%s, err=%v", bundle.Owner, err)
 	}
 
+	var txHash string
 	objectDetail, err := client.HeadObject(context.Background(), bundle.Bucket, bundle.Name)
 	if err != nil {
 		opts := types.CreateObjectOptions{
@@ -305,14 +307,14 @@ func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bu
 			TxOpts:      &gnfdsdktypes.TxOption{FeeGranter: owner},
 		}
 
-		_, err := client.CreateObject(context.Background(), bundle.Bucket, bundle.Name, object, opts)
+		txHash, err = client.CreateObject(context.Background(), bundle.Bucket, bundle.Name, object, opts)
 		if err != nil {
-			return nil, fmt.Errorf("create bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
+			return "", nil, fmt.Errorf("create bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
 		}
 
 		objectDetail, err = client.HeadObject(context.Background(), bundle.Bucket, bundle.Name)
 		if err != nil {
-			return nil, fmt.Errorf("head bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
+			return "", nil, fmt.Errorf("head bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
 		}
 
 		_, _ = object.Seek(0, 0)
@@ -321,7 +323,7 @@ func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bu
 	opts := types.PutObjectOptions{
 		ContentType: "bundle",
 	}
-	return objectDetail, client.PutObject(context.Background(), bundle.Bucket, bundle.Name, size, object, opts)
+	return txHash, objectDetail, client.PutObject(context.Background(), bundle.Bucket, bundle.Name, size, object, opts)
 }
 
 func (b *Bundler) checkBundleSealed(client client.IClient, bundle *database.Bundle) bool {

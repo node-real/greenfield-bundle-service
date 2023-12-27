@@ -7,7 +7,11 @@ const (
 
 	DefaultMaxBundleFiles  = 100
 	DefaultMaxBundleSize   = 1024 * 1024 * 1024 // 1GB
-	DefaultMaxFinalizeTime = 60 * 60 * 24       // 1 day
+	DefaultMaxFinalizeTime = 60 * 60 * 24
+
+	MaxBundleFiles  = 10000
+	MaxBundleSize   = 2 * 1024 * 1024 * 1024 // 2GB
+	MaxFinalizeTime = 60 * 60 * 24 * 7       // 7 days
 )
 
 var (
@@ -87,6 +91,10 @@ var (
 	ErrorBundleSizeExceedsLimit = &models.Error{
 		Code:    10017,
 		Message: "Bundle size or files exceeds limit",
+	}
+	ErrorInvalidBundleRuleParams = &models.Error{
+		Code:    10018,
+		Message: "Invalid bundle rule params",
 	}
 )
 

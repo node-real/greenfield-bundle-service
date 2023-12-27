@@ -65,6 +65,40 @@ func ValidateFileContent(params bundle.UploadObjectParams) (io.ReadCloser, error
 	return io.NopCloser(bytes.NewReader(fileBytes)), nil
 }
 
+func GetBundlingBundle(bucketName string, signerAddress string) (database.Bundle, *models.Error) {
+	// get bundling bundle
+	bundlingBundle, err := service.BundleSvc.GetBundlingBundle(bucketName)
+	if err != nil {
+		util.Logger.Errorf("get bundling bundle error, bucket=%s, err=%s", bucketName, err.Error())
+		return database.Bundle{}, types.InternalErrorWithError(err)
+	}
+
+	// bundle not found
+	if bundlingBundle.Id == 0 {
+		// create new bundle
+		newBundle := database.Bundle{
+			Owner:  signerAddress,
+			Bucket: bucketName,
+		}
+
+		// get bundler account for the user
+		bundlerAccount, err := service.UserBundlerAccountSvc.GetOrCreateUserBundlerAccount(newBundle.Owner)
+		if err != nil {
+			util.Logger.Errorf("get bundler account for user error, user=%s, err=%s", newBundle.Owner, err.Error())
+			return database.Bundle{}, types.InternalErrorWithError(err)
+		}
+		newBundle.BundlerAccount = bundlerAccount.BundlerAddress
+
+		// create bundle
+		bundlingBundle, err = service.BundleSvc.CreateBundle(newBundle)
+		if err != nil {
+			util.Logger.Errorf("create bundle error, bundle=%+v, err=%s", newBundle, err.Error())
+			return database.Bundle{}, types.InternalErrorWithError(err)
+		}
+	}
+	return bundlingBundle, nil
+}
+
 // HandleUploadObject handles the upload object request
 func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Responder {
 	return func(params bundle.UploadObjectParams) middleware.Responder {
@@ -88,41 +122,22 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			util.Logger.Errorf("query bucket error, err=%s", err.Error())
 			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorInternalError)
 		}
-
 		if bucketInfo.Owner != signerAddress.String() {
 			util.Logger.Errorf("signer is not the owner of the bucket, signer=%s, bucket=%s", signerAddress.String(), params.XBundleBucketName)
 			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorInvalidSignature)
 		}
 
 		// get bundling bundle
-		bundlingBundle, err := service.BundleSvc.GetBundlingBundle(params.XBundleBucketName)
+		bundlingBundle, merr := GetBundlingBundle(params.XBundleBucketName, signerAddress.String())
 		if err != nil {
 			util.Logger.Errorf("get bundling bundle error, bucket=%s, err=%s", params.XBundleBucketName, err.Error())
-			return bundle.NewUploadObjectInternalServerError().WithPayload(types.InternalErrorWithError(err))
+			return bundle.NewUploadObjectInternalServerError().WithPayload(merr)
 		}
 
-		// bundle not found
-		if bundlingBundle.Id == 0 {
-			// create new bundle
-			newBundle := database.Bundle{
-				Owner:  signerAddress.String(),
-				Bucket: params.XBundleBucketName,
-			}
-
-			// get bundler account for the user
-			bundlerAccount, err := service.UserBundlerAccountSvc.GetOrCreateUserBundlerAccount(newBundle.Owner)
-			if err != nil {
-				util.Logger.Errorf("get bundler account for user error, user=%s, err=%s", newBundle.Owner, err.Error())
-				return bundle.NewUploadObjectInternalServerError()
-			}
-			newBundle.BundlerAccount = bundlerAccount.BundlerAddress
-
-			// create bundle
-			bundlingBundle, err = service.BundleSvc.CreateBundle(newBundle)
-			if err != nil {
-				util.Logger.Errorf("create bundle error, bundle=%+v, err=%s", newBundle, err.Error())
-				return bundle.NewUploadObjectInternalServerError().WithPayload(types.InternalErrorWithError(err))
-			}
+		// check bundle size and files against the limit
+		if bundlingBundle.Size > bundlingBundle.MaxSize || bundlingBundle.Files > bundlingBundle.MaxFiles {
+			util.Logger.Errorf("bundle size exceeds limit, size=%d, maxSize=%d, files=%d, maxFiles=%d", bundlingBundle.Size, bundlingBundle.MaxSize, bundlingBundle.Files, bundlingBundle.MaxFiles)
+			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorBundleSizeExceedsLimit)
 		}
 
 		// check if the object already exists
@@ -152,8 +167,17 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 			ContentType: params.XBundleContentType,
 			Size:        fileSize,
 		}
-		if params.XBundleTags != nil {
+
+		// check tags
+		if params.XBundleTags != nil && *params.XBundleTags != "" {
 			newObject.Tags = *params.XBundleTags
+
+			var tags map[string]string
+			err = json.Unmarshal([]byte(newObject.Tags), &tags)
+			if err != nil {
+				util.Logger.Warnf("unmarshal tags failed, tags=%s, err=%v", newObject.Tags, err.Error())
+				return bundle.NewUploadObjectInternalServerError().WithPayload(types.ErrorInvalidTags)
+			}
 		}
 
 		_, err = service.ObjectSvc.CreateObjectForBundling(newObject)

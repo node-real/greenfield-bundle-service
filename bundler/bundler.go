@@ -73,11 +73,16 @@ func (b *Bundler) finalizeLoop() {
 			continue
 		}
 
-		cur := time.Now()
 		for _, bundle := range bundles {
 			if bundle.Size >= bundle.MaxSize || bundle.Files >= bundle.MaxFiles ||
-				cur.Sub(bundle.CreatedAt).Seconds() >= float64(bundle.MaxFinalizeTime) {
+				time.Since(bundle.CreatedAt).Seconds() >= float64(bundle.MaxFinalizeTime) {
 				bundle.Status = database.BundleStatusFinalized
+
+				// mark the objects as expired if the bundle is empty
+				if bundle.Files == 0 {
+					bundle.Status = database.BundleStatusExpired
+				}
+
 				_, err := b.bundleDao.UpdateBundle(*bundle)
 				if err != nil {
 					util.Logger.Errorf("update bundle error, bundle=%+v, err=%s", bundle, err.Error())

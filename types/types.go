@@ -80,6 +80,14 @@ var (
 		Code:    10015,
 		Message: "Object already exists",
 	}
+	ErrorInvalidTags = &models.Error{
+		Code:    10016,
+		Message: "Invalid tags",
+	}
+	ErrorBundleSizeExceedsLimit = &models.Error{
+		Code:    10017,
+		Message: "Bundle size or files exceeds limit",
+	}
 )
 
 func InternalErrorWithError(err error) *models.Error {

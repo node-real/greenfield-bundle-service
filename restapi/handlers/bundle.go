@@ -218,7 +218,7 @@ func HandleQueryBundlingBundle() func(params bundle.QueryBundlingBundleParams) m
 	return func(params bundle.QueryBundlingBundleParams) middleware.Responder {
 		bundleInfo, err := service.BundleSvc.GetBundlingBundle(params.BucketName)
 		if err != nil {
-			util.Logger.Errorf("query bundle error, bucket=%s, bundle=%s, err=%s", params.BucketName, err.Error())
+			util.Logger.Errorf("query bundle error, bucket=%s, err=%s", params.BucketName, err.Error())
 			return bundle.NewQueryBundleInternalServerError().WithPayload(types.InternalErrorWithError(err))
 		}
 

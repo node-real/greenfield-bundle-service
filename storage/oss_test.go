@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -19,16 +19,24 @@ func TestOssStore_PutObject(t *testing.T) {
 		t.Fatalf("Failed to create OssStore: %v", err)
 	}
 
-	tempFile, err := ioutil.TempFile("", "oss_test")
+	tempFile, err := os.CreateTemp("", "oss_test")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
 	defer os.Remove(tempFile.Name())
-	tempFile.WriteString("This is some test data")
-	tempFile.Seek(0, 0)
+	_, _ = tempFile.WriteString("This is some test data")
+	_, _ = tempFile.Seek(0, 0)
 
 	err = store.PutObject(context.Background(), "testfile", tempFile)
 	assert.NoError(t, err, "PutObject should not return an error")
+
+	err = store.DeleteObject(context.Background(), GetObjectKeyInOss("bundle-test", "bundle-1", "test.html"))
+	if err != nil {
+		println(err.Error())
+		return
+	}
+
+	println("delete success")
 
 	// Get the object that was just put
 	object, err := store.GetObject(context.Background(), "xxx", 0, 0)
@@ -39,7 +47,7 @@ func TestOssStore_PutObject(t *testing.T) {
 	}
 	defer object.Close()
 
-	content, err := ioutil.ReadAll(object)
+	content, err := io.ReadAll(object)
 	if err != nil {
 		t.Fatalf("Failed to read object content: %v", err)
 	}

@@ -9,7 +9,8 @@ const (
 	BundleStatusFinalized      BundleStatus = 1
 	BundleStatusCreatedOnChain BundleStatus = 2
 	BundleStatusSealedOnChain  BundleStatus = 3
-	BundleStatusDeleted        BundleStatus = 4
+	BundleStatusExpired        BundleStatus = 4
+	BundleStatusDeleted        BundleStatus = 5
 )
 
 var (
@@ -32,6 +33,7 @@ type Bundle struct {
 	MaxFinalizeTime int64        `json:"max_finalize_time"`
 	Nonce           int64        `json:"nonce"`     // nonce is used to generate bundle name for auto generated bundle
 	ObjectId        uint64       `json:"object_id"` // object_id is used to record the bundled object id on Greenfield
+	TxHash          string       `json:"tx_hash"`   // tx_hash is used to record the tx hash on Greenfield
 	RetryCounter    int          `json:"retry_counter"`
 	ErrMessage      string       `json:"err_message"`
 	CreatedAt       time.Time    `json:"created_at" gorm:"NOT NULL;type:TIMESTAMP;default:CURRENT_TIMESTAMP;<-:create"`
@@ -49,5 +51,5 @@ func (b *Bundle) IsTimeToRetry() bool {
 	}
 
 	interval := retryIntervals[index]
-	return time.Now().Sub(b.UpdatedAt) >= interval
+	return time.Since(b.UpdatedAt) >= interval
 }

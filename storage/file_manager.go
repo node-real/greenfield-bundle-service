@@ -38,6 +38,7 @@ type FileManager struct {
 func NewFileManager(config *util.ServerConfig, objectDao dao.ObjectDao, gnfdClient client.IClient) *FileManager {
 	fileManager := &FileManager{
 		config:     config,
+		objectDao:  objectDao,
 		gnfdClient: gnfdClient,
 	}
 
@@ -78,9 +79,13 @@ func (f *FileManager) GetObjectFromGnfd(bucket string, bundle string, object str
 	}
 	// query object from gnfd
 	getObjectOption := types.GetObjectOptions{}
-	getObjectOption.SetRange(dbObject.OffsetInBundle, dbObject.OffsetInBundle+dbObject.Size-1) // [start, end]
+	err = getObjectOption.SetRange(dbObject.OffsetInBundle, dbObject.OffsetInBundle+dbObject.Size-1) // [start, end]
+	if err != nil {
+		util.Logger.Errorf("failed to set range for object, bucket=%s, bundle=%s, object=%s, err=%s", bucket, bundle, object, err.Error())
+		return nil, err
+	}
 
-	objectFile, _, err := f.gnfdClient.GetObject(context.Background(), bucket, bundle, types.GetObjectOptions{})
+	objectFile, _, err := f.gnfdClient.GetObject(context.Background(), bucket, bundle, getObjectOption)
 	if err != nil {
 		return nil, err
 	}
@@ -99,14 +104,17 @@ func (f *FileManager) GetObjectFromOss(bucket string, bundle string, object stri
 				return nil, err
 			}
 
+			var buf bytes.Buffer
+			tempFile := io.TeeReader(objectFile, &buf)
+
 			// store object to oss
-			err = f.ossStore.PutObject(context.Background(), objectKey, objectFile)
+			err = f.ossStore.PutObject(context.Background(), objectKey, tempFile)
 			if err != nil {
 				util.Logger.Errorf("failed to store object to oss, bucket=%s, bundle=%s, object=%s, err=%s", bucket, bundle, object, err.Error())
 				return nil, err
 			}
 
-			return objectFile, nil
+			return io.NopCloser(&buf), nil
 		}
 		return nil, err
 	}

@@ -33,10 +33,8 @@ type OssStore struct {
 }
 
 type ossStorageSecretKey struct {
-	region       string
-	accessKey    string
-	secretKey    string
-	sessionToken string
+	accessKey string
+	secretKey string
 }
 
 func getOSSSecretKeyFromEnv(accessId, secretKey string) *ossStorageSecretKey {
@@ -193,6 +191,10 @@ func (o *OssStore) PutObject(ctx context.Context, key string, in io.Reader) erro
 	option = append(option, oss.GetResponseHeader(&respHeader))
 	err := o.bucket.PutObject(key, in, option...)
 	return err
+}
+
+func (o *OssStore) DeleteObject(ctx context.Context, key string) error {
+	return o.bucket.DeleteObject(key)
 }
 
 func IsNoSuchKey(err error) bool {

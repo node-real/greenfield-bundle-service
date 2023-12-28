@@ -50,5 +50,9 @@ func main() {
 	}
 
 	bundler, err := bundler.NewBundler(config, db)
+	if err != nil {
+		util.Logger.Errorf("new bundler error, err=%s", err.Error())
+		return
+	}
 	bundler.Run()
 }

@@ -1,6 +1,4 @@
 # Use the official Golang image to create a build artifact.
-# This is based on Debian and sets the GOPATH to /go.
-# https://hub.docker.com/_/golang
 FROM golang:1.20-alpine as builder
 
 # Set up apk dependencies
@@ -20,13 +18,10 @@ ARG GH_TOKEN=""
 RUN go env -w GOPRIVATE="github.com/node-real/*"
 RUN git config --global url."https://${GH_TOKEN}@github.com".insteadOf "https://github.com"
 
-# Build the server binary using makefile
-RUN make build-server
-
+# Build the bundler binary using makefile
+RUN make build-bundler
 
 # Use the Alpine-based runtime image to create a lean production container.
-# https://hub.docker.com/_/alpine
-# https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
 FROM alpine:3.17
 
 ARG USER=app
@@ -50,7 +45,7 @@ USER ${USER_UID}:${USER_GID}
 ENV CONFIG_FILE_PATH /opt/app/config/config.json
 
 # Copy the binary to the production image from the builder stage.
-COPY --from=builder /opt/app/build/bundle-service-server /app/server
+COPY --from=builder /opt/app/build/bundler /app/bundler
 
-# Run the web service on container startup.
-CMD ["/app/server", "--host", "0.0.0.0", "--port", "8080", "--config-path", "$CONFIG_FILE_PATH"]
+# Run the bundler service on container startup.
+CMD /app/bundler --config-path "$CONFIG_FILE_PATH"

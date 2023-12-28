@@ -12,6 +12,8 @@ import (
 
 type BundlerAccountDao interface {
 	GetBundlerAccountForUser(user string) (database.BundlerAccount, error)
+	GetBundlerAccount(bundler string) (database.BundlerAccount, error)
+	CreateBundlerAccount(bundlerAccount database.BundlerAccount) error
 }
 
 type dbBundlerAccountDao struct {
@@ -23,6 +25,27 @@ func NewBundlerAccountDao(db *gorm.DB) BundlerAccountDao {
 	return &dbBundlerAccountDao{
 		db: db,
 	}
+}
+
+// GetBundlerAccount returns the bundler account for the specified bundler
+func (s *dbBundlerAccountDao) GetBundlerAccount(bundler string) (database.BundlerAccount, error) {
+	var bundlerAccount database.BundlerAccount
+	err := s.db.Where("account_address = ?", bundler).Take(&bundlerAccount).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		util.Logger.Errorf("get bundler account error, err=%s", err.Error())
+		return database.BundlerAccount{}, err
+	}
+	return bundlerAccount, nil
+}
+
+// CreateBundlerAccount creates a new bundler account
+func (s *dbBundlerAccountDao) CreateBundlerAccount(bundlerAccount database.BundlerAccount) error {
+	err := s.db.Create(&bundlerAccount).Error
+	if err != nil {
+		util.Logger.Errorf("create bundler account error, err=%s", err.Error())
+		return err
+	}
+	return nil
 }
 
 // GetBundlerAccountForUser returns the bundler account for the specified user

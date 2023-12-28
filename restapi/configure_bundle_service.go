@@ -4,7 +4,9 @@ package restapi
 
 import (
 	"crypto/tls"
+	"encoding/hex"
 	"fmt"
+	"github.com/bnb-chain/greenfield-go-sdk/types"
 	"net/http"
 
 	"github.com/bnb-chain/greenfield-go-sdk/client"
@@ -66,6 +68,8 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 
 	api.BundleQueryBundleHandler = bundle.QueryBundleHandlerFunc(handlers.HandleQueryBundle())
 
+	api.BundleQueryBundlingBundleHandler = bundle.QueryBundlingBundleHandlerFunc(handlers.HandleQueryBundlingBundle())
+
 	api.BundleViewBundleObjectHandler = bundle.ViewBundleObjectHandlerFunc(handlers.HandleViewBundleObject())
 
 	api.BundleDownloadBundleObjectHandler = bundle.DownloadBundleObjectHandlerFunc(handlers.HandleDownloadBundleObject())
@@ -117,6 +121,18 @@ func configureServer(s *http.Server, scheme, addr string) {
 	if err != nil {
 		panic(fmt.Errorf("unable to new greenfield client, %v", err))
 	}
+
+	// set a random default account for server gnfd client
+	privkey, _, err := util.GenerateRandomAccount()
+	if err != nil {
+		panic(err)
+	}
+	serverAccount, err := types.NewAccountFromPrivateKey("server-account", hex.EncodeToString(privkey))
+	if err != nil {
+		panic(err)
+	}
+	util.Logger.Infof("set greenfield client default server account: %s", serverAccount.GetAddress().String())
+	gnfdClient.SetDefaultAccount(serverAccount)
 
 	fileManager := storage.NewFileManager(config, objectDao, gnfdClient)
 	authManager := auth.NewAuthManager(gnfdClient)

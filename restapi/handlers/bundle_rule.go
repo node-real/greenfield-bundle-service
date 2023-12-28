@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/go-openapi/runtime/middleware"
-
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/rule"
 	"github.com/node-real/greenfield-bundle-service/service"
 	"github.com/node-real/greenfield-bundle-service/types"
@@ -11,17 +10,11 @@ import (
 
 func HandleSetBundleRule() func(params rule.SetBundleRuleParams) middleware.Responder {
 	return func(params rule.SetBundleRuleParams) middleware.Responder {
-		// check signature
-		signerAddress, err := types.VerifySignature(params.HTTPRequest)
-		if err != nil {
-			util.Logger.Errorf("sig check error, err=%s", err.Error())
-			return rule.NewSetBundleRuleBadRequest().WithPayload(types.ErrorInvalidSignature)
-		}
-
-		// check expiry timestamp
-		if err := types.ValidateExpiryTimestamp(params.HTTPRequest); err != nil {
-			util.Logger.Errorf("validate expiry timestamp error, err=%s", err.Error())
-			return rule.NewSetBundleRuleBadRequest().WithPayload(types.ErrorInvalidExpiryTimestamp)
+		// validate headers
+		signerAddress, merr := types.ValidateHeaders(params.HTTPRequest)
+		if merr != nil {
+			util.Logger.Errorf("sig check error, code=%d, msg=%s", merr.Code, merr.Message)
+			return rule.NewSetBundleRuleBadRequest().WithPayload(merr)
 		}
 
 		bucket, err := service.BundleSvc.QueryBucketFromGndf(params.XBundleBucketName)
@@ -34,6 +27,12 @@ func HandleSetBundleRule() func(params rule.SetBundleRuleParams) middleware.Resp
 		if bucket.Owner != signerAddress.String() {
 			util.Logger.Errorf("signer is not the owner of the bucket, signer=%s, bucket=%s", signerAddress.String(), params.XBundleBucketName)
 			return rule.NewSetBundleRuleBadRequest().WithPayload(types.ErrorInvalidSignature)
+		}
+
+		// check rule params
+		if params.XBundleMaxBundleFiles > types.MaxBundleFiles || params.XBundleMaxBundleSize > types.MaxBundleSize || params.XBundleMaxFinalizeTime > types.MaxFinalizeTime {
+			util.Logger.Errorf("invalid rule params, maxBundleFiles=%d, maxBundleSize=%d, maxFinalizeTime=%d", params.XBundleMaxBundleFiles, params.XBundleMaxBundleSize, params.XBundleMaxFinalizeTime)
+			return rule.NewSetBundleRuleBadRequest().WithPayload(types.ErrorInvalidBundleRuleParams)
 		}
 
 		// create or update bundle rule

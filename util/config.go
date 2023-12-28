@@ -58,18 +58,32 @@ func ParseServerConfigFromFile(filePath string) *ServerConfig {
 		panic(err)
 	}
 
+	if config.DBConfig.Username == "" || config.DBConfig.Password == "" { // read password from ENV
+		config.DBConfig.Username, config.DBConfig.Password = GetDBUsernamePasswordFromEnv()
+	}
+
 	if config.DBConfig.Username == "" || config.DBConfig.Password == "" { // read password from AWS secret
-		config.DBConfig.Username, config.DBConfig.Password = GetDBUsernamePassword(config.DBConfig)
+		config.DBConfig.Username, config.DBConfig.Password = GetDBUsernamePasswordFromSM(config.DBConfig)
 	}
 
 	if len(config.BundleConfig.BundlerPrivateKeys) == 0 {
-		config.BundleConfig.BundlerPrivateKeys = GetBundlerPrivateKeys(config.BundleConfig)
+		config.BundleConfig.BundlerPrivateKeys = GetBundlerPrivateKeysFromEnv(config.BundleConfig)
+	}
+
+	if len(config.BundleConfig.BundlerPrivateKeys) == 0 {
+		config.BundleConfig.BundlerPrivateKeys = GetBundlerPrivateKeysFromSM(config.BundleConfig)
 	}
 
 	return &config
 }
 
-func GetDBUsernamePassword(cfg *DBConfig) (string, string) {
+func GetDBUsernamePasswordFromEnv() (string, string) {
+	username := os.Getenv("DB_USERNAME")
+	password := os.Getenv("DB_PASSWORD")
+	return username, password
+}
+
+func GetDBUsernamePasswordFromSM(cfg *DBConfig) (string, string) {
 	result, err := GetSecret(cfg.AWSSecretName, cfg.AWSRegion)
 	if err != nil {
 		panic(err)
@@ -86,7 +100,20 @@ func GetDBUsernamePassword(cfg *DBConfig) (string, string) {
 	return dbPassword.Username, dbPassword.Password
 }
 
-func GetBundlerPrivateKeys(cfg *BundleConfig) []string {
+func GetBundlerPrivateKeysFromEnv(cfg *BundleConfig) []string {
+	result := os.Getenv("BUNDLER_PRIVATE_KEYS")
+	type DBKeys struct {
+		BundlerPrivateKeys []string `json:"bundler_private_keys"`
+	}
+	var dbKeys DBKeys
+	err := json.Unmarshal([]byte(result), &dbKeys)
+	if err != nil {
+		return nil
+	}
+	return dbKeys.BundlerPrivateKeys
+}
+
+func GetBundlerPrivateKeysFromSM(cfg *BundleConfig) []string {
 	result, err := GetSecret(cfg.AWSSecretName, cfg.AWSRegion)
 	if err != nil {
 		return nil

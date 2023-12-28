@@ -65,6 +65,9 @@ func NewBundleServiceAPI(spec *loads.Document) *BundleServiceAPI {
 		BundleQueryBundleHandler: bundle.QueryBundleHandlerFunc(func(params bundle.QueryBundleParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.QueryBundle has not yet been implemented")
 		}),
+		BundleQueryBundlingBundleHandler: bundle.QueryBundlingBundleHandlerFunc(func(params bundle.QueryBundlingBundleParams) middleware.Responder {
+			return middleware.NotImplemented("operation bundle.QueryBundlingBundle has not yet been implemented")
+		}),
 		RuleSetBundleRuleHandler: rule.SetBundleRuleHandlerFunc(func(params rule.SetBundleRuleParams) middleware.Responder {
 			return middleware.NotImplemented("operation rule.SetBundleRule has not yet been implemented")
 		}),
@@ -128,6 +131,8 @@ type BundleServiceAPI struct {
 	BundleFinalizeBundleHandler bundle.FinalizeBundleHandler
 	// BundleQueryBundleHandler sets the operation handler for the query bundle operation
 	BundleQueryBundleHandler bundle.QueryBundleHandler
+	// BundleQueryBundlingBundleHandler sets the operation handler for the query bundling bundle operation
+	BundleQueryBundlingBundleHandler bundle.QueryBundlingBundleHandler
 	// RuleSetBundleRuleHandler sets the operation handler for the set bundle rule operation
 	RuleSetBundleRuleHandler rule.SetBundleRuleHandler
 	// BundleUploadObjectHandler sets the operation handler for the upload object operation
@@ -234,6 +239,9 @@ func (o *BundleServiceAPI) Validate() error {
 	}
 	if o.BundleQueryBundleHandler == nil {
 		unregistered = append(unregistered, "bundle.QueryBundleHandler")
+	}
+	if o.BundleQueryBundlingBundleHandler == nil {
+		unregistered = append(unregistered, "bundle.QueryBundlingBundleHandler")
 	}
 	if o.RuleSetBundleRuleHandler == nil {
 		unregistered = append(unregistered, "rule.SetBundleRuleHandler")
@@ -360,6 +368,10 @@ func (o *BundleServiceAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/queryBundle/{bucketName}/{bundleName}"] = bundle.NewQueryBundle(o.context, o.BundleQueryBundleHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/queryBundlingBundle/{bucketName}"] = bundle.NewQueryBundlingBundle(o.context, o.BundleQueryBundlingBundleHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

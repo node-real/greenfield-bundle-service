@@ -325,7 +325,7 @@ func init() {
     },
     "/queryBundle/{bucketName}/{bundleName}": {
       "get": {
-        "description": "Queries a specific object from a given bundle and returns its related information.\n",
+        "description": "Queries the bundle information of a given bundle.\n",
         "produces": [
           "application/octet-stream"
         ],
@@ -346,6 +346,48 @@ func init() {
             "type": "string",
             "description": "The name of the bundle",
             "name": "bundleName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully queried bundle",
+            "schema": {
+              "$ref": "#/definitions/QueryBundleResponse"
+            }
+          },
+          "404": {
+            "description": "Bundle not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/queryBundlingBundle/{bucketName}": {
+      "get": {
+        "description": "Queries the bundling bundle information of a given user.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Query bundling bundle information of user",
+        "operationId": "queryBundlingBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
             "in": "path",
             "required": true
           }
@@ -982,7 +1024,7 @@ func init() {
     },
     "/queryBundle/{bucketName}/{bundleName}": {
       "get": {
-        "description": "Queries a specific object from a given bundle and returns its related information.\n",
+        "description": "Queries the bundle information of a given bundle.\n",
         "produces": [
           "application/octet-stream"
         ],
@@ -1003,6 +1045,48 @@ func init() {
             "type": "string",
             "description": "The name of the bundle",
             "name": "bundleName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully queried bundle",
+            "schema": {
+              "$ref": "#/definitions/QueryBundleResponse"
+            }
+          },
+          "404": {
+            "description": "Bundle not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/queryBundlingBundle/{bucketName}": {
+      "get": {
+        "description": "Queries the bundling bundle information of a given user.\n",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Query bundling bundle information of user",
+        "operationId": "queryBundlingBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The bucketName of the bundle",
+            "name": "bucketName",
             "in": "path",
             "required": true
           }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/node-real/greenfield-bundle-service/service"
 	"io"
 	"strconv"
 	"time"
@@ -20,6 +19,7 @@ import (
 
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
+	"github.com/node-real/greenfield-bundle-service/service"
 	"github.com/node-real/greenfield-bundle-service/storage"
 	"github.com/node-real/greenfield-bundle-service/util"
 )

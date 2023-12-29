@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -258,5 +259,33 @@ func ValidateHeaders(req *http.Request) (common.Address, *models.Error) {
 	if err != nil {
 		return common.Address{}, ErrorInvalidSignature
 	}
+
+	if bucketName := req.Header.Get(HTTPHeaderBucketName); bucketName != "" {
+		err := ValidateBucketName(bucketName)
+		if err != nil {
+			return common.Address{}, err
+		}
+	}
+
 	return signerAddress, nil
+}
+
+func ValidateBucketName(bucketName string) *models.Error {
+	if strings.Contains(bucketName, "/") {
+		return InvalidBucketNameErrorWithError(errors.New("bucket name should not contain '/'"))
+	}
+
+	return nil
+}
+
+func ValidateBundleName(bundleName string) *models.Error {
+	if len(bundleName) >= 64 {
+		return InvalidBundleNameErrorWithError(errors.New("bundle name length should be less than 64"))
+	}
+
+	if strings.Contains(bundleName, "/") {
+		return InvalidBundleNameErrorWithError(errors.New("bundle name should not contain '/'"))
+	}
+
+	return nil
 }

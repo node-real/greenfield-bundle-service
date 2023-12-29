@@ -111,3 +111,17 @@ func InvalidFileContentErrorWithError(err error) *models.Error {
 		Message: err.Error(),
 	}
 }
+
+func InvalidBucketNameErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10002,
+		Message: err.Error(),
+	}
+}
+
+func InvalidBundleNameErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10006,
+		Message: err.Error(),
+	}
+}

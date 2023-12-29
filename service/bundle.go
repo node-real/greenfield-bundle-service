@@ -190,6 +190,10 @@ func (s *BundleService) FinalizeBundle(bucketName string, bundleName string) (*d
 		return nil, fmt.Errorf("bundle status is not bundling")
 	}
 
+	if bundle.Files == 0 || bundle.Size == 0 {
+		return nil, fmt.Errorf("bundle files or size is 0")
+	}
+
 	bundle.Status = database.BundleStatusFinalized
 
 	updatedBundle, err := s.bundleDao.UpdateBundle(*bundle)

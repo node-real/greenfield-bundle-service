@@ -12,6 +12,8 @@ const (
 	MaxBundleFiles  = 10000
 	MaxBundleSize   = 2 * 1024 * 1024 * 1024 // 2GB
 	MaxFinalizeTime = 60 * 60 * 24 * 7       // 7 days
+
+	MaxTagsLength = 512
 )
 
 var (

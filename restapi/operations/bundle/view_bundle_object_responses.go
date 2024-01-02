@@ -57,6 +57,51 @@ func (o *ViewBundleObjectOK) WriteResponse(rw http.ResponseWriter, producer runt
 	}
 }
 
+// ViewBundleObjectBadRequestCode is the HTTP code returned for type ViewBundleObjectBadRequest
+const ViewBundleObjectBadRequestCode int = 400
+
+/*
+ViewBundleObjectBadRequest Invalid request or file format
+
+swagger:response viewBundleObjectBadRequest
+*/
+type ViewBundleObjectBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.Error `json:"body,omitempty"`
+}
+
+// NewViewBundleObjectBadRequest creates ViewBundleObjectBadRequest with default headers values
+func NewViewBundleObjectBadRequest() *ViewBundleObjectBadRequest {
+
+	return &ViewBundleObjectBadRequest{}
+}
+
+// WithPayload adds the payload to the view bundle object bad request response
+func (o *ViewBundleObjectBadRequest) WithPayload(payload *models.Error) *ViewBundleObjectBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the view bundle object bad request response
+func (o *ViewBundleObjectBadRequest) SetPayload(payload *models.Error) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *ViewBundleObjectBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
+
 // ViewBundleObjectNotFoundCode is the HTTP code returned for type ViewBundleObjectNotFound
 const ViewBundleObjectNotFoundCode int = 404
 

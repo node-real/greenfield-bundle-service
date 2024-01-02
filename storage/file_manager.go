@@ -137,7 +137,12 @@ func (f *FileManager) GetObjectLocal(bucket string, bundle string, object string
 			util.Logger.Errorf("failed to store object to local, bucket=%s, bundle=%s, object=%s, err=%s", bucket, bundle, object, err.Error())
 			return nil, err
 		}
-		return objectFile, nil
+
+		file, err := os.Open(filePath)
+		if err != nil {
+			return nil, err
+		}
+		return file, nil
 	}
 
 	file, err := os.Open(filePath)

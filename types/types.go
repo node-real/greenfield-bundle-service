@@ -100,6 +100,13 @@ var (
 	}
 )
 
+func InvalidParamsErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    400,
+		Message: err.Error(),
+	}
+}
+
 func InternalErrorWithError(err error) *models.Error {
 	return &models.Error{
 		Code:    500,

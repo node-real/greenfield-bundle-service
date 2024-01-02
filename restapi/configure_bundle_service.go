@@ -9,18 +9,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/bnb-chain/greenfield-go-sdk/client"
 	"github.com/bnb-chain/greenfield-go-sdk/types"
 	"github.com/gin-gonic/gin"
-
-	"github.com/bnb-chain/greenfield-go-sdk/client"
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/swag"
 
 	"github.com/node-real/greenfield-bundle-service/auth"
-
-	"github.com/node-real/greenfield-bundle-service/storage"
-
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
 	"github.com/node-real/greenfield-bundle-service/restapi/handlers"
@@ -28,6 +24,7 @@ import (
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/rule"
 	"github.com/node-real/greenfield-bundle-service/service"
+	"github.com/node-real/greenfield-bundle-service/storage"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 

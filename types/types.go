@@ -14,6 +14,9 @@ const (
 	MaxFinalizeTime = 60 * 60 * 24 * 7       // 7 days
 
 	MaxTagsLength = 512
+
+	MaxBundleNameLength = 128
+	MaxObjectNameLength = 512
 )
 
 var (
@@ -131,6 +134,20 @@ func InvalidBucketNameErrorWithError(err error) *models.Error {
 func InvalidBundleNameErrorWithError(err error) *models.Error {
 	return &models.Error{
 		Code:    10006,
+		Message: err.Error(),
+	}
+}
+
+func InvalidObjectNameErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10008,
+		Message: err.Error(),
+	}
+}
+
+func InvalidTagsErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10016,
 		Message: err.Error(),
 	}
 }

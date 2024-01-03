@@ -173,11 +173,6 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 		if params.XBundleTags != nil && *params.XBundleTags != "" {
 			newObject.Tags = *params.XBundleTags
 
-			if len(newObject.Tags) > types.MaxTagsLength {
-				util.Logger.Errorf("tags length exceeds limit, tags=%s, length=%d", newObject.Tags, len(newObject.Tags))
-				return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorInvalidTags)
-			}
-
 			var tags map[string]string
 			err = json.Unmarshal([]byte(newObject.Tags), &tags)
 			if err != nil {

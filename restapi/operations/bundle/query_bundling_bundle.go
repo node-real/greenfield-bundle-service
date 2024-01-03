@@ -32,9 +32,9 @@ func NewQueryBundlingBundle(ctx *middleware.Context, handler QueryBundlingBundle
 /*
 	QueryBundlingBundle swagger:route GET /queryBundlingBundle/{bucketName} Bundle queryBundlingBundle
 
-# Query bundling bundle information of user
+# Query bundling bundle information of a bucket
 
-Queries the bundling bundle information of a given user.
+Queries the bundling bundle information of a given bucket.
 */
 type QueryBundlingBundle struct {
 	Context *middleware.Context

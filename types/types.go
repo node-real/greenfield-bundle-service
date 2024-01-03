@@ -12,6 +12,11 @@ const (
 	MaxBundleFiles  = 10000
 	MaxBundleSize   = 2 * 1024 * 1024 * 1024 // 2GB
 	MaxFinalizeTime = 60 * 60 * 24 * 7       // 7 days
+
+	MaxTagsLength = 512
+
+	MaxBundleNameLength = 128
+	MaxObjectNameLength = 512
 )
 
 var (
@@ -98,6 +103,13 @@ var (
 	}
 )
 
+func InvalidParamsErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    400,
+		Message: err.Error(),
+	}
+}
+
 func InternalErrorWithError(err error) *models.Error {
 	return &models.Error{
 		Code:    500,
@@ -108,6 +120,34 @@ func InternalErrorWithError(err error) *models.Error {
 func InvalidFileContentErrorWithError(err error) *models.Error {
 	return &models.Error{
 		Code:    10010,
+		Message: err.Error(),
+	}
+}
+
+func InvalidBucketNameErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10002,
+		Message: err.Error(),
+	}
+}
+
+func InvalidBundleNameErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10006,
+		Message: err.Error(),
+	}
+}
+
+func InvalidObjectNameErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10008,
+		Message: err.Error(),
+	}
+}
+
+func InvalidTagsErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10016,
 		Message: err.Error(),
 	}
 }

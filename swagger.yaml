@@ -108,6 +108,10 @@ paths:
           description: Successfully retrieved file
           schema:
             type: file
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
         '404':
           description: Bundle or object not found
           schema:
@@ -143,6 +147,10 @@ paths:
           description: Successfully queried bundle
           schema:
             $ref: '#/definitions/QueryBundleResponse'
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
         '404':
           description: Bundle not found
           schema:
@@ -213,6 +221,10 @@ paths:
           description: Successfully retrieved file
           schema:
             type: file
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
         '404':
           description: Bundle or object not found
           schema:

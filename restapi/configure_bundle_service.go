@@ -6,18 +6,17 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
-	"github.com/bnb-chain/greenfield-go-sdk/types"
 	"net/http"
+	"strings"
 
 	"github.com/bnb-chain/greenfield-go-sdk/client"
+	"github.com/bnb-chain/greenfield-go-sdk/types"
+	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/swag"
 
 	"github.com/node-real/greenfield-bundle-service/auth"
-
-	"github.com/node-real/greenfield-bundle-service/storage"
-
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
 	"github.com/node-real/greenfield-bundle-service/restapi/handlers"
@@ -25,6 +24,7 @@ import (
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/bundle"
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/rule"
 	"github.com/node-real/greenfield-bundle-service/service"
+	"github.com/node-real/greenfield-bundle-service/storage"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
@@ -88,7 +88,53 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 
 	api.ServerShutdown = func() {}
 
-	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
+	router := gin.Default()
+
+	// Define the route
+	router.GET("/v1/view/:bucketName/:bundleName/*objectName", func(c *gin.Context) {
+		bucketName := c.Param("bucketName")
+		bundleName := c.Param("bundleName")
+		objectName := c.Param("objectName")
+		objectName = strings.TrimPrefix(objectName, "/")
+
+		params := bundle.NewViewBundleObjectParams()
+		params.HTTPRequest = c.Request
+		params.BucketName = bucketName
+		params.BundleName = bundleName
+		params.ObjectName = objectName
+
+		responder := api.BundleViewBundleObjectHandler.Handle(params)
+
+		// Write the response
+		responder.WriteResponse(c.Writer, runtime.JSONProducer())
+	})
+
+	router.GET("/v1/download/:bucketName/:bundleName/*objectName", func(c *gin.Context) {
+		bucketName := c.Param("bucketName")
+		bundleName := c.Param("bundleName")
+		objectName := c.Param("objectName")
+		objectName = strings.TrimPrefix(objectName, "/")
+
+		params := bundle.NewDownloadBundleObjectParams()
+		params.HTTPRequest = c.Request
+		params.BucketName = bucketName
+		params.BundleName = bundleName
+		params.ObjectName = objectName
+
+		responder := api.BundleDownloadBundleObjectHandler.Handle(params)
+
+		// Write the response
+		responder.WriteResponse(c.Writer, runtime.JSONProducer())
+	})
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if strings.HasPrefix(req.URL.Path, "/v1/view/") || strings.HasPrefix(req.URL.Path, "/v1/download/") {
+			router.ServeHTTP(w, req)
+		} else {
+			setupGlobalMiddleware(api.Serve(setupMiddlewares)).ServeHTTP(w, req)
+		}
+	})
+	return handler
 }
 
 // The TLS configuration before HTTPS server starts.

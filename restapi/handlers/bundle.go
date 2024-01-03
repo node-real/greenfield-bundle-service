@@ -1,9 +1,6 @@
 package handlers
 
 import (
-	"errors"
-	"strings"
-
 	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/node-real/greenfield-bundle-service/database"
@@ -67,18 +64,6 @@ func HandleDeleteBundle() func(params bundle.DeleteBundleParams) middleware.Resp
 	}
 }
 
-func validateBundleName(bundleName string) error {
-	if len(bundleName) >= 64 {
-		return errors.New("bundle name length should be less than 64")
-	}
-
-	if strings.Contains(bundleName, "/") {
-		return errors.New("bundle name should not contain '/'")
-	}
-
-	return nil
-}
-
 // HandleCreateBundle handles create bundle request
 func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Responder {
 	return func(params bundle.CreateBundleParams) middleware.Responder {
@@ -108,9 +93,9 @@ func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Resp
 		}
 
 		// validate bundle name
-		if err := validateBundleName(params.XBundleName); err != nil {
-			util.Logger.Errorf("invalid bundle name, err=%s", err.Error())
-			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInvalidBundleName)
+		if err := types.ValidateBundleName(params.XBundleName); err != nil {
+			util.Logger.Errorf("invalid bundle name, err=%s", err.Message)
+			return bundle.NewCreateBundleBadRequest().WithPayload(err)
 		}
 
 		// check the existence of the bundle in Greenfield

@@ -196,6 +196,10 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 // HandleViewBundleObject handles the view bundle object request
 func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middleware.Responder {
 	return func(params bundle.ViewBundleObjectParams) middleware.Responder {
+		if params.BucketName == "" || params.BundleName == "" || params.ObjectName == "" {
+			return bundle.NewViewBundleObjectBadRequest().WithPayload(types.InvalidParamsErrorWithError(fmt.Errorf("invalid params")))
+		}
+
 		object, err := service.ObjectSvc.GetObject(params.BucketName, params.BundleName, params.ObjectName)
 		if err != nil {
 			util.Logger.Errorf("get object error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
@@ -231,6 +235,10 @@ func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middlew
 // HandleDownloadBundleObject handles the download bundle object request
 func HandleDownloadBundleObject() func(params bundle.DownloadBundleObjectParams) middleware.Responder {
 	return func(params bundle.DownloadBundleObjectParams) middleware.Responder {
+		if params.BucketName == "" || params.BundleName == "" || params.ObjectName == "" {
+			return bundle.NewViewBundleObjectBadRequest().WithPayload(types.InvalidParamsErrorWithError(fmt.Errorf("invalid params")))
+		}
+
 		object, err := service.ObjectSvc.GetObject(params.BucketName, params.BundleName, params.ObjectName)
 		if err != nil {
 			util.Logger.Errorf("get object error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())

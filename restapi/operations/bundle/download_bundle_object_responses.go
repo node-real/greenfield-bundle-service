@@ -57,6 +57,51 @@ func (o *DownloadBundleObjectOK) WriteResponse(rw http.ResponseWriter, producer 
 	}
 }
 
+// DownloadBundleObjectBadRequestCode is the HTTP code returned for type DownloadBundleObjectBadRequest
+const DownloadBundleObjectBadRequestCode int = 400
+
+/*
+DownloadBundleObjectBadRequest Invalid request or file format
+
+swagger:response downloadBundleObjectBadRequest
+*/
+type DownloadBundleObjectBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.Error `json:"body,omitempty"`
+}
+
+// NewDownloadBundleObjectBadRequest creates DownloadBundleObjectBadRequest with default headers values
+func NewDownloadBundleObjectBadRequest() *DownloadBundleObjectBadRequest {
+
+	return &DownloadBundleObjectBadRequest{}
+}
+
+// WithPayload adds the payload to the download bundle object bad request response
+func (o *DownloadBundleObjectBadRequest) WithPayload(payload *models.Error) *DownloadBundleObjectBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the download bundle object bad request response
+func (o *DownloadBundleObjectBadRequest) SetPayload(payload *models.Error) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *DownloadBundleObjectBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
+
 // DownloadBundleObjectNotFoundCode is the HTTP code returned for type DownloadBundleObjectNotFound
 const DownloadBundleObjectNotFoundCode int = 404
 

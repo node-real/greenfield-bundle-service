@@ -244,6 +244,12 @@ func init() {
               "type": "file"
             }
           },
+          "400": {
+            "description": "Invalid request or file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "404": {
             "description": "Bundle or object not found",
             "schema": {
@@ -357,6 +363,12 @@ func init() {
               "$ref": "#/definitions/QueryBundleResponse"
             }
           },
+          "400": {
+            "description": "Invalid request or file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "404": {
             "description": "Bundle not found",
             "schema": {
@@ -374,14 +386,14 @@ func init() {
     },
     "/queryBundlingBundle/{bucketName}": {
       "get": {
-        "description": "Queries the bundling bundle information of a given user.\n",
+        "description": "Queries the bundling bundle information of a given bucket.\n",
         "produces": [
           "application/octet-stream"
         ],
         "tags": [
           "Bundle"
         ],
-        "summary": "Query bundling bundle information of user",
+        "summary": "Query bundling bundle information of a bucket",
         "operationId": "queryBundlingBundle",
         "parameters": [
           {
@@ -628,6 +640,12 @@ func init() {
             "description": "Successfully retrieved file",
             "schema": {
               "type": "file"
+            }
+          },
+          "400": {
+            "description": "Invalid request or file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           },
           "404": {
@@ -943,6 +961,12 @@ func init() {
               "type": "file"
             }
           },
+          "400": {
+            "description": "Invalid request or file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "404": {
             "description": "Bundle or object not found",
             "schema": {
@@ -1056,6 +1080,12 @@ func init() {
               "$ref": "#/definitions/QueryBundleResponse"
             }
           },
+          "400": {
+            "description": "Invalid request or file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "404": {
             "description": "Bundle not found",
             "schema": {
@@ -1073,14 +1103,14 @@ func init() {
     },
     "/queryBundlingBundle/{bucketName}": {
       "get": {
-        "description": "Queries the bundling bundle information of a given user.\n",
+        "description": "Queries the bundling bundle information of a given bucket.\n",
         "produces": [
           "application/octet-stream"
         ],
         "tags": [
           "Bundle"
         ],
-        "summary": "Query bundling bundle information of user",
+        "summary": "Query bundling bundle information of a bucket",
         "operationId": "queryBundlingBundle",
         "parameters": [
           {
@@ -1327,6 +1357,12 @@ func init() {
             "description": "Successfully retrieved file",
             "schema": {
               "type": "file"
+            }
+          },
+          "400": {
+            "description": "Invalid request or file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           },
           "404": {

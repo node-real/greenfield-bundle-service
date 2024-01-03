@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -25,17 +26,18 @@ const (
 	HTTPHeaderContentType = "Content-Type"
 	HTTPHeaderUnsignedMsg = "X-Bundle-Unsigned-Msg"
 
-	HTTPHeaderFileSHA256      = "X-Bundle-File-Sha256"
-	HTTPHeaderBucketName      = "X-Bundle-Bucket-Name"
-	HTTPHeaderAttributes      = "X-Bundle-Tags"
-	HTTPHeaderMaxBundleSize   = "X-Bundle-Max-Bundle-Size"
-	HTTPHeaderMaxFileSize     = "X-Bundle-Max-File-Size"
-	HTTPHeaderMaxFinalizeTime = "X-Bundle-Max-Finalize-Time"
+	HTTPHeaderFileSHA256        = "X-Bundle-File-Sha256"
+	HTTPHeaderBucketName        = "X-Bundle-Bucket-Name"
+	HTTPHeaderTags              = "X-Bundle-Tags"
+	HTTPHeaderMaxBundleSize     = "X-Bundle-Max-Bundle-Size"
+	HTTPHeaderMaxFileSize       = "X-Bundle-Max-File-Size"
+	HTTPHeaderMaxFinalizeTime   = "X-Bundle-Max-Finalize-Time"
+	HTTPHeaderBundleFileName    = "X-Bundle-File-Name"
+	HTTPHeaderBundleContentType = "X-Bundle-Content-Type"
 
 	// HTTPHeaderExpiryTimestamp defines the expiry timestamp, which is the ISO 8601 datetime string (e.g. 2021-09-30T16:25:24Z), and the maximum Timestamp since the request sent must be less than MaxExpiryAgeInSec (seven days).
 	HTTPHeaderExpiryTimestamp = "X-Bundle-Expiry-Timestamp"
 	HTTPHeaderAuthorization   = "Authorization"
-
 	// MaxExpiryAgeInSec defines the maximum expiry age in seconds
 	MaxExpiryAgeInSec = 3600 * 24 * 7 // 7 days
 )
@@ -45,7 +47,9 @@ var supportedHeaders = []string{
 	HTTPHeaderContentType,
 	HTTPHeaderUnsignedMsg,
 	HTTPHeaderBucketName,
-	HTTPHeaderAttributes,
+	HTTPHeaderBundleFileName,
+	HTTPHeaderBundleContentType,
+	HTTPHeaderTags,
 	HTTPHeaderMaxBundleSize,
 	HTTPHeaderMaxFileSize,
 	HTTPHeaderMaxFinalizeTime,
@@ -258,5 +262,62 @@ func ValidateHeaders(req *http.Request) (common.Address, *models.Error) {
 	if err != nil {
 		return common.Address{}, ErrorInvalidSignature
 	}
+
+	if bucketName := req.Header.Get(HTTPHeaderBucketName); bucketName != "" {
+		err := ValidateBucketName(bucketName)
+		if err != nil {
+			return common.Address{}, err
+		}
+	}
+
+	if objectName := req.Header.Get(HTTPHeaderBundleFileName); objectName != "" {
+		err := ValidateObjectName(objectName)
+		if err != nil {
+			return common.Address{}, err
+		}
+	}
+
+	if tags := req.Header.Get(HTTPHeaderTags); tags != "" {
+		err := ValidateTags(tags)
+		if err != nil {
+			return common.Address{}, err
+		}
+	}
+
 	return signerAddress, nil
+}
+
+func ValidateTags(tags string) *models.Error {
+	if len(tags) > MaxTagsLength {
+		return InvalidTagsErrorWithError(fmt.Errorf("tags length should be less than %d", MaxTagsLength))
+	}
+
+	return nil
+}
+
+func ValidateObjectName(objectName string) *models.Error {
+	if len(objectName) >= MaxObjectNameLength {
+		return InvalidObjectNameErrorWithError(fmt.Errorf("object name length should be less than %d", MaxObjectNameLength))
+	}
+	return nil
+}
+
+func ValidateBucketName(bucketName string) *models.Error {
+	if strings.Contains(bucketName, "/") {
+		return InvalidBucketNameErrorWithError(errors.New("bucket name should not contain '/'"))
+	}
+
+	return nil
+}
+
+func ValidateBundleName(bundleName string) *models.Error {
+	if len(bundleName) > MaxBundleNameLength {
+		return InvalidBundleNameErrorWithError(fmt.Errorf("bundle name length should be less than %d", MaxBundleNameLength))
+	}
+
+	if strings.Contains(bundleName, "/") {
+		return InvalidBundleNameErrorWithError(errors.New("bundle name should not contain '/'"))
+	}
+
+	return nil
 }

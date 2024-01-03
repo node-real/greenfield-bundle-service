@@ -58,6 +58,51 @@ func (o *QueryBundleOK) WriteResponse(rw http.ResponseWriter, producer runtime.P
 	}
 }
 
+// QueryBundleBadRequestCode is the HTTP code returned for type QueryBundleBadRequest
+const QueryBundleBadRequestCode int = 400
+
+/*
+QueryBundleBadRequest Invalid request or file format
+
+swagger:response queryBundleBadRequest
+*/
+type QueryBundleBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.Error `json:"body,omitempty"`
+}
+
+// NewQueryBundleBadRequest creates QueryBundleBadRequest with default headers values
+func NewQueryBundleBadRequest() *QueryBundleBadRequest {
+
+	return &QueryBundleBadRequest{}
+}
+
+// WithPayload adds the payload to the query bundle bad request response
+func (o *QueryBundleBadRequest) WithPayload(payload *models.Error) *QueryBundleBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the query bundle bad request response
+func (o *QueryBundleBadRequest) SetPayload(payload *models.Error) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *QueryBundleBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
+
 // QueryBundleNotFoundCode is the HTTP code returned for type QueryBundleNotFound
 const QueryBundleNotFoundCode int = 404
 

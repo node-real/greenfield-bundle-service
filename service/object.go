@@ -14,6 +14,8 @@ type Object interface {
 	GetObject(bucket string, bundle string, object string) (database.Object, error)
 	GetObjectFile(bucket string, bundle string, object string) (io.ReadCloser, error)
 	StoreObjectFile(bucketName, bundleName string, objectName string, file io.ReadCloser) (string, int64, error)
+	GetBundleFile(bucket string, bundle string) (io.ReadCloser, error)
+	StoreBundleFile(bucket string, bundle string, file io.ReadCloser) (string, int64, error)
 }
 
 type ObjectService struct {
@@ -60,4 +62,14 @@ func (s *ObjectService) GetObjectFile(bucket string, bundle string, object strin
 // GetObject gets an object from database
 func (s *ObjectService) GetObject(bucket string, bundle string, object string) (database.Object, error) {
 	return s.objectDao.GetObject(bucket, bundle, object)
+}
+
+// GetBundleFile gets the bundle file
+func (s *ObjectService) GetBundleFile(bucket string, bundle string) (io.ReadCloser, error) {
+	return s.fileManager.GetBundle(bucket, bundle)
+}
+
+// StoreBundleFile stores the bundle file to local storage
+func (s *ObjectService) StoreBundleFile(bucket string, bundle string, file io.ReadCloser) (string, int64, error) {
+	return s.fileManager.StoreBundle(bucket, bundle, file)
 }

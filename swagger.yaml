@@ -77,6 +77,64 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /uploadBundle:
+    post:
+      tags:
+        - Bundle
+      summary: Upload a bundle
+      description: >
+        Uploads a bundle of objects, requiring details like bucket name, bundle name, and etc.
+      operationId: uploadBundle
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: Authorization
+          in: header
+          description: User's digital signature for authentication
+          required: true
+          type: string
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
+          required: true
+          type: string
+        - name: X-Bundle-Name
+          in: header
+          description: The name of the bundle to be created
+          required: true
+          type: string
+        - name: X-Bundle-File-Sha256
+          in: header
+          description: SHA256 hash of the file
+          required: true
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
+        - name: file
+          in: formData
+          description: The file to be uploaded
+          required: true
+          type: file
+      responses:
+        '200':
+          description: Successfully uploaded file
+          schema:
+            $ref: '#/definitions/UploadObjectResponse'
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
   /view/{bucketName}/{bundleName}/{objectName}:
     get:
       tags:

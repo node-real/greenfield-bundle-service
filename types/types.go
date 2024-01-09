@@ -5,11 +5,12 @@ import "github.com/node-real/greenfield-bundle-service/models"
 const (
 	DefaultMaxFileSize = 10 * 1024 * 1024 // 10MB
 
-	DefaultMaxBundleFiles  = 100
+	DefaultMaxBundleFiles  = 1000
 	DefaultMaxBundleSize   = 1024 * 1024 * 1024 // 1GB
 	DefaultMaxFinalizeTime = 60 * 60 * 24
 
-	MaxBundleFiles  = 10000
+	MaxFileSize     = 10 * 1024 * 1024 // 100MB
+	MaxBundleFiles  = 1000
 	MaxBundleSize   = 2 * 1024 * 1024 * 1024 // 2GB
 	MaxFinalizeTime = 60 * 60 * 24 * 7       // 7 days
 

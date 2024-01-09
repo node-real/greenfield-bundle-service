@@ -82,6 +82,8 @@ func configureAPI(api *operations.BundleServiceAPI) http.Handler {
 
 	api.BundleUploadObjectHandler = bundle.UploadObjectHandlerFunc(handlers.HandleUploadObject())
 
+	api.BundleUploadBundleHandler = bundle.UploadBundleHandlerFunc(handlers.HandleUploadBundle())
+
 	api.BundleBundlerAccountHandler = bundle.BundlerAccountHandlerFunc(handlers.HandleGetUserBundlerAccount())
 
 	api.PreServerShutdown = func() {}
@@ -180,7 +182,7 @@ func configureServer(s *http.Server, scheme, addr string) {
 	util.Logger.Infof("set greenfield client default server account: %s", serverAccount.GetAddress().String())
 	gnfdClient.SetDefaultAccount(serverAccount)
 
-	fileManager := storage.NewFileManager(config, objectDao, gnfdClient)
+	fileManager := storage.NewFileManager(config, objectDao, bundleDao, gnfdClient)
 	authManager := auth.NewAuthManager(gnfdClient)
 
 	// init services

@@ -71,6 +71,9 @@ func NewBundleServiceAPI(spec *loads.Document) *BundleServiceAPI {
 		RuleSetBundleRuleHandler: rule.SetBundleRuleHandlerFunc(func(params rule.SetBundleRuleParams) middleware.Responder {
 			return middleware.NotImplemented("operation rule.SetBundleRule has not yet been implemented")
 		}),
+		BundleUploadBundleHandler: bundle.UploadBundleHandlerFunc(func(params bundle.UploadBundleParams) middleware.Responder {
+			return middleware.NotImplemented("operation bundle.UploadBundle has not yet been implemented")
+		}),
 		BundleUploadObjectHandler: bundle.UploadObjectHandlerFunc(func(params bundle.UploadObjectParams) middleware.Responder {
 			return middleware.NotImplemented("operation bundle.UploadObject has not yet been implemented")
 		}),
@@ -135,6 +138,8 @@ type BundleServiceAPI struct {
 	BundleQueryBundlingBundleHandler bundle.QueryBundlingBundleHandler
 	// RuleSetBundleRuleHandler sets the operation handler for the set bundle rule operation
 	RuleSetBundleRuleHandler rule.SetBundleRuleHandler
+	// BundleUploadBundleHandler sets the operation handler for the upload bundle operation
+	BundleUploadBundleHandler bundle.UploadBundleHandler
 	// BundleUploadObjectHandler sets the operation handler for the upload object operation
 	BundleUploadObjectHandler bundle.UploadObjectHandler
 	// BundleViewBundleObjectHandler sets the operation handler for the view bundle object operation
@@ -245,6 +250,9 @@ func (o *BundleServiceAPI) Validate() error {
 	}
 	if o.RuleSetBundleRuleHandler == nil {
 		unregistered = append(unregistered, "rule.SetBundleRuleHandler")
+	}
+	if o.BundleUploadBundleHandler == nil {
+		unregistered = append(unregistered, "bundle.UploadBundleHandler")
 	}
 	if o.BundleUploadObjectHandler == nil {
 		unregistered = append(unregistered, "bundle.UploadObjectHandler")
@@ -376,6 +384,10 @@ func (o *BundleServiceAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/setBundleRule"] = rule.NewSetBundleRule(o.context, o.RuleSetBundleRuleHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/uploadBundle"] = bundle.NewUploadBundle(o.context, o.BundleUploadBundleHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

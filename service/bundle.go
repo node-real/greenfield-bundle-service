@@ -39,6 +39,7 @@ type Bundle interface {
 	QueryBucketFromGndf(bucketName string) (*gnfdtypes.BucketInfo, error)
 	HeadObjectFromGnfd(bucketName string, objectName string) (*sdktypes.ObjectDetail, error)
 	DeleteBundle(bucketName, bundleName string) error
+	CreateFinalizedBundleWithObjects(newBundle database.Bundle, objects []database.Object) (database.Bundle, error)
 }
 
 type BundleService struct {
@@ -203,4 +204,53 @@ func (s *BundleService) FinalizeBundle(bucketName string, bundleName string) (*d
 	}
 
 	return updatedBundle, nil
+}
+
+// CreateFinalizedBundleWithObjects creates a new finalized bundle with objects
+func (s *BundleService) CreateFinalizedBundleWithObjects(newBundle database.Bundle, objects []database.Object) (database.Bundle, error) {
+	// check permission for the bucket
+	isPermissionGranted, err := s.authManager.IsBucketPermissionGranted(common.HexToAddress(newBundle.BundlerAccount), newBundle.Bucket)
+	if err != nil {
+		util.Logger.Errorf("check bucket permission error, bucket=%s, err=%s", newBundle.Bucket, err.Error())
+		return database.Bundle{}, err
+	}
+
+	if !isPermissionGranted {
+		util.Logger.Errorf("bucket(%s) permission not granted for bundler(%s)", newBundle.Bucket, newBundle.BundlerAccount)
+		return database.Bundle{}, fmt.Errorf("bucket(%s) permission not granted for bundler(%s)", newBundle.Bucket, newBundle.BundlerAccount)
+	}
+
+	// get bundle rule for the bucket
+	bundleRule, err := s.bundleRuleDao.Get(newBundle.Owner, newBundle.Bucket)
+	if err != nil {
+		util.Logger.Errorf("get bundle rule error, owner=%s, bucket=%s, err=%s", newBundle.Owner, newBundle.Bucket, err.Error())
+		return database.Bundle{}, err
+	}
+
+	// set bundle rule for the new bundle, if not exist, use default
+	if bundleRule.Id == 0 {
+		newBundle.MaxFiles = types.DefaultMaxBundleFiles
+		newBundle.MaxSize = types.DefaultMaxBundleSize
+		newBundle.MaxFinalizeTime = types.DefaultMaxFinalizeTime
+	} else {
+		newBundle.MaxFiles = bundleRule.MaxFiles
+		newBundle.MaxSize = bundleRule.MaxSize
+		newBundle.MaxFinalizeTime = bundleRule.MaxFinalizeTime
+	}
+
+	// reject if bundle name is empty
+	if newBundle.Name == "" {
+		return database.Bundle{}, fmt.Errorf("bundle name is empty")
+	}
+
+	// set bundle status to finalized
+	newBundle.Status = database.BundleStatusFinalized
+
+	newBundle, err = s.bundleDao.InsertObjectsInOneTransaction(newBundle, objects)
+	if err != nil {
+		util.Logger.Errorf("insert objects error, bundle=%+v, err=%s", newBundle, err.Error())
+		return database.Bundle{}, err
+	}
+
+	return newBundle, nil
 }

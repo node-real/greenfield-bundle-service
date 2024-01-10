@@ -1,6 +1,7 @@
 package bundler
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -48,7 +49,7 @@ func NewBundler(config *util.ServerConfig, db *gorm.DB) (*Bundler, error) {
 		util.Logger.Fatalf("unable to new greenfield client, %v", err)
 	}
 
-	fileManager := storage.NewFileManager(config, objectDao, gnfdClient)
+	fileManager := storage.NewFileManager(config, objectDao, bundleDao, gnfdClient)
 	return &Bundler{
 		config:            config,
 		objectDao:         objectDao,
@@ -165,7 +166,7 @@ func (b *Bundler) submitLoop(account *types.Account) {
 					continue
 				}
 
-				bundledObject, size, err := b.assembleBundleObject(bundle)
+				bundledObject, size, err := b.assembleOrGetBundleObject(bundle)
 				if err != nil {
 					util.Logger.Errorf("assemble bundle object failed, bundle=%s, err=%v", bundle.Bucket+bundle.Name, err.Error())
 					bundle.RetryCounter++
@@ -251,7 +252,12 @@ func (b *Bundler) submitLoop(account *types.Account) {
 	}
 }
 
-func (b *Bundler) assembleBundleObject(bundleRecord *database.Bundle) (io.ReadSeekCloser, int64, error) {
+func (b *Bundler) assembleOrGetBundleObject(bundleRecord *database.Bundle) (io.ReadCloser, int64, error) {
+	storedBundle, err := b.fileManager.GetBundle(bundleRecord.Bucket, bundleRecord.Name)
+	if err == nil {
+		return storedBundle, bundleRecord.Size, nil
+	}
+
 	newBundle, err := bundle.NewBundle()
 	if err != nil {
 		return nil, 0, fmt.Errorf("new bundle failed: %v", err)
@@ -299,7 +305,7 @@ func (b *Bundler) assembleBundleObject(bundleRecord *database.Bundle) (io.ReadSe
 	return bundledObject, size, nil
 }
 
-func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bundle, object io.ReadSeekCloser, size int64) (string, *types.ObjectDetail, error) {
+func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bundle, object io.ReadCloser, size int64) (string, *types.ObjectDetail, error) {
 	if size == 0 {
 		return "", nil, fmt.Errorf("invalid bundle size")
 	}
@@ -307,6 +313,12 @@ func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bu
 	owner, err := sdk.AccAddressFromHexUnsafe(bundle.Owner)
 	if err != nil {
 		return "", nil, fmt.Errorf("invalid owner address, owner=%s, err=%v", bundle.Owner, err)
+	}
+
+	// Read all bytes from the object
+	objectBytes, err := io.ReadAll(object)
+	if err != nil {
+		return "", nil, err
 	}
 
 	var txHash string
@@ -318,7 +330,7 @@ func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bu
 			TxOpts:      &gnfdsdktypes.TxOption{FeeGranter: owner},
 		}
 
-		txHash, err = client.CreateObject(context.Background(), bundle.Bucket, bundle.Name, object, opts)
+		txHash, err = client.CreateObject(context.Background(), bundle.Bucket, bundle.Name, bytes.NewReader(objectBytes), opts)
 		if err != nil {
 			return "", nil, fmt.Errorf("create bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
 		}
@@ -327,14 +339,12 @@ func (b *Bundler) submitBundledObject(client client.IClient, bundle *database.Bu
 		if err != nil {
 			return "", nil, fmt.Errorf("head bundle object failed, bucket=%s, bundle=%s, err=%v", bundle.Bucket, bundle.Name, err)
 		}
-
-		_, _ = object.Seek(0, 0)
 	}
 
 	opts := types.PutObjectOptions{
 		ContentType: "bundle",
 	}
-	return txHash, objectDetail, client.PutObject(context.Background(), bundle.Bucket, bundle.Name, size, object, opts)
+	return txHash, objectDetail, client.PutObject(context.Background(), bundle.Bucket, bundle.Name, size, bytes.NewReader(objectBytes), opts)
 }
 
 func (b *Bundler) checkBundleSealed(client client.IClient, bundle *database.Bundle) bool {

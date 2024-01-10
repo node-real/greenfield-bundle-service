@@ -507,6 +507,87 @@ func init() {
         }
       }
     },
+    "/uploadBundle": {
+      "post": {
+        "description": "Uploads a bundle of objects, requiring details like bucket name, bundle name, and etc.\n",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Upload a bundle",
+        "operationId": "uploadBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authentication",
+            "name": "Authorization",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle to be created",
+            "name": "X-Bundle-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "SHA256 hash of the file",
+            "name": "X-Bundle-File-Sha256",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "file",
+            "description": "The file to be uploaded",
+            "name": "file",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully uploaded file",
+            "schema": {
+              "$ref": "#/definitions/UploadObjectResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request or file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/uploadObject": {
       "post": {
         "description": "Uploads a single object to a bundle, requiring details like bucket name, file name, and etc.\n",
@@ -1211,6 +1292,87 @@ func init() {
           },
           "400": {
             "description": "Invalid request or parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/uploadBundle": {
+      "post": {
+        "description": "Uploads a bundle of objects, requiring details like bucket name, bundle name, and etc.\n",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Bundle"
+        ],
+        "summary": "Upload a bundle",
+        "operationId": "uploadBundle",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User's digital signature for authentication",
+            "name": "Authorization",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bucket",
+            "name": "X-Bundle-Bucket-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the bundle to be created",
+            "name": "X-Bundle-Name",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "SHA256 hash of the file",
+            "name": "X-Bundle-File-Sha256",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry timestamp of the request",
+            "name": "X-Bundle-Expiry-Timestamp",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "file",
+            "description": "The file to be uploaded",
+            "name": "file",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully uploaded file",
+            "schema": {
+              "$ref": "#/definitions/UploadObjectResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request or file format",
             "schema": {
               "$ref": "#/definitions/Error"
             }

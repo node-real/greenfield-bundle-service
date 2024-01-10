@@ -5,10 +5,12 @@ import (
 
 	"github.com/node-real/greenfield-bundle-service/dao"
 	"github.com/node-real/greenfield-bundle-service/database"
+	"github.com/node-real/greenfield-bundle-service/types"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 type BundleRule interface {
+	QueryBundleRule(userAddress string, bucketName string) (database.BundleRule, error)
 	CreateOrUpdateBundleRule(userAddress common.Address, bucketName string, maxFiles int64, maxSize int64, maxFinalizeTime int64) (database.BundleRule, error)
 }
 
@@ -24,11 +26,20 @@ func NewBundleRuleService(bundleRuleDao dao.BundleRuleDao) BundleRule {
 	return &bs
 }
 
+// QueryBundleRule queries bundle rule, if not exist, return default rule
 func (s *BundleRuleService) QueryBundleRule(userAddress string, bucketName string) (database.BundleRule, error) {
 	bundleRule, err := s.bundleRuleDao.Get(userAddress, bucketName)
 	if err != nil {
 		util.Logger.Errorf("failed to get bundle rule: %v", err)
 		return database.BundleRule{}, err
+	}
+
+	if bundleRule.Id == 0 {
+		bundleRule.Owner = userAddress
+		bundleRule.Bucket = bucketName
+		bundleRule.MaxFiles = types.DefaultMaxBundleFiles
+		bundleRule.MaxSize = types.DefaultMaxBundleSize
+		bundleRule.MaxFinalizeTime = types.DefaultMaxFinalizeTime
 	}
 
 	return bundleRule, nil

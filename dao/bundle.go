@@ -22,6 +22,7 @@ type BundleDao interface {
 	GetBundlingBundles() ([]*database.Bundle, error)
 	GetFinalizedBundlesByBundlerAccount(account string) ([]*database.Bundle, error)
 	GetCreatedOnChainBundlesByBundlerAccount(account string) ([]*database.Bundle, error)
+	InsertObjectsInOneTransaction(bundle database.Bundle, objects []database.Object) (database.Bundle, error)
 }
 
 type dbBundleDao struct {
@@ -157,4 +158,35 @@ func (s *dbBundleDao) GetCreatedOnChainBundlesByBundlerAccount(account string) (
 		return nil, err
 	}
 	return bundles, nil
+}
+
+// InsertObjectsInOneTransaction inserts objects in one transaction
+func (s *dbBundleDao) InsertObjectsInOneTransaction(bundle database.Bundle, objects []database.Object) (database.Bundle, error) {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		// Insert the bundle into the database
+		if err := tx.Create(&bundle).Error; err != nil {
+			return err
+		}
+
+		sql := "INSERT INTO objects (bucket, bundle_name, object_name, content_type, hash_algo, hash, owner, size, offset_in_bundle, tags, created_at, updated_at) VALUES "
+		var values []interface{}
+
+		for _, object := range objects {
+			object.CreatedAt = time.Now()
+			object.UpdatedAt = time.Now()
+			sql += "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?),"
+			values = append(values, object.Bucket, object.BundleName, object.ObjectName, object.ContentType, object.HashAlgo, object.Hash, object.Owner, object.Size, object.OffsetInBundle, object.Tags, object.CreatedAt, object.UpdatedAt)
+		}
+
+		// trim the last ","
+		sql = sql[0 : len(sql)-1]
+
+		return tx.Exec(sql, values...).Error
+	})
+
+	if err != nil {
+		return database.Bundle{}, err
+	}
+
+	return bundle, nil
 }

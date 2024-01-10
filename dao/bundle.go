@@ -172,6 +172,8 @@ func (s *dbBundleDao) InsertObjectsInOneTransaction(bundle database.Bundle, obje
 		var values []interface{}
 
 		for _, object := range objects {
+			object.CreatedAt = time.Now()
+			object.UpdatedAt = time.Now()
 			sql += "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?),"
 			values = append(values, object.Bucket, object.BundleName, object.ObjectName, object.ContentType, object.HashAlgo, object.Hash, object.Owner, object.Size, object.OffsetInBundle, object.Tags, object.CreatedAt, object.UpdatedAt)
 		}

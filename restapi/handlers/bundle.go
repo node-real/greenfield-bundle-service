@@ -49,7 +49,7 @@ func HandleDeleteBundle() func(params bundle.DeleteBundleParams) middleware.Resp
 		}
 
 		// check if the signer is the owner of the bundle
-		bucketInfo, err := service.BundleSvc.QueryBucketFromGndf(params.XBundleBucketName)
+		bucketInfo, err := service.BundleSvc.QueryBucketFromGnfd(params.XBundleBucketName)
 		if err != nil {
 			util.Logger.Errorf("query bucket error, err=%s", err.Error())
 			return bundle.NewDeleteBundleBadRequest().WithPayload(types.ErrorInternalError)
@@ -80,7 +80,7 @@ func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Resp
 			return bundle.NewCreateBundleBadRequest().WithPayload(merr)
 		}
 
-		bucketInfo, err := service.BundleSvc.QueryBucketFromGndf(params.XBundleBucketName)
+		bucketInfo, err := service.BundleSvc.QueryBucketFromGnfd(params.XBundleBucketName)
 		if err != nil {
 			util.Logger.Errorf("query bucket error, err=%s", err.Error())
 			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInternalError)
@@ -237,7 +237,7 @@ func ValidateUploadBundleRequest(params bundle.UploadBundleParams) (common.Addre
 		return common.Address{}, merr
 	}
 
-	bucketInfo, err := service.BundleSvc.QueryBucketFromGndf(params.XBundleBucketName)
+	bucketInfo, err := service.BundleSvc.QueryBucketFromGnfd(params.XBundleBucketName)
 	if err != nil {
 		util.Logger.Errorf("query bucket error, err=%s", err.Error())
 		return common.Address{}, types.InternalErrorWithError(err)

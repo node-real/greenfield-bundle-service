@@ -36,7 +36,7 @@ type Bundle interface {
 	QueryBundle(bucketName string, bundleName string) (*database.Bundle, error)
 	FinalizeBundle(bucketName string, bundleName string) (*database.Bundle, error)
 	GetBundlingBundle(bucketName string) (database.Bundle, error)
-	QueryBucketFromGndf(bucketName string) (*gnfdtypes.BucketInfo, error)
+	QueryBucketFromGnfd(bucketName string) (*gnfdtypes.BucketInfo, error)
 	HeadObjectFromGnfd(bucketName string, objectName string) (*sdktypes.ObjectDetail, error)
 	DeleteBundle(bucketName, bundleName string) error
 	CreateFinalizedBundleWithObjects(newBundle database.Bundle, objects []database.Object) (database.Bundle, error)
@@ -74,7 +74,7 @@ func (s *BundleService) GetBundlingBundle(bucketName string) (database.Bundle, e
 }
 
 // QueryBucketFromGndf queries the bucket info from gndf
-func (s *BundleService) QueryBucketFromGndf(bucketName string) (*gnfdtypes.BucketInfo, error) {
+func (s *BundleService) QueryBucketFromGnfd(bucketName string) (*gnfdtypes.BucketInfo, error) {
 	bucket, err := s.gndfClient.HeadBucket(context.Background(), bucketName)
 	if err != nil {
 		util.Logger.Errorf("query bucket error, bucket=%s, err=%s", bucketName, err.Error())

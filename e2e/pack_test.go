@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -128,7 +127,7 @@ func TestUploadBundle(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer bundleFile.Close()
-	bundleContent, err := ioutil.ReadAll(bundleFile)
+	bundleContent, err := io.ReadAll(bundleFile)
 	if err != nil {
 		t.Fatal(err)
 	}

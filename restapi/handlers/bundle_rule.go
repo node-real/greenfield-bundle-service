@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/go-openapi/runtime/middleware"
+
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/rule"
 	"github.com/node-real/greenfield-bundle-service/service"
 	"github.com/node-real/greenfield-bundle-service/types"
@@ -17,7 +18,7 @@ func HandleSetBundleRule() func(params rule.SetBundleRuleParams) middleware.Resp
 			return rule.NewSetBundleRuleBadRequest().WithPayload(merr)
 		}
 
-		bucket, err := service.BundleSvc.QueryBucketFromGndf(params.XBundleBucketName)
+		bucket, err := service.BundleSvc.QueryBucketFromGnfd(params.XBundleBucketName)
 		if err != nil {
 			util.Logger.Errorf("query bucket error, err=%s", err.Error())
 			return rule.NewSetBundleRuleInternalServerError().WithPayload(types.ErrorInternalError)

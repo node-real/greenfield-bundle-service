@@ -117,7 +117,7 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 		}
 
 		// check if the signer is the owner of the bucket
-		bucketInfo, err := service.BundleSvc.QueryBucketFromGndf(params.XBundleBucketName)
+		bucketInfo, err := service.BundleSvc.QueryBucketFromGnfd(params.XBundleBucketName)
 		if err != nil {
 			util.Logger.Errorf("query bucket error, err=%s", err.Error())
 			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorInternalError)

@@ -3,21 +3,24 @@ package types
 import "github.com/node-real/greenfield-bundle-service/models"
 
 const (
-	DefaultMaxFileSize = 10 * 1024 * 1024 // 10MB
+	DefaultMaxFileSize = 16 * 1024 * 1024 // 16MB
 
 	DefaultMaxBundleFiles  = 1000
 	DefaultMaxBundleSize   = 1024 * 1024 * 1024 // 1GB
 	DefaultMaxFinalizeTime = 60 * 60 * 24
 
-	MaxFileSize     = 10 * 1024 * 1024 // 100MB
+	MaxFileSize     = 16 * 1024 * 1024 // 16MB
 	MaxBundleFiles  = 1000
 	MaxBundleSize   = 2 * 1024 * 1024 * 1024 // 2GB
-	MaxFinalizeTime = 60 * 60 * 24 * 7       // 7 days
+	MaxFinalizeTime = 60 * 60 * 24           // 1 day
 
-	MaxTagsLength = 512
+	MinFinalizeTime = 60 // 1 minute
+	MinBundleFiles  = 1  // 1 file
+
+	MaxTagsLength = 1024
 
 	MaxBundleNameLength = 128
-	MaxObjectNameLength = 512
+	MaxObjectNameLength = 1024
 )
 
 var (
@@ -103,6 +106,13 @@ var (
 		Message: "Invalid bundle rule params",
 	}
 )
+
+func InvalidSignatureErrorWithError(err error) *models.Error {
+	return &models.Error{
+		Code:    10001,
+		Message: err.Error(),
+	}
+}
 
 func InvalidParamsErrorWithError(err error) *models.Error {
 	return &models.Error{

@@ -1,8 +1,9 @@
 package database
 
 import (
-	"github.com/bnb-chain/greenfield-bundle-sdk/types"
 	"time"
+
+	"github.com/bnb-chain/greenfield-bundle-sdk/types"
 )
 
 // Object is used to store the object information
@@ -10,7 +11,7 @@ type Object struct {
 	Id             int64          `json:"id" gorm:"primaryKey"`
 	Bucket         string         `json:"bucket" gorm:"size:64;index:idx_object_name,priority:1,unique"`
 	BundleName     string         `json:"bundle_name" gorm:"size:128;index:idx_object_name,priority:2,unique"`
-	ObjectName     string         `json:"object_name" gorm:"size:512;index:idx_object_name,priority:3,unique"`
+	ObjectName     string         `json:"object_name" gorm:"size:1024;index:idx_object_name,priority:3,unique"`
 	ContentType    string         `json:"content_type" gorm:"size:64"`
 	HashAlgo       types.HashAlgo `json:"hash_algo"`
 	Hash           []byte         `json:"hash"`

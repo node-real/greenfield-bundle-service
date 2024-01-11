@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/node-real/greenfield-bundle-service/restapi/operations/rule"
@@ -21,13 +23,13 @@ func HandleSetBundleRule() func(params rule.SetBundleRuleParams) middleware.Resp
 		bucket, err := service.BundleSvc.QueryBucketFromGnfd(params.XBundleBucketName)
 		if err != nil {
 			util.Logger.Errorf("query bucket error, err=%s", err.Error())
-			return rule.NewSetBundleRuleInternalServerError().WithPayload(types.ErrorInternalError)
+			return rule.NewSetBundleRuleInternalServerError().WithPayload(types.InvalidBucketNameErrorWithError(err))
 		}
 
 		// check if the signer is the owner of the bucket
 		if bucket.Owner != signerAddress.String() {
 			util.Logger.Errorf("signer is not the owner of the bucket, signer=%s, bucket=%s", signerAddress.String(), params.XBundleBucketName)
-			return rule.NewSetBundleRuleBadRequest().WithPayload(types.ErrorInvalidSignature)
+			return rule.NewSetBundleRuleBadRequest().WithPayload(types.InvalidSignatureErrorWithError(fmt.Errorf("signer is not the owner of the bucket")))
 		}
 
 		// check rule params

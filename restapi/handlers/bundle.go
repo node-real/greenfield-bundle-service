@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 
@@ -52,11 +53,11 @@ func HandleDeleteBundle() func(params bundle.DeleteBundleParams) middleware.Resp
 		bucketInfo, err := service.BundleSvc.QueryBucketFromGnfd(params.XBundleBucketName)
 		if err != nil {
 			util.Logger.Errorf("query bucket error, err=%s", err.Error())
-			return bundle.NewDeleteBundleBadRequest().WithPayload(types.ErrorInternalError)
+			return bundle.NewDeleteBundleBadRequest().WithPayload(types.InternalErrorWithError(err))
 		}
 		if bucketInfo.Owner != signerAddress.String() {
 			util.Logger.Errorf("signer is not the owner of the bucket, signer=%s, bucket=%s", signerAddress.String(), params.XBundleBucketName)
-			return bundle.NewDeleteBundleBadRequest().WithPayload(types.ErrorInvalidSignature)
+			return bundle.NewDeleteBundleBadRequest().WithPayload(types.InvalidSignatureErrorWithError(fmt.Errorf("signer is not the owner of the bucket")))
 		}
 
 		// delete bundle
@@ -83,13 +84,13 @@ func HandleCreateBundle() func(params bundle.CreateBundleParams) middleware.Resp
 		bucketInfo, err := service.BundleSvc.QueryBucketFromGnfd(params.XBundleBucketName)
 		if err != nil {
 			util.Logger.Errorf("query bucket error, err=%s", err.Error())
-			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInternalError)
+			return bundle.NewCreateBundleBadRequest().WithPayload(types.InternalErrorWithError(err))
 		}
 
 		// check if the signer is the owner of the bucket
 		if bucketInfo.Owner != signerAddress.String() {
 			util.Logger.Errorf("signer is not the owner of the bucket, signer=%s, bucket=%s", signerAddress.String(), params.XBundleBucketName)
-			return bundle.NewCreateBundleBadRequest().WithPayload(types.ErrorInvalidSignature)
+			return bundle.NewCreateBundleBadRequest().WithPayload(types.InvalidSignatureErrorWithError(fmt.Errorf("signer is not the owner of the bucket")))
 		}
 
 		// check bundle name prefix

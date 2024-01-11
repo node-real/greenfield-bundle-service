@@ -35,7 +35,6 @@ func ValidateFileContent(params bundle.UploadObjectParams) (io.ReadCloser, error
 	}
 
 	contentLength := params.HTTPRequest.Header.Get("Content-Length")
-
 	fileSize, err := strconv.Atoi(contentLength)
 	if err != nil {
 		util.Logger.Errorf("invalid Content-Length header, err=%s", err.Error())
@@ -120,11 +119,11 @@ func HandleUploadObject() func(params bundle.UploadObjectParams) middleware.Resp
 		bucketInfo, err := service.BundleSvc.QueryBucketFromGnfd(params.XBundleBucketName)
 		if err != nil {
 			util.Logger.Errorf("query bucket error, err=%s", err.Error())
-			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorInternalError)
+			return bundle.NewUploadObjectBadRequest().WithPayload(types.InternalErrorWithError(err))
 		}
 		if bucketInfo.Owner != signerAddress.String() {
 			util.Logger.Errorf("signer is not the owner of the bucket, signer=%s, bucket=%s", signerAddress.String(), params.XBundleBucketName)
-			return bundle.NewUploadObjectBadRequest().WithPayload(types.ErrorInvalidSignature)
+			return bundle.NewUploadObjectBadRequest().WithPayload(types.InvalidSignatureErrorWithError(fmt.Errorf("signer is not the owner of the bucket")))
 		}
 
 		// get bundling bundle
@@ -203,7 +202,7 @@ func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middlew
 		object, err := service.ObjectSvc.GetObject(params.BucketName, params.BundleName, params.ObjectName)
 		if err != nil {
 			util.Logger.Errorf("get object error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
-			return bundle.NewViewBundleObjectInternalServerError()
+			return bundle.NewViewBundleObjectInternalServerError().WithPayload(types.InternalErrorWithError(err))
 		}
 
 		if object.Id == 0 {
@@ -213,7 +212,7 @@ func HandleViewBundleObject() func(params bundle.ViewBundleObjectParams) middlew
 		objectFile, err := service.ObjectSvc.GetObjectFile(params.BucketName, params.BundleName, params.ObjectName)
 		if err != nil {
 			util.Logger.Errorf("get object file error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
-			return bundle.NewViewBundleObjectInternalServerError()
+			return bundle.NewViewBundleObjectInternalServerError().WithPayload(types.InternalErrorWithError(err))
 		}
 
 		response := &http.Response{
@@ -242,7 +241,7 @@ func HandleDownloadBundleObject() func(params bundle.DownloadBundleObjectParams)
 		object, err := service.ObjectSvc.GetObject(params.BucketName, params.BundleName, params.ObjectName)
 		if err != nil {
 			util.Logger.Errorf("get object error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
-			return bundle.NewViewBundleObjectInternalServerError()
+			return bundle.NewViewBundleObjectInternalServerError().WithPayload(types.InternalErrorWithError(err))
 		}
 
 		if object.Id == 0 {
@@ -252,7 +251,7 @@ func HandleDownloadBundleObject() func(params bundle.DownloadBundleObjectParams)
 		objectFile, err := service.ObjectSvc.GetObjectFile(params.BucketName, params.BundleName, params.ObjectName)
 		if err != nil {
 			util.Logger.Errorf("get object file error, bucket=%s, bundle=%s, object=%s, err=%s", params.BucketName, params.BundleName, params.ObjectName, err.Error())
-			return bundle.NewViewBundleObjectInternalServerError()
+			return bundle.NewViewBundleObjectInternalServerError().WithPayload(types.InternalErrorWithError(err))
 		}
 
 		response := &http.Response{

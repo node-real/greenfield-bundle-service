@@ -20,7 +20,7 @@ const (
 	MaxTagsLength = 1024
 
 	MaxBundleNameLength = 128
-	MaxObjectNameLength = 1024
+	MaxObjectNameLength = 512
 )
 
 var (

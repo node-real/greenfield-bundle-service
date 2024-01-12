@@ -33,7 +33,9 @@ func HandleSetBundleRule() func(params rule.SetBundleRuleParams) middleware.Resp
 		}
 
 		// check rule params
-		if params.XBundleMaxBundleFiles > types.MaxBundleFiles || params.XBundleMaxBundleSize > types.MaxBundleSize || params.XBundleMaxFinalizeTime > types.MaxFinalizeTime {
+		if params.XBundleMaxBundleFiles > types.MaxBundleFiles || params.XBundleMaxBundleSize > types.MaxBundleSize ||
+			params.XBundleMaxFinalizeTime > types.MaxFinalizeTime || params.XBundleMaxBundleFiles < types.MinBundleFiles ||
+			params.XBundleMaxFinalizeTime < types.MinFinalizeTime {
 			util.Logger.Errorf("invalid rule params, maxBundleFiles=%d, maxBundleSize=%d, maxFinalizeTime=%d", params.XBundleMaxBundleFiles, params.XBundleMaxBundleSize, params.XBundleMaxFinalizeTime)
 			return rule.NewSetBundleRuleBadRequest().WithPayload(types.ErrorInvalidBundleRuleParams)
 		}

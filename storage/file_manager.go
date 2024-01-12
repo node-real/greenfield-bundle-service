@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/bnb-chain/greenfield-bundle-sdk/bundle"
 	"github.com/bnb-chain/greenfield-go-sdk/client"
@@ -146,6 +147,7 @@ func (f *FileManager) GetObjectFromGnfdBundle(bucket string, bundle string, obje
 func (f *FileManager) GetObjectFromOss(bucket string, bundle string, object string) (io.ReadCloser, error) {
 	objectKey := GetObjectKeyInOss(bucket, bundle, object)
 
+	startTime := time.Now()
 	objectFile, err := f.ossStore.GetObject(context.Background(), objectKey, 0, 0)
 	if err != nil {
 		if IsNoSuchKey(err) {
@@ -159,16 +161,21 @@ func (f *FileManager) GetObjectFromOss(bucket string, bundle string, object stri
 
 			var objectFile io.ReadCloser
 
+			startTime = time.Now()
 			if queriedBundle.Status == database.BundleStatusFinalized {
 				objectFile, err = f.GetObjectFromOssBundle(bucket, bundle, object)
 				if err != nil {
+					util.Logger.Errorf("failed to get object from oss bundle, bucket=%s, bundle=%s, object=%s, err=%s", bucket, bundle, object, err.Error())
 					return nil, err
 				}
+				util.Logger.Infof("get object from oss bundle, bucket=%s, bundle=%s, object=%s, time=%s", bucket, bundle, object, time.Since(startTime).String())
 			} else {
 				objectFile, err = f.GetObjectFromGnfdBundle(bucket, bundle, object)
 				if err != nil {
+					util.Logger.Errorf("failed to get object from gnfd bundle, bucket=%s, bundle=%s, object=%s, err=%s", bucket, bundle, object, err.Error())
 					return nil, err
 				}
+				util.Logger.Infof("get object from gnfd bundle, bucket=%s, bundle=%s, object=%s, time=%s", bucket, bundle, object, time.Since(startTime).String())
 			}
 
 			var buf bytes.Buffer
@@ -185,6 +192,7 @@ func (f *FileManager) GetObjectFromOss(bucket string, bundle string, object stri
 		}
 		return nil, err
 	}
+	util.Logger.Infof("get object from oss, bucket=%s, bundle=%s, object=%s, time=%s", bucket, bundle, object, time.Since(startTime).String())
 	return objectFile, nil
 }
 

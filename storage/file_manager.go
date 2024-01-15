@@ -209,7 +209,7 @@ func (f *FileManager) GetObjectFromOssBundle(bucket string, bundle string, objec
 
 	bundleKey := GetBundleKeyInOss(bucket, bundle)
 
-	objectFile, err := f.ossStore.GetObject(context.Background(), bundleKey, dbObject.OffsetInBundle, dbObject.OffsetInBundle+dbObject.Size-1)
+	objectFile, err := f.ossStore.GetObject(context.Background(), bundleKey, dbObject.OffsetInBundle, dbObject.Size)
 	if err != nil {
 		return nil, err
 	}

@@ -18,7 +18,7 @@ import (
 type BundlerAccount struct {
 
 	// The address of the bundler
-	Address string `json:"address,omitempty"`
+	Address string `json:"address"`
 }
 
 // Validate validates this bundler account

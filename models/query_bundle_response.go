@@ -18,25 +18,25 @@ import (
 type QueryBundleResponse struct {
 
 	// The name of the bucket where the file has been uploaded
-	BucketName string `json:"bucketName,omitempty"`
+	BucketName string `json:"bucketName"`
 
 	// The name of the bundle where the file has been uploaded
-	BundleName string `json:"bundleName,omitempty"`
+	BundleName string `json:"bundleName"`
 
 	// The creation timestamp of the bundle
-	CreatedTimestamp int64 `json:"createdTimestamp,omitempty"`
+	CreatedTimestamp int64 `json:"createdTimestamp"`
 
 	// The error message of the object
-	ErrorMessage string `json:"errorMessage,omitempty"`
+	ErrorMessage string `json:"errorMessage"`
 
 	// The number of files in the bundle
-	Files int64 `json:"files,omitempty"`
+	Files int64 `json:"files"`
 
 	// The size of the bundle
-	Size int64 `json:"size,omitempty"`
+	Size int64 `json:"size"`
 
 	// The status of the object
-	Status int64 `json:"status,omitempty"`
+	Status int64 `json:"status"`
 }
 
 // Validate validates this query bundle response

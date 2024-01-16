@@ -10,6 +10,7 @@ type BundleConfig struct {
 	AWSRegion          string   `json:"aws_region"`
 	AWSSecretName      string   `json:"aws_secret_name"`
 	LocalStoragePath   string   `json:"local_storage_path"`
+	OssIAMType         string   `json:"oss_iam_type"`
 	OssBucketUrl       string   `json:"oss_bucket_url"`
 }
 

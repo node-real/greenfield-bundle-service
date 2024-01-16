@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/aliyun/credentials-go/credentials"
 	"github.com/viki-org/dnscache"
 
 	"github.com/node-real/greenfield-bundle-service/util"
@@ -25,6 +26,17 @@ const (
 	OSSAccessId = "ALIBABA_CLOUD_ACCESS_ID"
 	// OSSSecretKey defines env variable name for OSS secret key
 	OSSSecretKey = "ALIBABA_CLOUD_SECRET_KEY"
+	// OSSRoleARN defines env variable for OSS role arn
+	OSSRoleARN = "ALIBABA_CLOUD_ROLE_ARN"
+	// OSSWebIdentityTokenFile defines env variable for OSS identity token file
+	OSSWebIdentityTokenFile = "ALIBABA_CLOUD_OIDC_TOKEN_FILE"
+	// OSSOidcProviderArn defines env variable for OSS oidc provider arn
+	OSSOidcProviderArn = "ALIBABA_CLOUD_OIDC_PROVIDER_ARN"
+
+	// AKSKIAMType defines IAM type config which uses access key and secret key to access aws s3
+	AKSKIAMType = "AKSK"
+	// SAIAMType defines IAM type config which uses service account to access aws s3
+	SAIAMType = "SA"
 )
 
 type OssStore struct {
@@ -48,12 +60,136 @@ func getOSSSecretKeyFromEnv(accessId, secretKey string) *ossStorageSecretKey {
 	return key
 }
 
-func NewOssStoreFromEnv(bucketURL string) (*OssStore, error) {
-	key := getOSSSecretKeyFromEnv(OSSAccessId, OSSSecretKey)
-	return NewOssStore(bucketURL, key.accessKey, key.secretKey)
+func NewOssStoreFromConfig(config *util.BundleConfig) (*OssStore, error) {
+	if config.OssIAMType == AKSKIAMType {
+		key := getOSSSecretKeyFromEnv(OSSAccessId, OSSSecretKey)
+		return NewOssStoreAKSK(config.OssBucketUrl, key.accessKey, key.secretKey)
+	} else if config.OssIAMType == SAIAMType {
+		return NewOssStoreSA(config.OssBucketUrl)
+	} else {
+		panic("invalid oss iam type")
+	}
 }
 
-func NewOssStore(bucketURL string, accessKeyId string, accessKeySecret string) (*OssStore, error) {
+func NewOssStoreSA(bucketURL string) (*OssStore, error) {
+	endpoint, bucketName, _, err := parseOSS(bucketURL)
+	if err != nil {
+		util.Logger.Errorf("parse oss bucket error, bucketURL=%s, err=%s", bucketURL, err.Error())
+		return nil, err
+	}
+
+	credProvider, err := newOIDCCredentialProvider()
+	if err != nil {
+		util.Logger.Errorf("failed to new oidc credential provider, %s", err)
+	}
+	cli, err := oss.New(endpoint, "", "", oss.SetCredentialsProvider(credProvider))
+	if err != nil {
+		util.Logger.Errorf("failed to use sa iam type to new oss, %s", err)
+		return nil, err
+	}
+
+	bucket, err := cli.Bucket(bucketName)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get bucket instance %s: %s", bucketName, err)
+	}
+
+	cli.Config.Timeout = 10
+	cli.Config.RetryTimes = 3
+	cli.Config.HTTPTimeout.ConnectTimeout = time.Second * 30
+	cli.Config.HTTPTimeout.ReadWriteTimeout = time.Second * 60
+	cli.Config.HTTPTimeout.HeaderTimeout = time.Second * 60
+	cli.Config.HTTPTimeout.LongTimeout = time.Second * 300
+	cli.Config.IsEnableCRC = false
+	cli.Config.UserAgent = "GREENFIELD-BUNDLE-SERVICE"
+
+	return &OssStore{
+		client: cli,
+		bucket: bucket,
+	}, nil
+}
+
+func NewOssStoreFromEnv(bucketURL string) (*OssStore, error) {
+	key := getOSSSecretKeyFromEnv(OSSAccessId, OSSSecretKey)
+	return NewOssStoreAKSK(bucketURL, key.accessKey, key.secretKey)
+}
+
+func checkOIDCAvailable() (bool, string, string, string) {
+	oidc := true
+	roleArn, exists := os.LookupEnv(OSSRoleARN)
+	if !exists {
+		oidc = false
+		util.Logger.Error("failed to read oss role arn")
+	}
+	oidcProviderArn, exists := os.LookupEnv(OSSOidcProviderArn)
+	if !exists {
+		oidc = false
+		util.Logger.Error("failed to read oss oidc provider arn")
+	}
+	tokenPath, exists := os.LookupEnv(OSSWebIdentityTokenFile)
+	if !exists {
+		oidc = false
+		util.Logger.Error("failed to read oss web identity token file")
+	}
+	return oidc, roleArn, oidcProviderArn, tokenPath
+}
+
+type ossCredentials struct {
+	AccessKeyID     string
+	AccessKeySecret string
+	SecurityToken   string
+}
+
+type defaultCredentialsProvider struct {
+	cred credentials.Credential
+}
+
+func (o *ossCredentials) GetAccessKeyID() string {
+	return o.AccessKeyID
+}
+
+func (o *ossCredentials) GetAccessKeySecret() string {
+	return o.AccessKeySecret
+}
+
+func (o *ossCredentials) GetSecurityToken() string {
+	return o.SecurityToken
+}
+
+func (d *defaultCredentialsProvider) GetCredentials() oss.Credentials {
+	accessKey, _ := d.cred.GetAccessKeyId()
+	secretKey, _ := d.cred.GetAccessKeySecret()
+	securityToken, _ := d.cred.GetSecurityToken()
+	return &ossCredentials{
+		AccessKeyID:     *accessKey,
+		AccessKeySecret: *secretKey,
+		SecurityToken:   *securityToken,
+	}
+}
+
+func newOSSCredentialsProvider(credential credentials.Credential) defaultCredentialsProvider {
+	return defaultCredentialsProvider{cred: credential}
+}
+
+func newOIDCCredentialProvider() (oss.CredentialsProvider, error) {
+	ok, roleArn, oidcProviderArn, tokenPath := checkOIDCAvailable()
+	if !ok {
+		util.Logger.Error("failed to check oss oidc")
+		return nil, fmt.Errorf("no oidc env vars")
+	}
+	config := new(credentials.Config).
+		SetType("oidc_role_arn").
+		SetRoleArn(roleArn).
+		SetOIDCProviderArn(oidcProviderArn).
+		SetOIDCTokenFilePath(tokenPath).SetRoleSessionName("sp-oss")
+	oidcCredential, err := credentials.NewCredential(config)
+	if err != nil {
+		util.Logger.Errorf("failed to new oidc credentials, %s", err)
+	}
+	provider := newOSSCredentialsProvider(oidcCredential)
+	return &provider, nil
+}
+
+func NewOssStoreAKSK(bucketURL string, accessKeyId string, accessKeySecret string) (*OssStore, error) {
 	endpoint, bucketName, region, err := parseOSS(bucketURL)
 	if err != nil {
 		util.Logger.Errorf("parse oss bucket error, bucketURL=%s, err=%s", bucketURL, err.Error())
@@ -65,6 +201,15 @@ func NewOssStore(bucketURL string, accessKeyId string, accessKeySecret string) (
 		util.Logger.Errorf("create oss client error, err=%s", err.Error())
 		return nil, err
 	}
+
+	cli.Config.Timeout = 10
+	cli.Config.RetryTimes = 3
+	cli.Config.HTTPTimeout.ConnectTimeout = time.Second * 30
+	cli.Config.HTTPTimeout.ReadWriteTimeout = time.Second * 60
+	cli.Config.HTTPTimeout.HeaderTimeout = time.Second * 60
+	cli.Config.HTTPTimeout.LongTimeout = time.Second * 300
+	cli.Config.IsEnableCRC = false
+	cli.Config.UserAgent = "GREENFIELD-BUNDLE-SERVICE"
 
 	bucket, err := cli.Bucket(bucketName)
 	if err != nil {

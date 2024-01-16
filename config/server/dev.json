@@ -14,7 +14,8 @@
     "aws_region":"",
     "aws_secret_name":"",
     "local_storage_path": "./bundle_storage/",
-    "oss_bucket_url": "https://greenfield-stagenet-bundle-nodereal.oss-ap-northeast-1.aliyuncs.com"
+    "oss_iam_type": "AKSK",
+    "oss_bucket_url": ""
   },
   "gnfd_config": {
     "chain_id": "greenfield_5600-1",

@@ -62,7 +62,7 @@ func NewFileManager(config *util.ServerConfig, objectDao dao.ObjectDao, bundleDa
 	if config.BundleConfig.OssBucketUrl != "" {
 		util.Logger.Infof("use oss storage, bucketUrl=%s", config.BundleConfig.OssBucketUrl)
 		fileManager.useLocalStorage = false
-		ossStore, err := NewOssStoreFromEnv(config.BundleConfig.OssBucketUrl)
+		ossStore, err := NewOssStoreFromConfig(config.BundleConfig)
 		if err != nil {
 			panic(err)
 		}

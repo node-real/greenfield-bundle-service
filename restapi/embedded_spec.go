@@ -751,7 +751,8 @@ func init() {
       "properties": {
         "address": {
           "description": "The address of the bundler",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         }
       }
     },
@@ -762,11 +763,13 @@ func init() {
           "description": "HTTP error code",
           "type": "integer",
           "format": "int64",
+          "x-omitempty": false,
           "example": "400/500"
         },
         "message": {
           "description": "Error message",
           "type": "string",
+          "x-omitempty": false,
           "example": "Bad request/Internal server error"
         }
       }
@@ -776,31 +779,38 @@ func init() {
       "properties": {
         "bucketName": {
           "description": "The name of the bucket where the file has been uploaded",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         },
         "bundleName": {
           "description": "The name of the bundle where the file has been uploaded",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         },
         "createdTimestamp": {
           "description": "The creation timestamp of the bundle",
-          "type": "integer"
+          "type": "integer",
+          "x-omitempty": false
         },
         "errorMessage": {
           "description": "The error message of the object",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         },
         "files": {
           "description": "The number of files in the bundle",
-          "type": "integer"
+          "type": "integer",
+          "x-omitempty": false
         },
         "size": {
           "description": "The size of the bundle",
-          "type": "integer"
+          "type": "integer",
+          "x-omitempty": false
         },
         "status": {
           "description": "The status of the object",
-          "type": "integer"
+          "type": "integer",
+          "x-omitempty": false
         }
       }
     },
@@ -809,7 +819,8 @@ func init() {
       "properties": {
         "bundleName": {
           "description": "The name of the bundle where the file has been uploaded",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         }
       }
     }
@@ -1549,7 +1560,8 @@ func init() {
       "properties": {
         "address": {
           "description": "The address of the bundler",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         }
       }
     },
@@ -1560,11 +1572,13 @@ func init() {
           "description": "HTTP error code",
           "type": "integer",
           "format": "int64",
+          "x-omitempty": false,
           "example": "400/500"
         },
         "message": {
           "description": "Error message",
           "type": "string",
+          "x-omitempty": false,
           "example": "Bad request/Internal server error"
         }
       }
@@ -1574,31 +1588,38 @@ func init() {
       "properties": {
         "bucketName": {
           "description": "The name of the bucket where the file has been uploaded",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         },
         "bundleName": {
           "description": "The name of the bundle where the file has been uploaded",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         },
         "createdTimestamp": {
           "description": "The creation timestamp of the bundle",
-          "type": "integer"
+          "type": "integer",
+          "x-omitempty": false
         },
         "errorMessage": {
           "description": "The error message of the object",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         },
         "files": {
           "description": "The number of files in the bundle",
-          "type": "integer"
+          "type": "integer",
+          "x-omitempty": false
         },
         "size": {
           "description": "The size of the bundle",
-          "type": "integer"
+          "type": "integer",
+          "x-omitempty": false
         },
         "status": {
           "description": "The status of the object",
-          "type": "integer"
+          "type": "integer",
+          "x-omitempty": false
         }
       }
     },
@@ -1607,7 +1628,8 @@ func init() {
       "properties": {
         "bundleName": {
           "description": "The name of the bundle where the file has been uploaded",
-          "type": "string"
+          "type": "string",
+          "x-omitempty": false
         }
       }
     }

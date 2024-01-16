@@ -526,6 +526,7 @@ definitions:
     type: object
     properties:
       bundleName:
+        x-omitempty: false
         type: string
         description: The name of the bundle where the file has been uploaded
 
@@ -533,24 +534,31 @@ definitions:
     type: object
     properties:
       bucketName:
+        x-omitempty: false
         type: string
         description: The name of the bucket where the file has been uploaded
       bundleName:
+        x-omitempty: false
         type: string
         description: The name of the bundle where the file has been uploaded
       files:
+        x-omitempty: false
         type: integer
         description: The number of files in the bundle
       size:
+        x-omitempty: false
         type: integer
         description: The size of the bundle
       createdTimestamp:
+        x-omitempty: false
         type: integer
         description: The creation timestamp of the bundle
       status:
+        x-omitempty: false
         type: integer
         description: The status of the object
       errorMessage:
+        x-omitempty: false
         type: string
         description: The error message of the object
 
@@ -558,6 +566,7 @@ definitions:
     type: object
     properties:
       address:
+        x-omitempty: false
         type: string
         description: The address of the bundler
 
@@ -565,11 +574,13 @@ definitions:
     type: object
     properties:
       code:
+        x-omitempty: false
         type: integer
         format: int64
         description: "HTTP error code"
         example: "400/500"
       message:
+        x-omitempty: false
         type: string
         description: "Error message"
         example: "Bad request/Internal server error"

@@ -19,11 +19,11 @@ type Error struct {
 
 	// HTTP error code
 	// Example: 400/500
-	Code int64 `json:"code,omitempty"`
+	Code int64 `json:"code"`
 
 	// Error message
 	// Example: Bad request/Internal server error
-	Message string `json:"message,omitempty"`
+	Message string `json:"message"`
 }
 
 // Validate validates this error

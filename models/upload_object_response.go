@@ -18,7 +18,7 @@ import (
 type UploadObjectResponse struct {
 
 	// The name of the bundle where the file has been uploaded
-	BundleName string `json:"bundleName,omitempty"`
+	BundleName string `json:"bundleName"`
 }
 
 // Validate validates this upload object response

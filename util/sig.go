@@ -16,18 +16,6 @@ func GenerateRandomAccount() ([]byte, common.Address, error) {
 	return privateKeyBytes, crypto.PubkeyToAddress(privateKey.PublicKey), nil
 }
 
-// VerifySignature verifies an Ethereum signature given the message hash and the signature.
-func VerifySignature(messageHash []byte, signature []byte) (bool, error) {
-	// Recover the public key from the signature
-	publicKeyECDSA, err := crypto.SigToPub(messageHash, signature)
-	if err != nil {
-		return false, err
-	}
-	recoveredPubKey := crypto.FromECDSAPub(publicKeyECDSA)
-
-	return crypto.VerifySignature(recoveredPubKey, messageHash, signature[:64]), nil
-}
-
 // RecoverAddress recovers the Ethereum address from the given message hash and signature
 func RecoverAddress(messageHash common.Hash, signature []byte) (common.Address, error) {
 	// Recover the public key from the signature

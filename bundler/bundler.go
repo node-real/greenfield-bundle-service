@@ -22,11 +22,12 @@ import (
 	"github.com/node-real/greenfield-bundle-service/database"
 	"github.com/node-real/greenfield-bundle-service/service"
 	"github.com/node-real/greenfield-bundle-service/storage"
+	btypes "github.com/node-real/greenfield-bundle-service/types"
 	"github.com/node-real/greenfield-bundle-service/util"
 )
 
 const (
-	MaxSealOnChainTime = 60 * 60 * 24 // 1 day
+	MaxSealOnChainTime = btypes.MaxFinalizeTime // 1 day
 	EmptyErrMessage    = ""
 )
 

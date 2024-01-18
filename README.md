@@ -56,23 +56,25 @@ The Bundle Service Server API provides several endpoints for managing and intera
 
 1. **Upload a single object to a bundle (`POST /uploadObject`):** This endpoint allows users to upload a single object to a bundle, requiring details like bucket name, file name, and etc.
 
-2. **Retrieve an object as a file from a bundle (`GET /view/{bucketName}/{bundleName}/{objectName}`):** This endpoint fetches a specific object from a given bundle and returns it as a file.
+2. **Upload a bundle (`POST /uploadBundle`):** This endpoint allows users to upload a bundle of objects, requiring details like bucket name, bundle name, and etc.
 
-3. **Download an object as a file from a bundle (`GET /download/{bucketName}/{bundleName}/{objectName}`):** This endpoint allows users to download a specific object from a given bundle and returns it as a file.
+3. **Retrieve an object as a file from a bundle (`GET /view/{bucketName}/{bundleName}/{objectName}`):** This endpoint fetches a specific object from a given bundle and returns it as a file.
 
-4. **Query bundle information (`GET /queryBundle/{bucketName}/{bundleName}`):** This endpoint queries a specific object from a given bundle and returns its related information.
+4. **Download an object as a file from a bundle (`GET /download/{bucketName}/{bundleName}/{objectName}`):** This endpoint allows users to download a specific object from a given bundle and returns it as a file.
 
-5. **Query bundling bundle information of a bucket (`GET /queryBundlingBundle/{bucketName}`):** This endpoint queries the bundling bundle information of a given bucket.
+5. **Query bundle information (`GET /queryBundle/{bucketName}/{bundleName}`):** This endpoint queries a specific object from a given bundle and returns its related information.
 
-6. **Start a New Bundle (`POST /createBundle`):** This endpoint initiates a new bundle, requiring details like bucket name and bundle name.
+6. **Query bundling bundle information of a bucket (`GET /queryBundlingBundle/{bucketName}`):** This endpoint queries the bundling bundle information of a given bucket.
 
-7**Finalize an Existing Bundle (`POST /finalizeBundle`):** This endpoint completes the lifecycle of an existing bundle, requiring the bundle name for authorization.
+7. **Start a New Bundle (`POST /createBundle`):** This endpoint initiates a new bundle, requiring details like bucket name and bundle name.
 
-8**Delete an Existing Bundle (`POST /deleteBundle`):** This endpoint deletes an existing bundle after object deletion on Greenfield.
+8. **Finalize an Existing Bundle (`POST /finalizeBundle`):** This endpoint completes the lifecycle of an existing bundle, requiring the bundle name for authorization.
 
-9**Get Bundler Account for a User (`POST /bundlerAccount/{userAddress}`):** This endpoint returns the bundler account for a given user.
+9. **Delete an Existing Bundle (`POST /deleteBundle`):** This endpoint deletes an existing bundle after object deletion on Greenfield.
 
-10**Set New Bundling Rules (`POST /setBundleRule`):** This endpoint allows users to set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
+10. **Get Bundler Account for a User (`POST /bundlerAccount/{userAddress}`):** This endpoint returns the bundler account for a given user.
+
+11. **Set New Bundling Rules (`POST /setBundleRule`):** This endpoint allows users to set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
 
 For more detailed information about each endpoint, including required parameters and response formats, please refer to the `swagger.yaml` file.
 
@@ -111,6 +113,63 @@ req.Header.Add("Authorization", hex.EncodeToString(signature))
 ```
 
 Please replace `privateKey` with the actual private key. 
+
+### Steps to upload an object
+
+1. Query the bundler account for the user using the `bundlerAccount` endpoint
+
+2. Grant the bundler account the permission to upload objects to the user's bucket and grant fees to the bundler account,
+you can refer to the below code:
+
+```go
+func grantFeesAndPermission() {
+	ctx := context.Background()
+
+	bucketActions := []permTypes.ActionType{permTypes.ACTION_CREATE_OBJECT}
+	statements := utils.NewStatement(bucketActions, permTypes.EFFECT_ALLOW, nil, types.NewStatementOptions{})
+	principal, err := utils.NewPrincipalWithAccount(bundlerAcc.GetAddress())
+	if err != nil {
+		util.Logger.Fatalf("fail to generate marshaled principal: %v", err)
+	}
+	txHash, err := gnfdClient.PutBucketPolicy(ctx, bucketName, principal, []*permTypes.Statement{&statements}, types.PutPolicyOption{})
+	if err != nil {
+		util.Logger.Fatalf("put policy failed: %v", err)
+	}
+	_, err = gnfdClient.WaitForTx(ctx, txHash)
+	if err != nil {
+		util.Logger.Fatalf("wait for grant permission tx failed: %v", err)
+	}
+
+	allowanceAmount := math.NewIntWithDecimal(1, 18)
+	allowance, err := gnfdClient.QueryBasicAllowance(ctx, ownerAcc.GetAddress().String(), bundlerAcc.GetAddress().String())
+	if err == nil {
+		for _, coin := range allowance.SpendLimit {
+			if coin.Denom == types2.Denom && coin.Amount.GTE(allowanceAmount) {
+				return
+			}
+		}
+		txHash, err = gnfdClient.RevokeAllowance(ctx, bundlerAcc.GetAddress().String(), types2.TxOption{})
+		if err != nil {
+			util.Logger.Warnf("revoke fee allowance failed: %v", err)
+		}
+		_, err = gnfdClient.WaitForTx(ctx, txHash)
+		if err != nil {
+			util.Logger.Warnf("wait for revoke allowance tx failed: %v", err)
+		}
+	}
+
+	txHash, err = gnfdClient.GrantBasicAllowance(ctx, bundlerAcc.GetAddress().String(), allowanceAmount, nil, types2.TxOption{})
+	if err != nil {
+		util.Logger.Fatalf("grant fee allowance failed: %v", err)
+	}
+	_, err = gnfdClient.WaitForTx(ctx, txHash)
+	if err != nil {
+		util.Logger.Fatalf("wait for grant fee tx failed: %v", err)
+	}
+}
+```
+
+3. Upload the object to the user's bucket using the `uploadObject` endpoint
 
 ## Bundler
 

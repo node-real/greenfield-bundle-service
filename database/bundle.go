@@ -10,7 +10,6 @@ const (
 	BundleStatusCreatedOnChain BundleStatus = 2
 	BundleStatusSealedOnChain  BundleStatus = 3
 	BundleStatusExpired        BundleStatus = 4
-	BundleStatusDeleted        BundleStatus = 5
 )
 
 var (

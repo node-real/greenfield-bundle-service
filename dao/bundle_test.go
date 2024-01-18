@@ -19,7 +19,7 @@ func TestCreateBundleIfNotBundlingExist_Concurrent(t *testing.T) {
 		DBDialect: "mysql",
 		DBPath:    "tcp(localhost:3306)/test",
 		Username:  "root",
-		Password:  "12345678",
+		Password:  "your password",
 	}
 
 	db, err := database.ConnectDBWithConfig(config)
@@ -66,7 +66,7 @@ func TestInsertObjects(t *testing.T) {
 		DBDialect: "mysql",
 		DBPath:    "tcp(localhost:3306)/test",
 		Username:  "root",
-		Password:  "12345678",
+		Password:  "your password",
 	}
 
 	db, err := database.ConnectDBWithConfig(config)
@@ -123,7 +123,7 @@ func TestInsertObjectsInOne(t *testing.T) {
 		DBDialect: "mysql",
 		DBPath:    "tcp(localhost:3306)/test",
 		Username:  "root",
-		Password:  "12345678",
+		Password:  "your password",
 	}
 
 	db, err := database.ConnectDBWithConfig(config)

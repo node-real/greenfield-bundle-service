@@ -18,7 +18,7 @@ import (
 )
 
 func GetAccount() ([]byte, common.Address, error) {
-	privateKeyBytes, _ := hex.DecodeString("7013b62758059b6fbd08bd38a987c54e6a50cc4d306788db744c1818f18a08a5")
+	privateKeyBytes, _ := hex.DecodeString("your private key")
 	// Convert the bytes to *ecdsa.PrivateKey
 	privateKey, err := crypto.ToECDSA(privateKeyBytes)
 	if err != nil {
@@ -36,14 +36,11 @@ func SignMessage(privateKeyBytes []byte, message []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	println("hex message", hex.EncodeToString(message))
-
 	// Sign the message
 	signature, err := crypto.Sign(message, privateKey)
 	if err != nil {
 		return nil, err
 	}
-	println("hex signature", hex.EncodeToString(signature))
 	return signature, err
 }
 
@@ -102,8 +99,6 @@ func SendRequest(privateKey []byte, url, method string, headers map[string]strin
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
-
-	//req.Header.Set("Content-Type", "application/json")
 
 	messageToSign := types.GetMsgToSignInBundleAuth(req)
 	messageHash := types.TextHash(messageToSign)

@@ -1,0 +1,33 @@
+{
+  "db_config":{
+    "db_dialect":"sqlite3",
+    "db_path":"./build/db.sqlite3",
+    "password":"your password(use a random string if using sqlite3)",
+    "username":"root",
+    "max_idle_conns":0,
+    "max_open_conns":0,
+    "aws_region":"",
+    "aws_secret_name":""
+  },
+  "bundle_config": {
+    "bundler_private_keys": ["your private key"],
+    "aws_region":"",
+    "aws_secret_name":"",
+    "local_storage_path": "./bundle_storage/",
+    "oss_bucket_url": ""
+  },
+  "gnfd_config": {
+    "chain_id": "greenfield_5600-1",
+    "rpc_url": "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
+  },
+  "log_config":{
+    "level":"INFO",
+    "filename":"",
+    "max_file_size_in_mb":0,
+    "max_backups_of_log_files":0,
+    "max_age_to_retain_log_files_in_days":0,
+    "use_console_logger":true,
+    "use_file_logger":false,
+    "compress":false
+  }
+}

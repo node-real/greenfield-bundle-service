@@ -1,0 +1,17 @@
+vue/node_modules
+vue/dist
+release/
+.vscode/
+.DS_Store
+spec/
+Taskfile.yaml
+build/
+vendor/
+.local
+.task
+coverage.out
+.idea/
+devtest/
+*.sqlite3
+bundle-service-server
+bundle_storage/

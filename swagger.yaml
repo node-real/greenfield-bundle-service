@@ -1,0 +1,586 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Bundle Service API
+  description: API for handling file bundling and querying objects in the Bundle Service.
+host: 'gnfd-testnet-bundle.nodereal.io'
+basePath: /v1
+schemes:
+  - http
+
+paths:
+  /uploadObject:
+    post:
+      tags:
+        - Bundle
+      summary: Upload a single object to a bundle
+      description: >
+        Uploads a single object to a bundle, requiring details like bucket name, file name, and etc.
+      operationId: uploadObject
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: Authorization
+          in: header
+          description: User's digital signature for authentication
+          required: true
+          type: string
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
+          required: true
+          type: string
+        - name: X-Bundle-File-Name
+          in: header
+          description: The name of the file to be uploaded
+          required: true
+          type: string
+        - name: X-Bundle-Content-Type
+          in: header
+          description: Content type of the file
+          required: true
+          type: string
+        - name: X-Bundle-File-Sha256
+          in: header
+          description: SHA256 hash of the file
+          required: true
+          type: string
+        - name: X-Bundle-Tags
+          in: header
+          description: Tags of the file
+          required: false
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
+        - name: file
+          in: formData
+          description: The file to be uploaded
+          required: true
+          type: file
+      responses:
+        '200':
+          description: Successfully uploaded file
+          schema:
+            $ref: '#/definitions/UploadObjectResponse'
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /uploadBundle:
+    post:
+      tags:
+        - Bundle
+      summary: Upload a bundle
+      description: >
+        Uploads a bundle of objects, requiring details like bucket name, bundle name, and etc.
+      operationId: uploadBundle
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: Authorization
+          in: header
+          description: User's digital signature for authentication
+          required: true
+          type: string
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
+          required: true
+          type: string
+        - name: X-Bundle-Name
+          in: header
+          description: The name of the bundle to be created
+          required: true
+          type: string
+        - name: X-Bundle-File-Sha256
+          in: header
+          description: SHA256 hash of the file
+          required: true
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
+        - name: file
+          in: formData
+          description: The file to be uploaded
+          required: true
+          type: file
+      responses:
+        '200':
+          description: Successfully uploaded file
+          schema:
+            $ref: '#/definitions/UploadObjectResponse'
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /view/{bucketName}/{bundleName}/{objectName}:
+    get:
+      tags:
+        - Bundle
+      summary: Retrieve an object as a file from a bundle
+      description: >
+        Fetches a specific object from a given bundle and returns it as a file.
+      operationId: viewBundleObject
+      produces:
+        - application/octet-stream
+      parameters:
+        - name: bucketName
+          in: path
+          required: true
+          type: string
+          description: The bucketName of the bundle
+        - name: bundleName
+          in: path
+          required: true
+          type: string
+          description: The name of the bundle
+        - name: objectName
+          in: path
+          required: true
+          type: string
+          description: The name of the object within the bundle
+      responses:
+        '200':
+          description: Successfully retrieved file
+          schema:
+            type: file
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Bundle or object not found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /queryBundle/{bucketName}/{bundleName}:
+    get:
+      tags:
+        - Bundle
+      summary: Query bundle information
+      description: >
+        Queries the bundle information of a given bundle.
+      operationId: queryBundle
+      produces:
+        - application/octet-stream
+      parameters:
+        - name: bucketName
+          in: path
+          required: true
+          type: string
+          description: The bucketName of the bundle
+        - name: bundleName
+          in: path
+          required: true
+          type: string
+          description: The name of the bundle
+      responses:
+        '200':
+          description: Successfully queried bundle
+          schema:
+            $ref: '#/definitions/QueryBundleResponse'
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Bundle not found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /queryBundlingBundle/{bucketName}:
+    get:
+      tags:
+        - Bundle
+      summary: Query bundling bundle information of a bucket
+      description: >
+        Queries the bundling bundle information of a given bucket.
+      operationId: queryBundlingBundle
+      produces:
+        - application/octet-stream
+      parameters:
+        - name: bucketName
+          in: path
+          required: true
+          type: string
+          description: The bucketName of the bundle
+      responses:
+        '200':
+          description: Successfully queried bundle
+          schema:
+            $ref: '#/definitions/QueryBundleResponse'
+        '404':
+          description: Bundle not found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /download/{bucketName}/{bundleName}/{objectName}:
+    get:
+      tags:
+        - Bundle
+      summary: Download an object as a file from a bundle
+      description: >
+        Download a specific object from a given bundle and returns it as a file.
+      operationId: downloadBundleObject
+      produces:
+        - application/octet-stream
+      parameters:
+        - name: bucketName
+          in: path
+          required: true
+          type: string
+          description: The bucketName of the bundle
+        - name: bundleName
+          in: path
+          required: true
+          type: string
+          description: The name of the bundle
+        - name: objectName
+          in: path
+          required: true
+          type: string
+          description: The name of the object within the bundle
+      responses:
+        '200':
+          description: Successfully retrieved file
+          schema:
+            type: file
+        '400':
+          description: Invalid request or file format
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Bundle or object not found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /createBundle:
+    post:
+      tags:
+        - Bundle
+      summary: Start a New Bundle
+      description: >
+        Initiates a new bundle, requiring details like bucket name and bundle name.
+      operationId: createBundle
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Authorization
+          in: header
+          description: User's digital signature for authorization
+          required: true
+          type: string
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
+          required: true
+          type: string
+        - name: X-Bundle-Name
+          in: header
+          description: The name of the bundle to be created
+          required: true
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Successfully managed bundle
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /finalizeBundle:
+    post:
+      tags:
+        - Bundle
+      summary: Finalize an Existing Bundle
+      description: >
+        Completes the lifecycle of an existing bundle, requiring the bundle name for authorization.
+      operationId: finalizeBundle
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Authorization
+          in: header
+          description: User's digital signature for authorization
+          required: true
+          type: string
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
+          required: true
+          type: string
+        - name: X-Bundle-Name
+          in: header
+          description: The name of the bundle to be finalized
+          required: true
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Successfully managed bundle
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /deleteBundle:
+    post:
+      tags:
+        - Bundle
+      summary: Delete an bundle after object deletion on Greenfield
+      description: >
+        Delete an bundle after object deletion on Greenfield
+      operationId: deleteBundle
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Authorization
+          in: header
+          description: User's digital signature for authorization
+          required: true
+          type: string
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: The name of the bucket
+          required: true
+          type: string
+        - name: X-Bundle-Name
+          in: header
+          description: The name of the bundle to be finalized
+          required: true
+          type: string
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Successfully deleted bundle
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /bundlerAccount/{userAddress}:
+    post:
+      tags:
+        - Bundle
+      summary: Get Bundler Account for a User
+      description: >
+        Returns the bundler account for a given user.
+      operationId: bundlerAccount
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: userAddress
+          in: path
+          required: true
+          type: string
+          description: The address of the user
+      responses:
+        '200':
+          description: Successfully retrieved bundler account
+          schema:
+            $ref: '#/definitions/BundlerAccount'
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /setBundleRule:
+    post:
+      tags:
+        - Rule
+      summary: Set New Bundling Rules
+      description: >
+        Set new rules or replace old rules for bundling, including constraints like maximum size and number of files.
+      operationId: setBundleRule
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Authorization
+          in: header
+          description: User's digital signature for authorization
+          required: true
+          type: string
+        - name: X-Bundle-Bucket-Name
+          in: header
+          description: Name of the bucket for which the rule applies
+          required: true
+          type: string
+        - name: X-Bundle-Max-Bundle-Size
+          in: header
+          description: Maximum size of a bundle in bytes
+          required: true
+          type: integer
+          format: int64
+        - name: X-Bundle-Max-Bundle-Files
+          in: header
+          description: Maximum number of files in a bundle
+          required: true
+          type: integer
+          format: int64
+        - name: X-Bundle-Max-Finalize-Time
+          in: header
+          description: Maximum time in seconds before a bundle must be finalized
+          required: true
+          type: integer
+          format: int64
+        - name: X-Bundle-Expiry-Timestamp
+          in: header
+          description: Expiry timestamp of the request
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Successfully added bundle rule
+        '400':
+          description: Invalid request or parameters
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+
+definitions:
+  UploadObjectResponse:
+    type: object
+    properties:
+      bundleName:
+        x-omitempty: false
+        type: string
+        description: The name of the bundle where the file has been uploaded
+
+  QueryBundleResponse:
+    type: object
+    properties:
+      bucketName:
+        x-omitempty: false
+        type: string
+        description: The name of the bucket where the file has been uploaded
+      bundleName:
+        x-omitempty: false
+        type: string
+        description: The name of the bundle where the file has been uploaded
+      files:
+        x-omitempty: false
+        type: integer
+        description: The number of files in the bundle
+      size:
+        x-omitempty: false
+        type: integer
+        description: The size of the bundle
+      createdTimestamp:
+        x-omitempty: false
+        type: integer
+        description: The creation timestamp of the bundle
+      status:
+        x-omitempty: false
+        type: integer
+        description: The status of the object
+      errorMessage:
+        x-omitempty: false
+        type: string
+        description: The error message of the object
+
+  BundlerAccount:
+    type: object
+    properties:
+      address:
+        x-omitempty: false
+        type: string
+        description: The address of the bundler
+
+  Error:
+    type: object
+    properties:
+      code:
+        x-omitempty: false
+        type: integer
+        format: int64
+        description: "HTTP error code"
+        example: "400/500"
+      message:
+        x-omitempty: false
+        type: string
+        description: "Error message"
+        example: "Bad request/Internal server error"

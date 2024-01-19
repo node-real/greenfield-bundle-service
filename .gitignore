@@ -13,5 +13,4 @@ coverage.out
 .idea/
 devtest/
 *.sqlite3
-bundle-service-server
 bundle_storage/
